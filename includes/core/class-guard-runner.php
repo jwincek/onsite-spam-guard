@@ -36,6 +36,7 @@ final class Guard_Runner {
 			'link_limit'    => \Simple_Spam_Shield\Guards\Link_Limit::class,
 			'keyword_block' => \Simple_Spam_Shield\Guards\Keyword_Block::class,
 			'duplicate'     => \Simple_Spam_Shield\Guards\Duplicate::class,
+			'rate_limit'    => \Simple_Spam_Shield\Guards\Rate_Limit::class,
 			'behavioral'    => \Simple_Spam_Shield\Guards\Behavioral::class,
 		];
 

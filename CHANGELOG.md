@@ -10,6 +10,15 @@ The user-facing changelog shipped to WordPress.org lives in the
 
 ## [Unreleased]
 
+### Added
+- Rate-limit guard that throttles repeated submissions from the same sender
+  (logged-in user, or IP when anonymous) within a short window. Off by default;
+  suited to authenticated flows such as private messages.
+- Option to also apply WordPress's Disallowed Comment Keys (Settings →
+  Discussion) to every protected form via `wp_check_comment_disallowed_list()`,
+  extending that one core blocklist beyond comments to reviews, Jetpack forms,
+  and public-API integrations.
+
 ## [1.1.3] - 2026-08-19
 
 ### Changed

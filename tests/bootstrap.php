@@ -72,6 +72,26 @@ if ( ! function_exists( 'current_user_can' ) ) {
 		return $GLOBALS['simple_spam_shield_test_caps'][ $capability ] ?? false;
 	}
 }
+if ( ! function_exists( 'get_current_user_id' ) ) {
+	function get_current_user_id() {
+		return (int) ( $GLOBALS['simple_spam_shield_test_user_id'] ?? 0 );
+	}
+}
+if ( ! function_exists( 'wp_check_comment_disallowed_list' ) ) {
+	function wp_check_comment_disallowed_list( $author, $email, $url, $comment, $user_ip = '', $user_agent = '' ) {
+		$list = trim( (string) get_option( 'disallowed_keys', '' ) );
+		if ( '' === $list ) {
+			return false;
+		}
+		$haystack = strtolower( "$author $email $url $comment $user_ip $user_agent" );
+		foreach ( array_filter( array_map( 'trim', explode( "\n", $list ) ) ) as $word ) {
+			if ( str_contains( $haystack, strtolower( $word ) ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+}
 if ( ! function_exists( 'esc_html' ) ) {
 	function esc_html( $text ) {
 		return $text;

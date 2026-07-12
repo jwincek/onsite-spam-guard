@@ -40,6 +40,14 @@
 			"window_seconds": 60,
 			"weight": 95
 		},
+		"rate_limit": {
+			"label": "Rate limit",
+			"description": "Throttles repeated submissions from the same sender (logged-in user or IP) within a short window. Off by default; useful for authenticated flows such as private messages.",
+			"enabled_by_default": false,
+			"max_per_window": 10,
+			"window_seconds": 60,
+			"weight": 85
+		},
 		"behavioral": {
 			"label": "Behavioral analysis",
 			"description": "Scores submissions based on mouse movements, clicks, and time on page to detect bot-like patterns.",

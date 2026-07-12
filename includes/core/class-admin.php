@@ -158,6 +158,7 @@ final class Admin {
 
 		self::add_number( 'simple_spam_shield_time_gate_seconds', __( 'Minimum seconds before submit', 'onsite-spam-guard' ), $guards_page, 'simple_spam_shield_guards', 3, 1, 30, __( 'seconds', 'onsite-spam-guard' ) );
 		self::add_number( 'simple_spam_shield_link_limit_max', __( 'Maximum links per submission', 'onsite-spam-guard' ), $guards_page, 'simple_spam_shield_guards', 3, 0, 50 );
+		self::add_number( 'simple_spam_shield_rate_limit_max', __( 'Rate limit: max submissions per minute', 'onsite-spam-guard' ), $guards_page, 'simple_spam_shield_guards', 10, 0, 1000, __( 'per sender (0 = no limit)', 'onsite-spam-guard' ) );
 
 		// Behavioral threshold.
 		register_setting( 'onsite-spam-guard', 'simple_spam_shield_behavioral_threshold', [
@@ -206,6 +207,8 @@ final class Admin {
 			$guards_page,
 			'simple_spam_shield_guards'
 		);
+
+		self::add_toggle( 'simple_spam_shield_use_wp_disallowed_keys', __( 'Also apply WordPress\'s Disallowed Comment Keys (Settings → Discussion) to every protected form', 'simple-spam-shield' ), $guards_page, 'simple_spam_shield_guards', false );
 
 		// ---- Allowlist tab ----
 		$allowlist_page = $tabs['allowlist']['page'];

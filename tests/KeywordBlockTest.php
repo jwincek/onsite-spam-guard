@@ -40,4 +40,24 @@ final class KeywordBlockTest extends TestCase {
 		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_blocked_keywords'] = '';
 		$this->assertTrue( $this->guard()->check( [ 'content' => 'spam spam spam' ], 'comment' ) );
 	}
+
+	public function test_applies_wp_disallowed_keys_when_enabled(): void {
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_blocked_keywords']     = '';
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_use_wp_disallowed_keys'] = true;
+		$GLOBALS['simple_spam_shield_test_options']['disallowed_keys']                         = 'forbidden';
+		$_SERVER['REMOTE_ADDR']                                                                = '203.0.113.1';
+
+		// A context core never checks itself (Jetpack form) still gets the list.
+		$result = $this->guard()->check( [ 'content' => 'this is forbidden content' ], 'jetpack_form' );
+		$this->assertInstanceOf( WP_Error::class, $result );
+	}
+
+	public function test_ignores_wp_disallowed_keys_when_toggle_off(): void {
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_blocked_keywords']     = '';
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_use_wp_disallowed_keys'] = false;
+		$GLOBALS['simple_spam_shield_test_options']['disallowed_keys']                         = 'forbidden';
+		$_SERVER['REMOTE_ADDR']                                                                = '203.0.113.1';
+
+		$this->assertTrue( $this->guard()->check( [ 'content' => 'this is forbidden content' ], 'jetpack_form' ) );
+	}
 }
