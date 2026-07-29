@@ -9,6 +9,17 @@ permissions:
   contents: read
 
 jobs:
+  # The plugin records its version in five places and its minimum requirements
+  # in two. WordPress.org serves the build named by `Stable tag`, and Plugin
+  # Check fails a header/readme requirement mismatch, so drift is caught here
+  # rather than after a release.
+  versions:
+    name: Version consistency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bin/check-versions.sh
+
   lint-test:
     name: Lint & Test (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
@@ -42,19 +53,11 @@ jobs:
       - uses: actions/checkout@v4
 
       # Run Plugin Check against a distribution copy with dev tooling removed,
-      # mirroring the .distignore so the check sees only what ships.
+      # so the check sees only what ships. bin/build-dist.sh reads .distignore,
+      # which keeps this identical to the package the release workflow
+      # publishes — no second exclude list to keep in sync.
       - name: Build distribution copy
-        run: |
-          mkdir -p build/simple-spam-shield
-          rsync -a \
-            --exclude='.git' --exclude='.github' --exclude='.gitignore' \
-            --exclude='.distignore' --exclude='node_modules' --exclude='vendor' \
-            --exclude='composer.json' --exclude='composer.lock' \
-            --exclude='phpcs.xml.dist' --exclude='.phpcs-cache' \
-            --exclude='phpunit.xml.dist' --exclude='.phpunit.cache' \
-            --exclude='.phpunit.result.cache' --exclude='tests' \
-            --exclude='README.md' --exclude='build' \
-            ./ build/simple-spam-shield/
+        run: bin/build-dist.sh build
 
       - name: Run Plugin Check
         uses: WordPress/plugin-check-action@v1

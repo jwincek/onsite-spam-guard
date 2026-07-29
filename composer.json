@@ -20,6 +20,8 @@
 	"scripts": {
 		"lint": "phpcs",
 		"lint:fix": "phpcbf",
-		"test": "phpunit"
+		"test": "phpunit",
+		"check-versions": "bin/check-versions.sh",
+		"build": "bin/build-dist.sh"
 	}
 }

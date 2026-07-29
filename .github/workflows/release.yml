@@ -1,0 +1,91 @@
+name: Release
+
+# Publishing is driven entirely by pushing a version tag:
+#
+#   git tag v1.2.0 && git push origin v1.2.0
+#
+# The tag must match the version in the plugin header — the validate job
+# enforces that before anything is published.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    name: Validate release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Refuse to publish a tag whose version metadata disagrees with itself.
+      # WordPress.org serves whatever `Stable tag` points at, so a mismatch
+      # ships the wrong version with no error anywhere.
+      - name: Check version consistency
+        run: bin/check-versions.sh "${GITHUB_REF_NAME}"
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      # A tag should never ship code that fails the same gates as main.
+      - name: PHP CodeSniffer
+        run: composer lint
+
+      - name: PHPUnit
+        run: composer test
+
+  release:
+    name: Publish
+    needs: validate
+    runs-on: ubuntu-latest
+    # Evaluated at job level so the deploy step's `if` can read it reliably.
+    env:
+      HAS_SVN_CREDENTIALS: ${{ secrets.SVN_USERNAME != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Build the runtime-only package. bin/build-dist.sh reads .distignore,
+      # so this zip contains exactly what the WordPress.org deploy publishes.
+      - name: Build distribution package
+        run: |
+          bin/build-dist.sh build
+          cd build && zip -rq "simple-spam-shield-${GITHUB_REF_NAME#v}.zip" simple-spam-shield
+
+      # Deploy to the WordPress.org SVN repository: commits the built files to
+      # trunk/ and tags/<version>/, and syncs .wordpress-org/ to assets/.
+      #
+      # Skipped automatically until the SVN_USERNAME / SVN_PASSWORD repository
+      # secrets exist, so this workflow is safe to merge before the plugin is
+      # approved — tagging will still build and attach the zip below.
+      - name: Deploy to WordPress.org
+        if: env.HAS_SVN_CREDENTIALS == 'true'
+        uses: 10up/action-wordpress-plugin-deploy@stable
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: simple-spam-shield
+          ASSETS_DIR: .wordpress-org
+
+      # Attach the installable zip to the GitHub Release. The auto-generated
+      # "Source code" archive is the whole repo and is not installable, so this
+      # gives anyone installing from GitHub a working package.
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME#v}" \
+            --notes "See CHANGELOG.md for details." \
+            "build/simple-spam-shield-${GITHUB_REF_NAME#v}.zip" \
+            || gh release upload "${GITHUB_REF_NAME}" \
+                 "build/simple-spam-shield-${GITHUB_REF_NAME#v}.zip" --clobber

@@ -123,9 +123,55 @@ so guards never need to know about comment arrays vs. Jetpack field data.
 
 ## Distribution
 
-The shipped package is runtime-only. Files listed in `.distignore` (dev
-tooling, tests, source control, the GitHub-facing `README.md`) are excluded
-from the WordPress.org build; `readme.txt` is the user-facing readme.
+The shipped package is runtime-only. `.distignore` is the single source of
+truth for what is excluded (dev tooling, tests, source control, the
+GitHub-facing `README.md`); `readme.txt` is the user-facing readme. Build it
+locally with:
+
+```bash
+composer build          # -> build/simple-spam-shield/
+```
+
+Both the Plugin Check CI job and the WordPress.org deploy use this same script,
+so there is no second exclude list to keep in sync.
+
+## Releasing
+
+GitHub is the source of truth; the WordPress.org SVN repository is a publish
+target that is never edited by hand.
+
+1. **Bump the version** everywhere it appears — the plugin header `Version`,
+   the `SIMPLE_SPAM_SHIELD_VERSION` constant, `readme.txt` `Stable tag`, a new
+   `## [x.y.z]` heading in `CHANGELOG.md`, and a matching `= x.y.z =` section
+   in the `readme.txt` changelog.
+2. **Regenerate the translation template** so its header carries the new
+   version:
+   ```bash
+   wp i18n make-pot . languages/simple-spam-shield.pot --slug=simple-spam-shield
+   ```
+3. **Check consistency** (CI runs this on every push, and the release workflow
+   runs it against the tag):
+   ```bash
+   composer check-versions
+   ```
+4. **Tag and push.** That is the only manual publish step:
+   ```bash
+   git tag v1.2.0 && git push origin v1.2.0
+   ```
+
+`.github/workflows/release.yml` then validates the tag against the plugin
+version, re-runs lint and tests, builds the package, commits it to SVN
+`trunk/` and `tags/<version>/`, syncs `.wordpress-org/` to the SVN `assets/`
+directory, and attaches an installable zip to the GitHub Release.
+
+The SVN deploy step is skipped until the `SVN_USERNAME` and `SVN_PASSWORD`
+repository secrets are set, so tagging works safely before the plugin is
+approved on WordPress.org.
+
+**`Stable tag` is the release switch.** WordPress.org serves whatever
+`tags/<Stable tag>/` contains, so tagging code without bumping `Stable tag`
+silently keeps users on the old version. That is exactly what
+`bin/check-versions.sh` exists to prevent.
 
 ## Reporting security issues
 

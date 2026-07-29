@@ -16,6 +16,8 @@
 /phpunit.xml.dist
 /.phpunit.cache
 /.phpunit.result.cache
+/bin
+/build
 /tests
 /README.md
 /CONTRIBUTING.md
