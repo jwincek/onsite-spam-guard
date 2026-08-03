@@ -1,4 +1,4 @@
-# Simple Spam Shield
+# Onsite Spam Guard
 
 Config-driven spam prevention for WordPress Comments, WooCommerce Product Reviews, and Jetpack Contact Form blocks — no external services, no API keys, no CAPTCHA.
 
@@ -30,10 +30,10 @@ uninstall.php            → Clean deletion of all plugin data
 
 ## Installation
 
-1. Download or clone into `wp-content/plugins/simple-spam-shield/`.
+1. Download or clone into `wp-content/plugins/onsite-spam-guard/`.
 2. Activate in **Plugins → Installed Plugins**.
-3. Configure at **Spam Shield → Settings**.
-4. View blocked submissions at **Spam Shield → Spam Logs**.
+3. Configure at **Spam Guard → Settings**.
+4. View blocked submissions at **Spam Guard → Spam Logs**.
 
 ## Spam Guards
 
@@ -75,11 +75,11 @@ Submissions from allowlisted IPs or emails bypass all guards entirely. The allow
 
 ### Logging
 
-Blocked submissions are logged to a custom database table (`wp_simple_spam_shield_spam_logs`) with guard name, context, reason, content excerpt, IP, and user agent. The **Spam Shield → Spam Logs** admin page provides a paginated, sortable `WP_List_Table` that can be filtered by guard and by context, shows a user-agent column, and offers individual and bulk delete. A cached 7-day summary ("blocked / most active guard") sits above the list. Logging can be disabled from the settings page, and a configurable retention window (default 30 days) prunes old rows daily via WP-Cron.
+Blocked submissions are logged to a custom database table (`wp_simple_spam_shield_spam_logs`) with guard name, context, reason, content excerpt, IP, and user agent. The **Spam Guard → Spam Logs** admin page provides a paginated, sortable `WP_List_Table` that can be filtered by guard and by context, shows a user-agent column, and offers individual and bulk delete. A cached 7-day summary ("blocked / most active guard") sits above the list. Logging can be disabled from the settings page, and a configurable retention window (default 30 days) prunes old rows daily via WP-Cron.
 
 ### Settings
 
-Settings live under **Spam Shield → Settings**, organized into tabs — General, Guards, Allowlist, and Logging — rendered as a single form so one Save persists everything. It degrades gracefully: without JavaScript the tab bar is hidden and every section is shown.
+Settings live under **Spam Guard → Settings**, organized into tabs — General, Guards, Allowlist, and Logging — rendered as a single form so one Save persists everything. It degrades gracefully: without JavaScript the tab bar is hidden and every section is shown.
 
 ### Clean uninstall
 
@@ -87,7 +87,7 @@ When the plugin is deleted (not just deactivated), `uninstall.php` drops the cus
 
 ## Protecting another plugin's forms
 
-Other plugins can run their own form submissions through Simple Spam Shield's guards via a small, stable public API (`includes/api.php`). Integrate through these prefixed functions — not the internal classes — and wrap calls in `function_exists()` so your plugin degrades gracefully when Simple Spam Shield is inactive.
+Other plugins can run their own form submissions through Onsite Spam Guard's guards via a small, stable public API (`includes/api.php`). Integrate through these prefixed functions — not the internal classes — and wrap calls in `function_exists()` so your plugin degrades gracefully when Onsite Spam Guard is inactive.
 
 **1. Check a submission (server side).** Pass the human-meaningful fields; the hidden honeypot/token/behavioral fields are read from `$_POST` automatically. Returns `true` or a `WP_Error`.
 

@@ -1,12 +1,12 @@
 <?php
 /**
- * Plugin Name: Simple Spam Shield
+ * Plugin Name: Onsite Spam Guard
  * Description: Config-driven spam prevention for Comments, WooCommerce Reviews, and Jetpack Contact Form blocks — no external services required.
- * Version:     1.1.1
+ * Version:     1.1.2
  * Requires at least: 6.2
  * Requires PHP: 8.2
  * Author:      Jerome Wincek
- * Text Domain: simple-spam-shield
+ * Text Domain: onsite-spam-guard
  * License:     GPL-2.0-or-later
  *
  * @package Simple_Spam_Shield
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( 'SIMPLE_SPAM_SHIELD_VERSION', '1.1.1' );
+define( 'SIMPLE_SPAM_SHIELD_VERSION', '1.1.2' );
 define( 'SIMPLE_SPAM_SHIELD_FILE', __FILE__ );
 define( 'SIMPLE_SPAM_SHIELD_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SIMPLE_SPAM_SHIELD_URL', plugin_dir_url( __FILE__ ) );

@@ -16,10 +16,10 @@ set -uo pipefail
 
 cd "$( dirname "${BASH_SOURCE[0]}" )/.." || exit 1
 
-MAIN_FILE="simple-spam-shield.php"
+MAIN_FILE="onsite-spam-guard.php"
 README="readme.txt"
 CHANGELOG="CHANGELOG.md"
-POT="languages/simple-spam-shield.pot"
+POT="languages/onsite-spam-guard.pot"
 
 fail=0
 err() { printf '  FAIL  %s\n' "$1"; fail=1; }
@@ -79,7 +79,7 @@ fi
 # The .pot is regenerated per release; a stale one is a warning, not a blocker.
 if [ -f "$POT" ]; then
   pot_version=$(grep -m1 'Project-Id-Version:' "$POT" \
-    | sed -E 's/.*Simple Spam Shield[[:space:]]*([0-9][0-9.]*).*/\1/')
+    | sed -E 's/.*Onsite Spam Guard[[:space:]]*([0-9][0-9.]*).*/\1/')
   if [ "$pot_version" = "$header_version" ]; then
     ok "languages/*.pot Project-Id-Version matches the plugin header"
   else

@@ -59,7 +59,7 @@ jobs:
       - name: Build distribution package
         run: |
           bin/build-dist.sh build
-          cd build && zip -rq "simple-spam-shield-${GITHUB_REF_NAME#v}.zip" simple-spam-shield
+          cd build && zip -rq "onsite-spam-guard-${GITHUB_REF_NAME#v}.zip" onsite-spam-guard
 
       # Deploy to the WordPress.org SVN repository: commits the built files to
       # trunk/ and tags/<version>/, and syncs .wordpress-org/ to assets/.
@@ -73,7 +73,7 @@ jobs:
         env:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
-          SLUG: simple-spam-shield
+          SLUG: onsite-spam-guard
           ASSETS_DIR: .wordpress-org
 
       # Attach the installable zip to the GitHub Release. The auto-generated
@@ -86,6 +86,6 @@ jobs:
           gh release create "${GITHUB_REF_NAME}" \
             --title "${GITHUB_REF_NAME#v}" \
             --notes "See CHANGELOG.md for details." \
-            "build/simple-spam-shield-${GITHUB_REF_NAME#v}.zip" \
+            "build/onsite-spam-guard-${GITHUB_REF_NAME#v}.zip" \
             || gh release upload "${GITHUB_REF_NAME}" \
-                 "build/simple-spam-shield-${GITHUB_REF_NAME#v}.zip" --clobber
+                 "build/onsite-spam-guard-${GITHUB_REF_NAME#v}.zip" --clobber

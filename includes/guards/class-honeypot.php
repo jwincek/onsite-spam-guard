@@ -17,7 +17,7 @@ final class Honeypot extends Abstract_Guard {
 		// If the honeypot field is present and non-empty, it's a bot.
 		if ( ! empty( $data[ $field_name ] ) ) {
 			return $this->fail(
-				__( 'Submission rejected.', 'simple-spam-shield' )
+				__( 'Submission rejected.', 'onsite-spam-guard' )
 			);
 		}
 

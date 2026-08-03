@@ -39,13 +39,13 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 	public function get_columns(): array {
 		return [
 			'cb'         => '<input type="checkbox" />',
-			'blocked_at' => __( 'Date / Time', 'simple-spam-shield' ),
-			'guard'      => __( 'Guard', 'simple-spam-shield' ),
-			'context'    => __( 'Context', 'simple-spam-shield' ),
-			'reason'     => __( 'Reason', 'simple-spam-shield' ),
-			'content'    => __( 'Content', 'simple-spam-shield' ),
-			'ip_address' => __( 'IP Address', 'simple-spam-shield' ),
-			'user_agent' => __( 'User Agent', 'simple-spam-shield' ),
+			'blocked_at' => __( 'Date / Time', 'onsite-spam-guard' ),
+			'guard'      => __( 'Guard', 'onsite-spam-guard' ),
+			'context'    => __( 'Context', 'onsite-spam-guard' ),
+			'reason'     => __( 'Reason', 'onsite-spam-guard' ),
+			'content'    => __( 'Content', 'onsite-spam-guard' ),
+			'ip_address' => __( 'IP Address', 'onsite-spam-guard' ),
+			'user_agent' => __( 'User Agent', 'onsite-spam-guard' ),
 		];
 	}
 
@@ -66,7 +66,7 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 	 */
 	public function get_bulk_actions(): array {
 		return [
-			'delete' => __( 'Delete', 'simple-spam-shield' ),
+			'delete' => __( 'Delete', 'onsite-spam-guard' ),
 		];
 	}
 
@@ -89,7 +89,7 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 		$delete_url = wp_nonce_url(
 			add_query_arg(
 				[
-					'page'   => 'simple-spam-shield-spam-logs',
+					'page'   => 'onsite-spam-guard-spam-logs',
 					'action' => 'delete',
 					'log_id' => [ (int) $item->id ],
 				],
@@ -102,7 +102,7 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 			'delete' => sprintf(
 				'<a href="%s" class="submitdelete">%s</a>',
 				esc_url( $delete_url ),
-				esc_html__( 'Delete', 'simple-spam-shield' )
+				esc_html__( 'Delete', 'onsite-spam-guard' )
 			),
 		];
 
@@ -168,9 +168,9 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 
 		echo '<div class="alignleft actions">';
 
-		echo '<label class="screen-reader-text" for="filter_guard">' . esc_html__( 'Filter by guard', 'simple-spam-shield' ) . '</label>';
+		echo '<label class="screen-reader-text" for="filter_guard">' . esc_html__( 'Filter by guard', 'onsite-spam-guard' ) . '</label>';
 		echo '<select name="filter_guard" id="filter_guard">';
-		echo '<option value="">' . esc_html__( 'All guards', 'simple-spam-shield' ) . '</option>';
+		echo '<option value="">' . esc_html__( 'All guards', 'onsite-spam-guard' ) . '</option>';
 		foreach ( $guards as $guard ) {
 			printf(
 				'<option value="%s"%s>%s</option>',
@@ -181,9 +181,9 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 		}
 		echo '</select>';
 
-		echo '<label class="screen-reader-text" for="filter_context">' . esc_html__( 'Filter by context', 'simple-spam-shield' ) . '</label>';
+		echo '<label class="screen-reader-text" for="filter_context">' . esc_html__( 'Filter by context', 'onsite-spam-guard' ) . '</label>';
 		echo '<select name="filter_context" id="filter_context">';
-		echo '<option value="">' . esc_html__( 'All contexts', 'simple-spam-shield' ) . '</option>';
+		echo '<option value="">' . esc_html__( 'All contexts', 'onsite-spam-guard' ) . '</option>';
 		foreach ( $contexts as $context ) {
 			printf(
 				'<option value="%s"%s>%s</option>',
@@ -194,7 +194,7 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 		}
 		echo '</select>';
 
-		submit_button( __( 'Filter', 'simple-spam-shield' ), '', 'filter_action', false );
+		submit_button( __( 'Filter', 'onsite-spam-guard' ), '', 'filter_action', false );
 
 		echo '</div>';
 	}
@@ -203,7 +203,7 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 	 * Message when no items exist.
 	 */
 	public function no_items(): void {
-		esc_html_e( 'No blocked submissions recorded yet.', 'simple-spam-shield' );
+		esc_html_e( 'No blocked submissions recorded yet.', 'onsite-spam-guard' );
 	}
 
 	/**
@@ -247,15 +247,24 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 
 	/**
 	 * Process bulk delete action.
+	 *
+	 * Verifies both the nonce and the current user's capability. The logs page
+	 * that renders this table already checks `manage_options`, but this method
+	 * re-checks rather than relying on the caller, so the deletion cannot be
+	 * reached without permission through any future entry point.
 	 */
 	public function process_bulk_action(): void {
 		if ( 'delete' !== $this->current_action() ) {
 			return;
 		}
 
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to delete these entries.', 'onsite-spam-guard' ) );
+		}
+
 		$nonce = isset( $_REQUEST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ) : '';
 		if ( ! wp_verify_nonce( $nonce, 'bulk-spam_logs' ) ) {
-			wp_die( esc_html__( 'Nonce verification failed.', 'simple-spam-shield' ) );
+			wp_die( esc_html__( 'Nonce verification failed.', 'onsite-spam-guard' ) );
 		}
 
 		$ids = array_map( 'absint', (array) ( $_REQUEST['log_id'] ?? [] ) );

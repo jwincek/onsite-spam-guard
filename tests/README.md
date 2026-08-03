@@ -1,6 +1,6 @@
 # Tests
 
-Fast unit and integration tests for Simple Spam Shield. They run **without a
+Fast unit and integration tests for Onsite Spam Guard. They run **without a
 WordPress install or a database** — `bootstrap.php` stubs the handful of WP
 functions the code touches and reuses the plugin's own autoloader.
 

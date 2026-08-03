@@ -23,7 +23,7 @@ final class Time_Gate extends Abstract_Guard {
 			// and custom integrations may omit it; the other guards still
 			// protect the submission.
 			return $this->is_js_injected_context( $context )
-				? $this->fail( __( 'Submission rejected — please enable JavaScript.', 'simple-spam-shield' ) )
+				? $this->fail( __( 'Submission rejected — please enable JavaScript.', 'onsite-spam-guard' ) )
 				: true;
 		}
 
@@ -34,7 +34,7 @@ final class Time_Gate extends Abstract_Guard {
 
 		if ( false === $issued ) {
 			return $this->fail(
-				__( 'Submission rejected — please refresh the page and try again.', 'simple-spam-shield' )
+				__( 'Submission rejected — please refresh the page and try again.', 'onsite-spam-guard' )
 			);
 		}
 
@@ -47,7 +47,7 @@ final class Time_Gate extends Abstract_Guard {
 
 		if ( $elapsed < $min_seconds ) {
 			return $this->fail(
-				__( 'Submission rejected — please slow down.', 'simple-spam-shield' )
+				__( 'Submission rejected — please slow down.', 'onsite-spam-guard' )
 			);
 		}
 

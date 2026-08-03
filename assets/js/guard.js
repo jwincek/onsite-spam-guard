@@ -1,5 +1,5 @@
 /**
- * Simple Spam Shield — front-end guard script.
+ * Onsite Spam Guard — front-end guard script.
  *
  * Injects hidden honeypot, nonce, timestamp, and behavioral data fields
  * into comment forms, WooCommerce review forms, and Jetpack contact form blocks.
@@ -76,7 +76,7 @@
 		// Skipped when the form already carries one (server-rendered markup).
 		if ( ! hasField( form, HONEYPOT_NAME ) ) {
 			var hp = document.createElement( 'div' );
-			hp.className = 'simple-spam-shield-hp-wrap';
+			hp.className = 'onsite-spam-guard-hp-wrap';
 			hp.setAttribute( 'aria-hidden', 'true' );
 			hp.innerHTML =
 				'<label for="simple_spam_shield_website_url">Website</label>' +

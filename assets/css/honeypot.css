@@ -4,7 +4,7 @@
  * Uses position + clip instead of display:none / visibility:hidden
  * because some bots are trained to skip hidden fields.
  */
-.simple-spam-shield-hp-wrap {
+.onsite-spam-guard-hp-wrap {
 	position: absolute;
 	left: -9999px;
 	top: -9999px;

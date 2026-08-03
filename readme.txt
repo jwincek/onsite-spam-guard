@@ -1,10 +1,10 @@
-=== Simple Spam Shield ===
+=== Onsite Spam Guard ===
 Contributors: jeromewincek
 Tags: spam, antispam, comments, honeypot, woocommerce
 Requires at least: 6.2
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,7 +12,7 @@ Config-driven spam protection for comments, WooCommerce reviews, and Jetpack con
 
 == Description ==
 
-Simple Spam Shield blocks spam on the forms your visitors actually use — WordPress comments, WooCommerce product reviews, and Jetpack contact form blocks — without sending anything to a third-party service, requiring an API key, or putting a CAPTCHA in front of your users.
+Onsite Spam Guard blocks spam on the forms your visitors actually use — WordPress comments, WooCommerce product reviews, and Jetpack contact form blocks — without sending anything to a third-party service, requiring an API key, or putting a CAPTCHA in front of your users.
 
 Protection is built from a pipeline of independent **guards**. Each guard is a small, focused check (a hidden honeypot field, a submit-speed gate, a keyword filter, and so on). Guards run in priority order, and the first one to fail blocks the submission. Every guard can be toggled and tuned from a single settings page, and every block can be logged for review.
 
@@ -43,10 +43,10 @@ Protection is built from a pipeline of independent **guards**. Each guard is a s
 
 == Installation ==
 
-1. Upload the `simple-spam-shield` folder to `/wp-content/plugins/`, or install it through **Plugins → Add New**.
+1. Upload the `onsite-spam-guard` folder to `/wp-content/plugins/`, or install it through **Plugins → Add New**.
 2. Activate the plugin through the **Plugins** menu in WordPress.
-3. Go to **Spam Shield → Settings** to choose which form types to protect and to enable or tune individual guards.
-4. Review anything that gets blocked under **Spam Shield → Spam Logs**.
+3. Go to **Spam Guard → Settings** to choose which form types to protect and to enable or tune individual guards.
+4. Review anything that gets blocked under **Spam Guard → Spam Logs**.
 
 No further configuration is required — sensible defaults are applied on activation.
 
@@ -66,15 +66,15 @@ When a submission is blocked (and logging is enabled), the plugin records the gu
 
 = I'm behind Cloudflare or a load balancer and the wrong IP is logged. =
 
-By default the plugin uses the direct connection IP, because forwarded headers can be spoofed to bypass the allowlist. If your site sits behind a trusted reverse proxy, enable **Trust proxy headers for IP detection** under **Spam Shield → Settings → Allowlist**.
+By default the plugin uses the direct connection IP, because forwarded headers can be spoofed to bypass the allowlist. If your site sits behind a trusted reverse proxy, enable **Trust proxy headers for IP detection** under **Spam Guard → Settings → Allowlist**.
 
 = A legitimate submission was blocked. What do I do? =
 
-By default a blocked comment or review is placed in the **spam queue** (Comments → Spam) rather than being rejected outright, so you can restore a false positive with one click — nothing is lost. Open **Spam Shield → Spam Logs** to see which guard blocked it and why, then loosen that guard on the settings page — for example, raise the link limit, lower the behavioral threshold, or add the sender to the allowlist. If you would rather reject blocked comments with an error message, enable that option under **Spam Shield → Settings → General**.
+By default a blocked comment or review is placed in the **spam queue** (Comments → Spam) rather than being rejected outright, so you can restore a false positive with one click — nothing is lost. Open **Spam Guard → Spam Logs** to see which guard blocked it and why, then loosen that guard on the settings page — for example, raise the link limit, lower the behavioral threshold, or add the sender to the allowlist. If you would rather reject blocked comments with an error message, enable that option under **Spam Guard → Settings → General**.
 
 = Does it replace WordPress's built-in comment moderation? =
 
-No — it complements it. Simple Spam Shield's guards run *before* WordPress's own comment checks, and those built-ins still run underneath: the duplicate-comment check, the comment flood throttle, the **Disallowed Comment Keys** blocklist, and the "hold a comment with this many links" setting (all under **Settings → Discussion**). Its Keyword, Link limit, and Duplicate guards overlap those, so you can rely on either or both. What it adds on top is the honeypot, timing, signature, and behavioral checks core has no equivalent for, one settings screen with logging, and protection for WooCommerce reviews and Jetpack contact forms — not just comments.
+No — it complements it. Onsite Spam Guard's guards run *before* WordPress's own comment checks, and those built-ins still run underneath: the duplicate-comment check, the comment flood throttle, the **Disallowed Comment Keys** blocklist, and the "hold a comment with this many links" setting (all under **Settings → Discussion**). Its Keyword, Link limit, and Duplicate guards overlap those, so you can rely on either or both. What it adds on top is the honeypot, timing, signature, and behavioral checks core has no equivalent for, one settings screen with logging, and protection for WooCommerce reviews and Jetpack contact forms — not just comments.
 
 = Does it work with caching plugins? =
 
@@ -82,7 +82,7 @@ Yes. The timing and authenticity checks use a token whose signature does not exp
 
 = Does removing the plugin clean up after itself? =
 
-By default, yes — deleting the plugin (not just deactivating it) drops its database table, removes all of its options, clears its scheduled task, and purges its transients, on every site of a multisite network. If you would rather keep your settings and logs (for example, before reinstalling), turn off **Delete all plugin data when this plugin is deleted** under **Spam Shield → Settings → Logging** first.
+By default, yes — deleting the plugin (not just deactivating it) drops its database table, removes all of its options, clears its scheduled task, and purges its transients, on every site of a multisite network. If you would rather keep your settings and logs (for example, before reinstalling), turn off **Delete all plugin data when this plugin is deleted** under **Spam Guard → Settings → Logging** first.
 
 == Screenshots ==
 
@@ -92,6 +92,10 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 4. The Spam Logs viewer — filter by guard and context, a user-agent column, and per-row and bulk delete actions.
 
 == Changelog ==
+
+= 1.1.2 =
+* Renamed to Onsite Spam Guard. The previous name was too generic and overlapped existing plugins in the directory. Your settings and logs are unaffected by the rename.
+* Security hardening: the spam-log bulk-delete action now checks the current user's capability directly, in addition to verifying the nonce.
 
 = 1.1.1 =
 * Fixed: Jetpack contact form submissions could be wrongly flagged. The plugin inspected everything Jetpack passes its spam filter, which includes site and server metadata — the site address, the referrer, the page permalink, and request headers. Those count as links and text, so a legitimate submission containing no links of its own could still exceed the link limit, and keywords could match against the browser's user-agent string. Only what the visitor actually submitted is inspected now.
@@ -118,6 +122,9 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 * Developed by Jerome Wincek, with engineering assistance from Anthropic's Claude.
 
 == Upgrade Notice ==
+
+= 1.1.2 =
+Renamed to Onsite Spam Guard, plus a capability check on the spam-log bulk delete. Settings and logs carry over unchanged.
 
 = 1.1.1 =
 Fixes legitimate Jetpack contact form submissions being wrongly flagged as spam. Recommended for anyone protecting Jetpack forms.

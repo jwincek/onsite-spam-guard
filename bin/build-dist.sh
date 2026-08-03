@@ -14,7 +14,7 @@ set -euo pipefail
 
 cd "$( dirname "${BASH_SOURCE[0]}" )/.." || exit 1
 
-SLUG="simple-spam-shield"
+SLUG="onsite-spam-guard"
 OUT_DIR="${1:-build}"
 DEST="${OUT_DIR}/${SLUG}"
 

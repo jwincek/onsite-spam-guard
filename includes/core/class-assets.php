@@ -20,14 +20,14 @@ final class Assets {
 		}
 
 		wp_enqueue_style(
-			'simple-spam-shield-honeypot',
+			'onsite-spam-guard-honeypot',
 			SIMPLE_SPAM_SHIELD_URL . 'assets/css/honeypot.css',
 			[],
 			SIMPLE_SPAM_SHIELD_VERSION
 		);
 
 		wp_enqueue_script(
-			'simple-spam-shield-guard',
+			'onsite-spam-guard-frontend',
 			SIMPLE_SPAM_SHIELD_URL . 'assets/js/guard.js',
 			[],
 			SIMPLE_SPAM_SHIELD_VERSION,
@@ -37,7 +37,7 @@ final class Assets {
 		// A signed token (issue time + HMAC). The time gate reads the signed
 		// issue time; the signature guard verifies authenticity. Because the
 		// HMAC does not expire, this stays valid under full-page caching.
-		wp_localize_script( 'simple-spam-shield-guard', 'simpleSpamShieldGuard', [
+		wp_localize_script( 'onsite-spam-guard-frontend', 'simpleSpamShieldGuard', [
 			'token'     => Token::issue(),
 			'selectors' => self::selectors(),
 		] );
@@ -81,8 +81,8 @@ final class Assets {
 	 */
 	public static function field_markup(): string {
 		$honeypot = sprintf(
-			'<div class="simple-spam-shield-hp-wrap" aria-hidden="true"><label for="simple_spam_shield_website_url">%s</label><input type="text" name="simple_spam_shield_website_url" id="simple_spam_shield_website_url" value="" tabindex="-1" autocomplete="off"></div>',
-			esc_html__( 'Website', 'simple-spam-shield' )
+			'<div class="onsite-spam-guard-hp-wrap" aria-hidden="true"><label for="simple_spam_shield_website_url">%s</label><input type="text" name="simple_spam_shield_website_url" id="simple_spam_shield_website_url" value="" tabindex="-1" autocomplete="off"></div>',
+			esc_html__( 'Website', 'onsite-spam-guard' )
 		);
 
 		$token = sprintf(

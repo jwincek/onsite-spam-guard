@@ -58,7 +58,7 @@ final class Comments {
 			if ( (bool) get_option( 'simple_spam_shield_hard_block', false ) ) {
 				wp_die(
 					esc_html( $result->get_error_message() ),
-					esc_html__( 'Comment Blocked', 'simple-spam-shield' ),
+					esc_html__( 'Comment Blocked', 'onsite-spam-guard' ),
 					[
 						'response'  => 403,
 						'back_link' => true,

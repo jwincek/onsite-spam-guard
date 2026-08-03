@@ -42,13 +42,13 @@ final class Keyword_Block extends Abstract_Guard {
 				// Multi-word phrase: substring match.
 				if ( str_contains( $haystack, $keyword ) ) {
 					return $this->fail(
-						__( 'Submission rejected — contains blocked content.', 'simple-spam-shield' )
+						__( 'Submission rejected — contains blocked content.', 'onsite-spam-guard' )
 					);
 				}
 			} elseif ( preg_match( '/\b' . preg_quote( $keyword, '/' ) . '\b/i', $haystack ) ) {
 				// Single word: word boundary match.
 				return $this->fail(
-					__( 'Submission rejected — contains blocked content.', 'simple-spam-shield' )
+					__( 'Submission rejected — contains blocked content.', 'onsite-spam-guard' )
 				);
 			}
 		}

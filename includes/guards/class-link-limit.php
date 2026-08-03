@@ -26,7 +26,7 @@ final class Link_Limit extends Abstract_Guard {
 			return $this->fail(
 				sprintf(
 					/* translators: %d: maximum allowed links */
-					__( 'Submission rejected — too many links (max %d).', 'simple-spam-shield' ),
+					__( 'Submission rejected — too many links (max %d).', 'onsite-spam-guard' ),
 					$max_links
 				)
 			);

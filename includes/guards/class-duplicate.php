@@ -28,7 +28,7 @@ final class Duplicate extends Abstract_Guard {
 
 		if ( get_transient( $transient_key ) ) {
 			return $this->fail(
-				__( 'Duplicate submission detected — please wait before resubmitting.', 'simple-spam-shield' )
+				__( 'Duplicate submission detected — please wait before resubmitting.', 'onsite-spam-guard' )
 			);
 		}
 

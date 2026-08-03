@@ -2,30 +2,30 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Simple Spam Shield 1.1.1\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/simple-spam-shield\n"
+"Project-Id-Version: Onsite Spam Guard 1.1.2\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/onsite-spam-guard\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-07-16T01:18:37+00:00\n"
+"POT-Creation-Date: 2026-08-03T20:42:14+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
-"X-Domain: simple-spam-shield\n"
+"X-Domain: onsite-spam-guard\n"
 
 #. Plugin Name of the plugin
-#: simple-spam-shield.php
-msgid "Simple Spam Shield"
+#: onsite-spam-guard.php
+msgid "Onsite Spam Guard"
 msgstr ""
 
 #. Description of the plugin
-#: simple-spam-shield.php
+#: onsite-spam-guard.php
 msgid "Config-driven spam prevention for Comments, WooCommerce Reviews, and Jetpack Contact Form blocks — no external services required."
 msgstr ""
 
 #. Author of the plugin
-#: simple-spam-shield.php
+#: onsite-spam-guard.php
 msgid "Jerome Wincek"
 msgstr ""
 
@@ -86,14 +86,18 @@ msgstr ""
 msgid "No blocked submissions recorded yet."
 msgstr ""
 
-#: admin/class-spam-logs-list-table.php:258
+#: admin/class-spam-logs-list-table.php:262
+msgid "You do not have permission to delete these entries."
+msgstr ""
+
+#: admin/class-spam-logs-list-table.php:267
 msgid "Nonce verification failed."
 msgstr ""
 
 #. translators: %s: number of days entries are retained, or "indefinitely".
 #: includes/core/class-admin.php:70
 #, php-format
-msgid "Simple Spam Shield blocks spam submissions on comment, review, and contact forms. When a submission is blocked, the plugin records the visitor IP address, browser user-agent string, and a short excerpt of the submitted content in a log on this site, to help the site owner review false positives and tune spam protection. These entries are stored for %s and are not shared with any third party."
+msgid "Onsite Spam Guard blocks spam submissions on comment, review, and contact forms. When a submission is blocked, the plugin records the visitor IP address, browser user-agent string, and a short excerpt of the submitted content in a log on this site, to help the site owner review false positives and tune spam protection. These entries are stored for %s and are not shared with any third party."
 msgstr ""
 
 #. translators: %d: number of days.
@@ -110,7 +114,7 @@ msgstr ""
 
 #: includes/core/class-admin.php:90
 #: includes/core/class-admin.php:91
-msgid "Spam Shield"
+msgid "Spam Guard"
 msgstr ""
 
 #: includes/core/class-admin.php:101

@@ -32,13 +32,13 @@ final class Nonce extends Abstract_Guard {
 			// elsewhere — Jetpack strips it, and custom integrations may omit
 			// it; the other guards still protect the submission.
 			return $this->is_js_injected_context( $context )
-				? $this->fail( __( 'Security check failed — please refresh the page and try again.', 'simple-spam-shield' ) )
+				? $this->fail( __( 'Security check failed — please refresh the page and try again.', 'onsite-spam-guard' ) )
 				: true;
 		}
 
 		if ( false === \Simple_Spam_Shield\Core\Token::verify( $token ) ) {
 			return $this->fail(
-				__( 'Security check failed — please refresh the page and try again.', 'simple-spam-shield' )
+				__( 'Security check failed — please refresh the page and try again.', 'onsite-spam-guard' )
 			);
 		}
 

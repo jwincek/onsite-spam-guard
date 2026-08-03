@@ -1,4 +1,4 @@
-# Contributing to Simple Spam Shield
+# Contributing to Onsite Spam Guard
 
 Thanks for your interest in improving the plugin. This document covers the
 local setup, the quality gates, and how to extend the guard pipeline.
@@ -63,8 +63,8 @@ files excluded) so it sees only what ships:
 
 ```bash
 # Requires the Plugin Check plugin installed in a local WordPress site.
-rsync -a --exclude-from=<(grep -v '^#' .distignore) ./ /path/to/wp-content/plugins/simple-spam-shield/
-wp plugin check simple-spam-shield
+rsync -a --exclude-from=<(grep -v '^#' .distignore) ./ /path/to/wp-content/plugins/onsite-spam-guard/
+wp plugin check onsite-spam-guard
 ```
 
 Only `WordPress.DB.DirectDatabaseQuery` warnings are expected (inherent to a
@@ -129,7 +129,7 @@ GitHub-facing `README.md`); `readme.txt` is the user-facing readme. Build it
 locally with:
 
 ```bash
-composer build          # -> build/simple-spam-shield/
+composer build          # -> build/onsite-spam-guard/
 ```
 
 Both the Plugin Check CI job and the WordPress.org deploy use this same script,
@@ -147,7 +147,7 @@ target that is never edited by hand.
 2. **Regenerate the translation template** so its header carries the new
    version:
    ```bash
-   wp i18n make-pot . languages/simple-spam-shield.pot --slug=simple-spam-shield
+   wp i18n make-pot . languages/onsite-spam-guard.pot --slug=onsite-spam-guard
    ```
 3. **Check consistency** (CI runs this on every push, and the release workflow
    runs it against the tag):

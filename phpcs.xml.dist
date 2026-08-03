@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="Simple Spam Shield">
-	<description>WordPress coding standards for Simple Spam Shield.</description>
+<ruleset name="Onsite Spam Guard">
+	<description>WordPress coding standards for Onsite Spam Guard.</description>
 
 	<file>.</file>
 	<exclude-pattern>vendor/*</exclude-pattern>

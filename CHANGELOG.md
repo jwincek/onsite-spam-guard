@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Simple Spam Shield are documented in this file.
+All notable changes to Onsite Spam Guard are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -9,6 +9,28 @@ The user-facing changelog shipped to WordPress.org lives in the
 `== Changelog ==` section of `readme.txt`; keep the two in sync.
 
 ## [Unreleased]
+
+## [1.1.2] - 2026-08-03
+
+### Changed
+- Renamed to **Onsite Spam Guard** (slug `onsite-spam-guard`) following the
+  WordPress.org review: "Simple Spam Shield" was judged too generic and
+  overlapping with existing directory entries (`solverguard-spam-shield`,
+  `gotechark-advanced-spam-shield-for-contact-form-7`), and "Simple" is
+  explicitly called out as a generic word that does not resolve similarity.
+  The new name leads with a distinctive term that also states the
+  differentiator: everything runs on the site, with no external service.
+- The rename is deliberately **minimum-depth**: display name, text domain,
+  slug, folder, and artwork change; the `Simple_Spam_Shield\` namespace,
+  `SIMPLE_SPAM_SHIELD_*` constants, `simple_spam_shield_*` option keys, the
+  log table name, and the public API function names are unchanged. Verified
+  with Plugin Check that non-slug-matching prefixes raise no findings, so
+  existing installs keep their settings and logs with no migration.
+
+### Security
+- The spam-log bulk-delete handler now verifies `current_user_can()` directly
+  in addition to the nonce, rather than relying on the page-level capability
+  check of its caller.
 
 ## [1.1.1] - 2026-07-12
 
@@ -86,8 +108,9 @@ Initial release.
   their own forms: `simple_spam_shield_check()`,
   `simple_spam_shield_protect_selector()`, and `simple_spam_shield_field_markup()`.
 
-[Unreleased]: https://github.com/jwincek/simple-spam-shield/compare/v1.1.1...HEAD
-[1.1.1]: https://github.com/jwincek/simple-spam-shield/compare/v1.1.0...v1.1.1
-[1.1.0]: https://github.com/jwincek/simple-spam-shield/compare/v1.0.1...v1.1.0
-[1.0.1]: https://github.com/jwincek/simple-spam-shield/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/jwincek/simple-spam-shield/releases/tag/v1.0.0
+[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.2...HEAD
+[1.1.2]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.1...v1.1.2
+[1.1.1]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.0...v1.1.1
+[1.1.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.0.1...v1.1.0
+[1.0.1]: https://github.com/jwincek/onsite-spam-guard/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/jwincek/onsite-spam-guard/releases/tag/v1.0.0

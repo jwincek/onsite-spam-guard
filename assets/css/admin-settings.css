@@ -1,23 +1,23 @@
 /**
- * Simple Spam Shield — tabbed settings.
+ * Onsite Spam Guard — tabbed settings.
  *
  * Progressive enhancement: the tab bar and panel hiding only take effect once
  * the admin script adds the `has-js-tabs` class. Without JavaScript the tab bar
  * is hidden and every panel is shown, so no setting becomes unreachable.
  */
 
-.simple-spam-shield-settings:not(.has-js-tabs) .simple-spam-shield-tabs {
+.onsite-spam-guard-settings:not(.has-js-tabs) .onsite-spam-guard-tabs {
 	display: none;
 }
 
-.simple-spam-shield-settings.has-js-tabs .simple-spam-shield-tab-panel {
+.onsite-spam-guard-settings.has-js-tabs .onsite-spam-guard-tab-panel {
 	display: none;
 }
 
-.simple-spam-shield-settings.has-js-tabs .simple-spam-shield-tab-panel.is-active {
+.onsite-spam-guard-settings.has-js-tabs .onsite-spam-guard-tab-panel.is-active {
 	display: block;
 }
 
-.simple-spam-shield-tabs {
+.onsite-spam-guard-tabs {
 	margin-bottom: 1em;
 }

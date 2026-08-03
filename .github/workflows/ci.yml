@@ -62,7 +62,7 @@ jobs:
       - name: Run Plugin Check
         uses: WordPress/plugin-check-action@v1
         with:
-          build-dir: ./build/simple-spam-shield
+          build-dir: ./build/onsite-spam-guard
           # The plugin intentionally uses direct queries against its own
           # custom log table; those are warnings, not errors. Fail the job
           # only on errors so real regressions still block.

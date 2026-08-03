@@ -1,6 +1,6 @@
 <?php
 /**
- * Simple Spam Shield — Uninstall Script.
+ * Onsite Spam Guard — Uninstall Script.
  *
  * Runs when the plugin is deleted (not just deactivated). Removes all plugin
  * data — the custom table, options, transients, and scheduled task — for every
@@ -15,7 +15,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 /**
- * Remove all Simple Spam Shield data for the current site.
+ * Remove all Onsite Spam Guard data for the current site.
  */
 function simple_spam_shield_uninstall_site(): void {
 	global $wpdb;

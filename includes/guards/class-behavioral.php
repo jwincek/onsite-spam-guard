@@ -40,7 +40,7 @@ final class Behavioral extends Abstract_Guard {
 
 		if ( $score >= $threshold ) {
 			return $this->fail(
-				__( 'Submission rejected — suspicious activity detected.', 'simple-spam-shield' )
+				__( 'Submission rejected — suspicious activity detected.', 'onsite-spam-guard' )
 			);
 		}
 

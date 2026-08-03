@@ -3,11 +3,11 @@
  * Public integration API.
  *
  * Stable, prefixed functions other plugins can call to protect their own
- * forms with Simple Spam Shield's guards. The plugin's internal classes are
+ * forms with Onsite Spam Guard's guards. The plugin's internal classes are
  * intentionally NOT part of this contract — integrate through these functions
  * so internals can change freely. Every function fails open (treats the
  * submission as clean / returns nothing) when the plugin is unavailable, so
- * a host plugin degrades gracefully if Simple Spam Shield is deactivated.
+ * a host plugin degrades gracefully if Onsite Spam Guard is deactivated.
  *
  * @package Simple_Spam_Shield
  */
@@ -38,7 +38,7 @@ if ( ! function_exists( 'simple_spam_shield_check' ) ) {
 	 * The time-gate and signature guards skip (rather than block) when their
 	 * token is absent for a custom context, so a content-only integration that
 	 * passes no token still works. Wrap the call in a function_exists() check
-	 * so your plugin keeps working when Simple Spam Shield is not active.
+	 * so your plugin keeps working when Onsite Spam Guard is not active.
 	 *
 	 * @param array  $fields  Recognized keys: 'content', 'author', 'email', and
 	 *                        optionally the simple_spam_shield_* hidden fields.

@@ -1,5 +1,5 @@
 /**
- * Simple Spam Shield — tabbed settings.
+ * Onsite Spam Guard — tabbed settings.
  *
  * All panels live in a single form (one Save submits everything), so switching
  * tabs never loses unsaved changes. The active tab is remembered across the
@@ -9,13 +9,13 @@
 ( function () {
 	'use strict';
 
-	var container = document.querySelector( '.simple-spam-shield-settings' );
+	var container = document.querySelector( '.onsite-spam-guard-settings' );
 	if ( ! container ) {
 		return;
 	}
 
-	var tabs = container.querySelectorAll( '.simple-spam-shield-tabs .nav-tab' );
-	var panels = container.querySelectorAll( '.simple-spam-shield-tab-panel' );
+	var tabs = container.querySelectorAll( '.onsite-spam-guard-tabs .nav-tab' );
+	var panels = container.querySelectorAll( '.onsite-spam-guard-tab-panel' );
 	if ( ! tabs.length || ! panels.length ) {
 		return;
 	}

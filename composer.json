@@ -1,5 +1,5 @@
 {
-	"name": "jerome-wincek/simple-spam-shield",
+	"name": "jerome-wincek/onsite-spam-guard",
 	"description": "Config-driven spam prevention for WordPress Comments, WooCommerce Reviews, and Jetpack Contact Form blocks.",
 	"type": "wordpress-plugin",
 	"license": "GPL-2.0-or-later",
