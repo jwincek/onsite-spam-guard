@@ -54,12 +54,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Git tags are v-prefixed (v1.2.0) but WordPress.org versions are not.
+      # The deploy action below defaults VERSION to the raw tag name, which
+      # would create SVN tags/v1.2.0 while `Stable tag: 1.2.0` points at
+      # tags/1.2.0 — a mismatch that silently serves nothing. Strip the
+      # prefix once here and use it for both the zip and the SVN tag.
+      - name: Resolve plugin version from tag
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
       # Build the runtime-only package. bin/build-dist.sh reads .distignore,
       # so this zip contains exactly what the WordPress.org deploy publishes.
       - name: Build distribution package
+        env:
+          PLUGIN_VERSION: ${{ steps.ver.outputs.version }}
         run: |
           bin/build-dist.sh build
-          cd build && zip -rq "onsite-spam-guard-${GITHUB_REF_NAME#v}.zip" onsite-spam-guard
+          cd build && zip -rq "onsite-spam-guard-${PLUGIN_VERSION}.zip" onsite-spam-guard
 
       # Deploy to the WordPress.org SVN repository: commits the built files to
       # trunk/ and tags/<version>/, and syncs .wordpress-org/ to assets/.
@@ -75,6 +86,8 @@ jobs:
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SLUG: onsite-spam-guard
           ASSETS_DIR: .wordpress-org
+          # Without this the SVN tag would be the raw, v-prefixed git tag.
+          VERSION: ${{ steps.ver.outputs.version }}
 
       # Attach the installable zip to the GitHub Release. The auto-generated
       # "Source code" archive is the whole repo and is not installable, so this
@@ -82,10 +95,11 @@ jobs:
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PLUGIN_VERSION: ${{ steps.ver.outputs.version }}
         run: |
           gh release create "${GITHUB_REF_NAME}" \
-            --title "${GITHUB_REF_NAME#v}" \
+            --title "${PLUGIN_VERSION}" \
             --notes "See CHANGELOG.md for details." \
-            "build/onsite-spam-guard-${GITHUB_REF_NAME#v}.zip" \
+            "build/onsite-spam-guard-${PLUGIN_VERSION}.zip" \
             || gh release upload "${GITHUB_REF_NAME}" \
-                 "build/onsite-spam-guard-${GITHUB_REF_NAME#v}.zip" --clobber
+                 "build/onsite-spam-guard-${PLUGIN_VERSION}.zip" --clobber
