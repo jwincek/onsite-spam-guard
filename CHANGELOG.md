@@ -10,6 +10,14 @@ The user-facing changelog shipped to WordPress.org lives in the
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-08-19
+
+### Changed
+- Tested up to WordPress 7.1. No code changes: every core API the plugin
+  uses is present and undeprecated in 7.1, `preprocess_comment` and
+  `pre_comment_approved` are unchanged, and the test suite, coding
+  standards and Plugin Check all pass against it.
+
 ## [1.1.2] - 2026-08-03
 
 ### Changed
@@ -108,7 +116,8 @@ Initial release.
   their own forms: `simple_spam_shield_check()`,
   `simple_spam_shield_protect_selector()`, and `simple_spam_shield_field_markup()`.
 
-[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.2...HEAD
+[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.3...HEAD
+[1.1.3]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.0.1...v1.1.0

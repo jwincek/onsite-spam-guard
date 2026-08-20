@@ -2,9 +2,9 @@
 Contributors: jeromewincek
 Tags: spam, antispam, comments, honeypot, woocommerce
 Requires at least: 6.2
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,9 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 
 == Changelog ==
 
+= 1.1.3 =
+* Tested with WordPress 7.1. No functional changes.
+
 = 1.1.2 =
 * Renamed to Onsite Spam Guard. The previous name was too generic and overlapped existing plugins in the directory. Your settings and logs are unaffected by the rename.
 * Security hardening: the spam-log bulk-delete action now checks the current user's capability directly, in addition to verifying the nonce.
@@ -122,6 +125,9 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 * Developed by Jerome Wincek, with engineering assistance from Anthropic's Claude.
 
 == Upgrade Notice ==
+
+= 1.1.3 =
+Compatibility bump for WordPress 7.1. No functional changes.
 
 = 1.1.2 =
 Renamed to Onsite Spam Guard, plus a capability check on the spam-log bulk delete. Settings and logs carry over unchanged.
