@@ -18,7 +18,7 @@ namespace Simple_Spam_Shield\Guards;
 
 final class Keyword_Block extends Abstract_Guard {
 
-	public function check( array $data, string $context ): \WP_Error|true {
+	public function check( array $data, string $context, bool $observe_only = false ): \WP_Error|true {
 		$content = $data['content'] ?? $data['comment'] ?? '';
 		$author  = $data['author'] ?? $data['author_name'] ?? '';
 		$email   = $data['email'] ?? $data['author_email'] ?? '';

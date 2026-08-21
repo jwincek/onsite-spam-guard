@@ -15,7 +15,7 @@ namespace Simple_Spam_Shield\Guards;
 
 final class Duplicate extends Abstract_Guard {
 
-	public function check( array $data, string $context ): \WP_Error|true {
+	public function check( array $data, string $context, bool $observe_only = false ): \WP_Error|true {
 		$content = $data['content'] ?? $data['comment'] ?? '';
 		$author  = $data['author'] ?? $data['author_name'] ?? '';
 		$email   = $data['email'] ?? $data['author_email'] ?? '';
@@ -32,8 +32,14 @@ final class Duplicate extends Abstract_Guard {
 			);
 		}
 
-		// Mark this submission as seen for the duration of the window.
-		set_transient( $transient_key, time(), $window );
+		// Mark this submission as seen for the duration of the window. Skipped
+		// when only observing, so a submission already blocked by an earlier
+		// guard does not register itself — otherwise a visitor who fixed
+		// whatever tripped them and resubmitted the same content would be
+		// rejected as a duplicate of their own blocked attempt.
+		if ( ! $observe_only ) {
+			set_transient( $transient_key, time(), $window );
+		}
 
 		return true;
 	}

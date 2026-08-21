@@ -112,11 +112,20 @@ so guards never need to know about comment arrays vs. Jetpack field data.
    namespace Simple_Spam_Shield\Guards;
 
    final class My_Guard extends Abstract_Guard {
-       public function check( array $data, string $context ): \WP_Error|true {
+       public function check( array $data, string $context, bool $observe_only = false ): \WP_Error|true {
            // Return true to pass, or $this->fail( $message ) to block.
        }
    }
    ```
+
+   **`$observe_only` matters if your guard changes state.** The runner keeps
+   evaluating after a submission has already been blocked, so the log can record
+   every guard that matched rather than only the first. Guards called that way
+   must return their verdict *without* writing anything — no transients, no
+   options, no queries that mutate. `Duplicate` and `Rate_Limit` are the worked
+   examples: both put their write on the pass path behind
+   `if ( ! $observe_only )`. The verdict must be identical either way. A guard
+   with no side effects can ignore the flag.
 
    The file/class naming follows the autoloader: `My_Guard` →
    `class-my-guard.php`.

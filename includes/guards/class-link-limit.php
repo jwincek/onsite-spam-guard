@@ -11,7 +11,7 @@ namespace Simple_Spam_Shield\Guards;
 
 final class Link_Limit extends Abstract_Guard {
 
-	public function check( array $data, string $context ): \WP_Error|true {
+	public function check( array $data, string $context, bool $observe_only = false ): \WP_Error|true {
 		$max_links = (int) get_option( 'simple_spam_shield_link_limit_max', $this->config['max_links'] ?? 3 );
 		$content   = $data['content'] ?? $data['comment'] ?? '';
 

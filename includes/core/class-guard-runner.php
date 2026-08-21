@@ -73,31 +73,55 @@ final class Guard_Runner {
 			return true;
 		}
 
+		$verdict = null;
+		$matched = [];
+
 		foreach ( self::$guards as $guard ) {
 			if ( ! $guard->is_enabled() ) {
 				continue;
 			}
 
-			$result = $guard->check( $data, $context );
+			// Once a guard has blocked, the remaining ones are evaluated for
+			// the record only: their verdict is collected but they must not
+			// change any state. The submission's fate was decided by the first
+			// failure, so nothing here can alter what the visitor sees.
+			$observe_only = null !== $verdict;
 
-			if ( is_wp_error( $result ) ) {
-				self::log_block( $guard->get_slug(), $context, $result->get_error_message(), $data );
-				return $result;
+			$result = $guard->check( $data, $context, $observe_only );
+
+			if ( ! is_wp_error( $result ) ) {
+				continue;
+			}
+
+			$matched[] = $guard->get_slug();
+
+			// The highest-weight failure decides the outcome and the message.
+			if ( null === $verdict ) {
+				$verdict = $result;
 			}
 		}
 
-		return true;
+		if ( null === $verdict ) {
+			return true;
+		}
+
+		self::log_block( $matched[0], $context, $verdict->get_error_message(), $data, $matched );
+
+		return $verdict;
 	}
 
 	/**
 	 * Log a blocked submission to the custom database table.
 	 *
-	 * @param string $guard   Slug of the guard that blocked the submission.
-	 * @param string $context Form context.
-	 * @param string $reason  Human-readable block reason.
-	 * @param array  $data    Normalized submission data (provides the content).
+	 * @param string   $guard   Slug of the guard that blocked the submission.
+	 * @param string   $context Form context.
+	 * @param string   $reason  Human-readable block reason.
+	 * @param array    $data    Normalized submission data (provides the content).
+	 * @param string[] $matched Every guard that failed, in weight order. The
+	 *                          first is $guard; the rest were evaluated for the
+	 *                          record after the outcome was already decided.
 	 */
-	private static function log_block( string $guard, string $context, string $reason, array $data ): void {
+	private static function log_block( string $guard, string $context, string $reason, array $data, array $matched = [] ): void {
 		if ( ! (bool) get_option( 'simple_spam_shield_log_blocked', true ) ) {
 			return;
 		}
@@ -107,12 +131,13 @@ final class Guard_Runner {
 		// form via simple_spam_shield_check()). It is escaped on insert and
 		// only ever rendered escaped in the log table.
 		Database_Manager::insert( [
-			'guard'      => $guard,
-			'context'    => $context,
-			'reason'     => $reason,
-			'content'    => (string) ( $data['content'] ?? '' ),
-			'ip_address' => Request::ip(),
-			'user_agent' => sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ?? '' ) ),
+			'guard'          => $guard,
+			'guards_matched' => implode( ',', $matched ),
+			'context'        => $context,
+			'reason'         => $reason,
+			'content'        => (string) ( $data['content'] ?? '' ),
+			'ip_address'     => Request::ip(),
+			'user_agent'     => sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ?? '' ) ),
 		] );
 	}
 
