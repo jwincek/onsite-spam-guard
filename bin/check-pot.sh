@@ -36,7 +36,7 @@ if [ ! -f "$POT" ]; then
 	exit 1
 fi
 
-TMP="$( mktemp -t osg-pot )" || exit 1
+TMP="$( mktemp "${TMPDIR:-/tmp}/osg-pot.XXXXXX" )" || exit 1
 trap 'rm -f "$TMP"' EXIT
 
 # make-pot runs as static analysis; it does not need a WordPress install.
