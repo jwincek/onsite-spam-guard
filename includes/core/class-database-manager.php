@@ -121,7 +121,7 @@ final class Database_Manager {
 	 * @param string $orderby  Column to sort by.
 	 * @param string $order    ASC or DESC.
 	 * @param array  $filters  Optional guard/context filters.
-	 * @return array Array of row objects.
+	 * @return \stdClass[] Row objects.
 	 */
 	public static function get_logs( int $per_page = 20, int $offset = 0, string $orderby = 'blocked_at', string $order = 'DESC', array $filters = [] ): array {
 		global $wpdb;
