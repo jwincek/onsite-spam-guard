@@ -43,6 +43,26 @@ jobs:
       - name: Check the .pot is up to date
         run: WP_CLI=/tmp/wp-cli.phar bin/check-pot.sh
 
+  static-analysis:
+    name: Static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      # WordPress stubs are large; the default 128M limit crashes the run.
+      - name: PHPStan
+        run: composer analyse
+
   lint-test:
     name: Lint & Test (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
@@ -86,6 +106,13 @@ jobs:
         uses: WordPress/plugin-check-action@v1
         with:
           build-dir: ./build/onsite-spam-guard
+          # Pinned rather than left at `latest`. On 2026-08-12 `latest`
+          # resolved to a WordPress version whose wordpress-develop tag had
+          # not yet propagated, and the job failed with
+          # "fatal: couldn't find remote ref 7.0.4" — indistinguishable from
+          # a real failure at a glance. Keep this in step with the readme's
+          # `Tested up to`, so the check runs against the version we claim.
+          wp-version: '7.1'
           # The plugin intentionally uses direct queries against its own
           # custom log table; those are warnings, not errors. Fail the job
           # only on errors so real regressions still block.

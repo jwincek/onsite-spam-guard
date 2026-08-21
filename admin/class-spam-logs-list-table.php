@@ -72,6 +72,8 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 
 	/**
 	 * Checkbox column.
+	 *
+	 * @param \stdClass $item Log row.
 	 */
 	public function column_cb( $item ): string {
 		return sprintf(
@@ -82,6 +84,8 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 
 	/**
 	 * Content column with row actions.
+	 *
+	 * @param \stdClass $item Log row.
 	 */
 	public function column_content( $item ): string {
 		$content = esc_html( wp_trim_words( $item->content, 15, '…' ) );
@@ -111,6 +115,9 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 
 	/**
 	 * Default column renderer.
+	 *
+	 * @param \stdClass $item        Log row.
+	 * @param string    $column_name Column being rendered.
 	 */
 	public function column_default( $item, $column_name ): string {
 		return match ( $column_name ) {
@@ -127,6 +134,8 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 
 	/**
 	 * User-agent column — truncated, with the full value in a tooltip.
+	 *
+	 * @param \stdClass $item Log row.
 	 */
 	public function column_user_agent( $item ): string {
 		$agent = (string) $item->user_agent;

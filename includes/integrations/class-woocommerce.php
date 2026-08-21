@@ -38,7 +38,10 @@ final class WooCommerce {
 		add_action( 'woocommerce_new_comment', [ __CLASS__, 'check_review' ], 1 );
 
 		// Also inject honeypot into the review form.
-		add_action( 'woocommerce_product_review_comment_form_args', [ __CLASS__, 'add_form_fields' ] );
+		// A filter, not an action: WooCommerce runs it through apply_filters(),
+		// so a callback registered with add_action() would have its return
+		// value discarded and any change to the args silently dropped.
+		add_filter( 'woocommerce_product_review_comment_form_args', [ __CLASS__, 'add_form_fields' ] );
 	}
 
 	/**
@@ -66,9 +69,9 @@ final class WooCommerce {
 		}
 
 		$data = [
-			'content'                            => $comment->comment_content ?? '',
-			'author'                             => $comment->comment_author ?? '',
-			'email'                              => $comment->comment_author_email ?? '',
+			'content'                            => $comment->comment_content,
+			'author'                             => $comment->comment_author,
+			'email'                              => $comment->comment_author_email,
 			// JS-injected fields from a public form submission; there is no
 			// plugin nonce to verify at this stage (that is the optional Nonce
 			// guard's job downstream). Values are sanitized on read.

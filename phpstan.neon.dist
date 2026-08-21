@@ -1,0 +1,20 @@
+includes:
+	- vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+	level: 5
+
+	bootstrapFiles:
+		- phpstan/constants.php
+
+	paths:
+		- includes
+		- admin
+		- onsite-spam-guard.php
+		- uninstall.php
+
+	# tests/ deliberately redefines WordPress functions as lightweight stubs so
+	# the suite can run without a WordPress install. Analysing it would report
+	# those redefinitions as conflicts with the real signatures.
+	excludePaths:
+		- tests

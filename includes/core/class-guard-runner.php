@@ -45,8 +45,7 @@ final class Guard_Runner {
 				continue;
 			}
 
-			$class = $guard_map[ $slug ];
-			/** @var Guard_Interface $instance */
+			$class    = $guard_map[ $slug ];
 			$instance = new $class( $slug, $def );
 
 			self::$guards[] = $instance;
