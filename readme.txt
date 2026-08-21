@@ -4,7 +4,7 @@ Tags: spam, antispam, comments, honeypot, woocommerce
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.2.1
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -100,6 +100,11 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 
 == Changelog ==
 
+= 1.3.0 =
+* The spam log now records every guard that matched a blocked submission, not just the first one. The guard that decided the outcome is still shown on its own line, with any additional matches listed beneath it.
+* A submission caught by the honeypot no longer counts against the duplicate and rate-limit guards, so it cannot use up a real visitor's allowance.
+* For developers: other plugins can now register their own guard through the simple_spam_shield_guards filter. A registered guard runs in the pipeline, appears in the log, and gets its own toggle on the Guards tab. A new simple_spam_shield_blocked action fires whenever a submission is blocked. See the readme in the plugin's repository.
+
 = 1.2.1 =
 * Fixed: allowlist entries using an IPv6 range (for example 2001:db8::/32) never matched. IPv4 ranges, exact addresses and email rules were unaffected.
 * Fixed: rate-limit data left rows behind in the database when the plugin was deleted.
@@ -141,6 +146,9 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 * Developed by Jerome Wincek, with engineering assistance from Anthropic's Claude.
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+Adds an upgrade to the database table for the richer spam log. Existing log entries are kept. Nothing needs to be reconfigured.
 
 = 1.2.1 =
 Fixes IPv6 allowlist entries being ignored, plus two smaller issues. Recommended if you allowlist by IP range.

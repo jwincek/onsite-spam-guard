@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Onsite Spam Guard 1.2.1\n"
+"Project-Id-Version: Onsite Spam Guard 1.3.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/onsite-spam-guard\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-21T22:02:05+00:00\n"
+"POT-Creation-Date: 2026-08-21T22:34:18+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: onsite-spam-guard\n"
@@ -129,12 +129,12 @@ msgstr ""
 
 #: includes/core/class-admin.php:110
 #: includes/core/class-admin.php:111
-#: includes/core/class-admin.php:395
+#: includes/core/class-admin.php:397
 msgid "Spam Logs"
 msgstr ""
 
 #: includes/core/class-admin.php:130
-#: includes/core/class-admin.php:283
+#: includes/core/class-admin.php:285
 msgid "General"
 msgstr ""
 
@@ -174,136 +174,142 @@ msgstr ""
 msgid "Enable or disable individual spam checks."
 msgstr ""
 
-#: includes/core/class-admin.php:159
+#: includes/core/class-admin.php:161
 msgid "Minimum seconds before submit"
 msgstr ""
 
-#: includes/core/class-admin.php:159
+#: includes/core/class-admin.php:161
 msgid "seconds"
 msgstr ""
 
-#: includes/core/class-admin.php:160
+#: includes/core/class-admin.php:162
 msgid "Maximum links per submission"
 msgstr ""
 
-#: includes/core/class-admin.php:161
+#: includes/core/class-admin.php:163
 msgid "Rate limit: max submissions per minute"
 msgstr ""
 
-#: includes/core/class-admin.php:161
+#: includes/core/class-admin.php:163
 msgid "per sender (0 = no limit)"
 msgstr ""
 
-#: includes/core/class-admin.php:174
+#: includes/core/class-admin.php:176
 msgid "Behavioral suspicion threshold"
 msgstr ""
 
-#: includes/core/class-admin.php:181
+#: includes/core/class-admin.php:183
 msgid "Score between 0.0 (lenient) and 1.0 (strict). Submissions scoring at or above this threshold are blocked. Default 0.6."
 msgstr ""
 
-#: includes/core/class-admin.php:197
+#: includes/core/class-admin.php:199
 msgid "Blocked keywords"
 msgstr ""
 
-#: includes/core/class-admin.php:204
+#: includes/core/class-admin.php:206
 msgid "One keyword or phrase per line. Case-insensitive."
 msgstr ""
 
-#: includes/core/class-admin.php:211
+#: includes/core/class-admin.php:213
 msgid "Also apply WordPress's Disallowed Comment Keys (Settings → Discussion) to every protected form"
 msgstr ""
 
-#: includes/core/class-admin.php:215
-#: includes/core/class-admin.php:291
+#: includes/core/class-admin.php:217
+#: includes/core/class-admin.php:293
 msgid "Allowlist"
 msgstr ""
 
-#: includes/core/class-admin.php:216
+#: includes/core/class-admin.php:218
 msgid "Submissions from allowlisted IPs or emails bypass all guards."
 msgstr ""
 
-#: includes/core/class-admin.php:227
+#: includes/core/class-admin.php:229
 msgid "Allowed IPs and emails"
 msgstr ""
 
-#: includes/core/class-admin.php:234
+#: includes/core/class-admin.php:236
 msgid "One entry per line. Supports: exact IPs (192.168.1.1), CIDR ranges (10.0.0.0/8), exact emails (user@example.com), or email domains (@trusted.org)."
 msgstr ""
 
-#: includes/core/class-admin.php:251
+#: includes/core/class-admin.php:253
 msgid "Trust proxy headers for IP detection"
 msgstr ""
 
-#: includes/core/class-admin.php:256
+#: includes/core/class-admin.php:258
 msgid "Use the X-Forwarded-For header to determine the visitor IP."
 msgstr ""
 
-#: includes/core/class-admin.php:257
+#: includes/core/class-admin.php:259
 msgid "Enable only if this site is behind a trusted reverse proxy or load balancer (e.g. Cloudflare, Nginx). When off, the direct connection IP is used. Turning this on without a trusted proxy lets visitors spoof their IP and bypass the allowlist."
 msgstr ""
 
-#: includes/core/class-admin.php:266
-#: includes/core/class-admin.php:295
+#: includes/core/class-admin.php:268
+#: includes/core/class-admin.php:297
 msgid "Logging"
 msgstr ""
 
-#: includes/core/class-admin.php:267
+#: includes/core/class-admin.php:269
 msgid "Log blocked submissions to database"
 msgstr ""
 
-#: includes/core/class-admin.php:268
+#: includes/core/class-admin.php:270
 msgid "Delete logs older than"
 msgstr ""
 
-#: includes/core/class-admin.php:268
+#: includes/core/class-admin.php:270
 msgid "days (0 = keep forever)"
 msgstr ""
 
-#: includes/core/class-admin.php:269
+#: includes/core/class-admin.php:271
 msgid "Delete all plugin data (spam logs and settings) when this plugin is deleted"
 msgstr ""
 
-#: includes/core/class-admin.php:287
+#: includes/core/class-admin.php:289
 msgid "Guards"
 msgstr ""
 
 #. translators: 1: number of blocked submissions, 2: link to logs page
-#: includes/core/class-admin.php:322
+#: includes/core/class-admin.php:324
 #, php-format
 msgid "%1$d submissions blocked. %2$s"
 msgstr ""
 
-#: includes/core/class-admin.php:325
+#: includes/core/class-admin.php:327
 msgid "View spam logs →"
 msgstr ""
 
-#: includes/core/class-admin.php:400
+#: includes/core/class-admin.php:402
 msgid "All spam logs cleared."
 msgstr ""
 
-#: includes/core/class-admin.php:410
+#: includes/core/class-admin.php:412
 msgid "Delete all log entries?"
 msgstr ""
 
-#: includes/core/class-admin.php:411
+#: includes/core/class-admin.php:413
 msgid "Clear all logs"
 msgstr ""
 
 #. translators: %d: number of submissions blocked in the last 7 days.
-#: includes/core/class-admin.php:420
+#: includes/core/class-admin.php:422
 #, php-format
 msgid "Blocked in the last 7 days: %d."
 msgstr ""
 
 #. translators: 1: guard name, 2: number of blocks by that guard.
-#: includes/core/class-admin.php:427
+#: includes/core/class-admin.php:429
 #, php-format
 msgid "Most active guard: %1$s (%2$d)."
 msgstr ""
 
 #: includes/core/class-assets.php:85
 msgid "Website"
+msgstr ""
+
+#. translators: 1: guard slug, 2: class name, 3: interface name.
+#: includes/core/class-guard-runner.php:45
+#, php-format
+msgid "Guard \"%1$s\" was skipped: %2$s does not implement %3$s."
 msgstr ""
 
 #: includes/guards/class-behavioral.php:43

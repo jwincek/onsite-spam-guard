@@ -10,7 +10,21 @@ The user-facing changelog shipped to WordPress.org lives in the
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-08-21
+
 ### Added
+- Other plugins can register their own guard through the new
+  `simple_spam_shield_guards` filter. A registered guard participates fully:
+  sorted by weight, short-circuiting on failure, recorded in the log, and given
+  its own on/off toggle on the Guards settings tab, because the pipeline and the
+  settings screen now read the same filtered definitions. The filter can also
+  adjust or remove a built-in guard. A class that does not implement
+  `Guard_Interface`, or a filter that returns something other than an array, is
+  refused and the built-in guards are kept rather than leaving the site
+  unprotected.
+- New `simple_spam_shield_blocked` action, fired once a submission has been
+  blocked and logged, carrying the deciding guard, the context, every guard that
+  matched, and the normalized submission data.
 - The spam log now records **every** guard that matched a blocked submission,
   not just the first one to fire. The guard that decided the outcome is still
   shown on its own line in the log viewer, with any additional matches listed
@@ -22,11 +36,16 @@ The user-facing changelog shipped to WordPress.org lives in the
   not change state.
 
 ### Changed
-- `Duplicate` and `Rate_Limit` skip their transient writes while observing. This
-  matters in both directions: a blocked submission no longer registers itself in
-  the duplicate cache (which would have rejected a visitor who fixed the problem
-  and resubmitted the same content), and no longer consumes rate-limit budget it
-  did not get through on.
+- `Duplicate` and `Rate_Limit` skip their transient writes while observing, so a
+  submission already blocked by a higher-weight guard no longer registers itself
+  in the duplicate cache and no longer consumes rate-limit budget.
+
+  Note the limit of this: a guard only observes once some *earlier* guard has
+  decided the block. `Duplicate` runs at weight 95 with only `Honeypot` above it,
+  so a submission blocked by any of the six lower-weight guards has already been
+  recorded by the time the block happens, and an identical resubmission is then
+  refused as a duplicate. Recording only submissions that clear the whole
+  pipeline needs a separate commit step and is tracked as its own issue.
 - Database schema 1.1 -> 1.2 adds a `guards_matched` column, applied by
   `dbDelta` on upgrade. Existing rows are preserved and simply carry an empty
   value.
@@ -184,7 +203,8 @@ Initial release.
   their own forms: `simple_spam_shield_check()`,
   `simple_spam_shield_protect_selector()`, and `simple_spam_shield_field_markup()`.
 
-[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/jwincek/onsite-spam-guard/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.3...v1.2.0
 [1.1.3]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.2...v1.1.3
