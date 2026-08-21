@@ -166,26 +166,61 @@ final class Guard_Runner {
 	}
 
 	/**
-	 * Check if an IP is within a CIDR range.
+	 * Check whether an IP falls inside a CIDR range.
 	 *
-	 * Ported from Comment & Form Guard's Comment_Form_Guard_Helpers::ip_in_cidr().
+	 * Handles IPv4 and IPv6 through the same path by comparing the packed
+	 * binary forms from inet_pton(): 4 bytes for IPv4, 16 for IPv6. The
+	 * previous implementation used ip2long() and 32-bit arithmetic, so an
+	 * IPv6 range in the allowlist silently never matched.
+	 *
+	 * @param string $ip   Visitor IP.
+	 * @param string $cidr Range in CIDR notation.
+	 * @return bool
 	 */
 	private static function ip_in_cidr( string $ip, string $cidr ): bool {
 		if ( ! str_contains( $cidr, '/' ) ) {
 			return false;
 		}
 
-		[ $subnet, $mask ] = explode( '/', $cidr );
+		[ $subnet, $prefix ] = explode( '/', $cidr, 2 );
 
-		if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 )
-			&& filter_var( $subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) {
-			$ip_long     = ip2long( $ip );
-			$subnet_long = ip2long( $subnet );
-			$mask_long   = -1 << ( 32 - (int) $mask );
-
-			return ( $ip_long & $mask_long ) === ( $subnet_long & $mask_long );
+		if ( '' === $prefix || ! ctype_digit( $prefix ) ) {
+			return false;
 		}
 
-		return false;
+		$ip_packed     = @inet_pton( $ip );     // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- returns false for malformed input, which is handled below.
+		$subnet_packed = @inet_pton( $subnet ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- as above.
+
+		if ( false === $ip_packed || false === $subnet_packed ) {
+			return false;
+		}
+
+		// Different address families never match (4 bytes vs 16).
+		if ( strlen( $ip_packed ) !== strlen( $subnet_packed ) ) {
+			return false;
+		}
+
+		$bits = (int) $prefix;
+		$max  = strlen( $ip_packed ) * 8;
+
+		if ( $bits > $max ) {
+			return false;
+		}
+
+		$whole_bytes   = intdiv( $bits, 8 );
+		$leftover_bits = $bits % 8;
+
+		if ( $whole_bytes > 0 && strncmp( $ip_packed, $subnet_packed, $whole_bytes ) !== 0 ) {
+			return false;
+		}
+
+		if ( 0 === $leftover_bits ) {
+			return true;
+		}
+
+		// Compare only the significant high bits of the next byte.
+		$mask = chr( ( 0xFF << ( 8 - $leftover_bits ) ) & 0xFF );
+
+		return ( $ip_packed[ $whole_bytes ] & $mask ) === ( $subnet_packed[ $whole_bytes ] & $mask );
 	}
 }

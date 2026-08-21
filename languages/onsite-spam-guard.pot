@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Onsite Spam Guard 1.2.0\n"
+"Project-Id-Version: Onsite Spam Guard 1.2.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/onsite-spam-guard\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-21T19:50:32+00:00\n"
+"POT-Creation-Date: 2026-08-21T21:25:30+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: onsite-spam-guard\n"
@@ -58,39 +58,39 @@ msgid "User Agent"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:69
-#: admin/class-spam-logs-list-table.php:105
+#: admin/class-spam-logs-list-table.php:109
 msgid "Delete"
 msgstr ""
 
-#: admin/class-spam-logs-list-table.php:171
+#: admin/class-spam-logs-list-table.php:180
 msgid "Filter by guard"
 msgstr ""
 
-#: admin/class-spam-logs-list-table.php:173
+#: admin/class-spam-logs-list-table.php:182
 msgid "All guards"
 msgstr ""
 
-#: admin/class-spam-logs-list-table.php:184
+#: admin/class-spam-logs-list-table.php:193
 msgid "Filter by context"
 msgstr ""
 
-#: admin/class-spam-logs-list-table.php:186
+#: admin/class-spam-logs-list-table.php:195
 msgid "All contexts"
 msgstr ""
 
-#: admin/class-spam-logs-list-table.php:197
+#: admin/class-spam-logs-list-table.php:206
 msgid "Filter"
 msgstr ""
 
-#: admin/class-spam-logs-list-table.php:206
+#: admin/class-spam-logs-list-table.php:215
 msgid "No blocked submissions recorded yet."
 msgstr ""
 
-#: admin/class-spam-logs-list-table.php:262
+#: admin/class-spam-logs-list-table.php:271
 msgid "You do not have permission to delete these entries."
 msgstr ""
 
-#: admin/class-spam-logs-list-table.php:267
+#: admin/class-spam-logs-list-table.php:276
 msgid "Nonce verification failed."
 msgstr ""
 
@@ -309,7 +309,7 @@ msgstr ""
 msgid "Duplicate submission detected — please wait before resubmitting."
 msgstr ""
 
-#: includes/guards/class-honeypot.php:20
+#: includes/guards/class-honeypot.php:29
 msgid "Submission rejected."
 msgstr ""
 
