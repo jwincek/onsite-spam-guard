@@ -21,6 +21,18 @@ The user-facing changelog shipped to WordPress.org lives in the
   extending that one core blocklist beyond comments to reviews, Jetpack forms,
   and public-API integrations.
 
+### Changed
+- CI now verifies the translation template still matches the strings in the
+  source (`bin/check-pot.sh`). The version check could only see the template's
+  version, so a release could previously ship a `.pot` missing newly added
+  strings.
+- Documented in `CONTRIBUTING.md` why the internal `simple_spam_shield_*`
+  prefixes deliberately do not match the `onsite-spam-guard` slug.
+
+### Removed
+- The unused `simple_spam_shield_block_log` option from the uninstall cleanup
+  list; nothing has written it since logging moved to a custom table.
+
 ## [1.1.3] - 2026-08-19
 
 ### Changed

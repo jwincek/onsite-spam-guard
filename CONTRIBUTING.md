@@ -56,6 +56,20 @@ refactoring the pure logic out so it can be tested in isolation (as with
 Every guard has a corresponding `tests/<Guard>Test.php`. New guards must
 ship with tests.
 
+### Translation template
+
+```bash
+bin/check-pot.sh
+```
+
+Verifies `languages/onsite-spam-guard.pot` still matches the strings in the
+source. Only `msgid` lines are compared, because `POT-Creation-Date` changes on
+every run. Regenerate with:
+
+```bash
+wp i18n make-pot . languages/onsite-spam-guard.pot --slug=onsite-spam-guard
+```
+
 ### Plugin Check
 
 The WordPress.org review tool. Run it against a distribution copy (dev
@@ -134,6 +148,36 @@ composer build          # -> build/onsite-spam-guard/
 
 Both the Plugin Check CI job and the WordPress.org deploy use this same script,
 so there is no second exclude list to keep in sync.
+
+## Naming: why internals do not match the slug
+
+The plugin's slug and text domain are `onsite-spam-guard`, but its internals are
+still `simple_spam_shield_*` option keys, `SIMPLE_SPAM_SHIELD_*` constants, a
+`Simple_Spam_Shield\` namespace, and `simple_spam_shield_*` public API
+functions. **This is deliberate. Please do not "fix" it.**
+
+The 1.1.2 rename (from "Simple Spam Shield", at the request of the
+WordPress.org review) was intentionally *minimum-depth*: the display name, text
+domain, slug, directory and artwork changed; nothing persisted or externally
+depended upon did.
+
+Three reasons:
+
+1. **Option keys and the log table are persisted.** Renaming them would make
+   every existing install silently lose its settings and its log history, or
+   require a migration routine that then has to be carried forever.
+2. **The public API function names are a contract.** `simple_spam_shield_check()`
+   and its siblings are called by other plugins — `wc-artisan-tools` alone calls
+   them from seven places. Renaming them is a breaking change for consumers.
+3. **Plugin Check does not require slug-matching prefixes.** This was verified
+   empirically rather than assumed: a throwaway rename carrying the new slug and
+   text domain but the old internal prefixes produced zero prefix and zero
+   text-domain findings. The check wants a *distinctive* prefix, not one derived
+   from the slug.
+
+If this is ever revisited, a full internal rename needs: a migration routine for
+the options and the table, a deprecation shim keeping the three public API
+functions working, and a coordinated release with every dependent plugin.
 
 ## Releasing
 

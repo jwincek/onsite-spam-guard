@@ -20,6 +20,29 @@ jobs:
       - uses: actions/checkout@v4
       - run: bin/check-versions.sh
 
+  # The version check compares the .pot's version but cannot see its strings,
+  # so a release could otherwise ship a template missing newly added strings.
+  translations:
+    name: Translation template
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      # make-pot is static analysis; it needs WP-CLI but not a WordPress install.
+      - name: Fetch WP-CLI
+        run: |
+          curl -sSL -o /tmp/wp-cli.phar \
+            https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+
+      - name: Check the .pot is up to date
+        run: WP_CLI=/tmp/wp-cli.phar bin/check-pot.sh
+
   lint-test:
     name: Lint & Test (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest

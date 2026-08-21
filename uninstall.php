@@ -54,7 +54,6 @@ function simple_spam_shield_uninstall_site(): void {
 		'simple_spam_shield_log_blocked',
 		'simple_spam_shield_log_retention_days',
 		'simple_spam_shield_delete_data_on_uninstall',
-		'simple_spam_shield_block_log',
 		'simple_spam_shield_allowlist',
 		'simple_spam_shield_trust_proxy',
 		'simple_spam_shield_token_secret',
