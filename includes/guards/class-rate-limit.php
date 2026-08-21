@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Rate_Limit extends Abstract_Guard {
 
-	public function check( array $data, string $context ): \WP_Error|true {
+	public function check( array $data, string $context, bool $observe_only = false ): \WP_Error|true {
 		$max = (int) get_option( 'simple_spam_shield_rate_limit_max', $this->config['max_per_window'] ?? 10 );
 
 		// A max of 0 (or less) disables the limit.
@@ -45,7 +45,11 @@ final class Rate_Limit extends Abstract_Guard {
 
 		// Rolling window: each accepted submission extends the window, so a
 		// persistent sender stays throttled until they pause for $window.
-		set_transient( $key, $count + 1, $window );
+		// Skipped when only observing: the count should reflect submissions
+		// that got through, not ones an earlier guard already rejected.
+		if ( ! $observe_only ) {
+			set_transient( $key, $count + 1, $window );
+		}
 
 		return true;
 	}

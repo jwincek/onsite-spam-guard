@@ -15,7 +15,7 @@ namespace Simple_Spam_Shield\Core;
 
 final class Database_Manager {
 
-	private const DB_VERSION     = '1.1';
+	private const DB_VERSION     = '1.2';
 	private const DB_VERSION_KEY = 'simple_spam_shield_db_version';
 	private const STATS_KEY      = 'simple_spam_shield_stats';
 
@@ -46,6 +46,7 @@ final class Database_Manager {
 			id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			blocked_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
 			guard varchar(50) NOT NULL,
+			guards_matched varchar(255) NOT NULL DEFAULT '',
 			context varchar(50) NOT NULL,
 			reason text NOT NULL,
 			content longtext NOT NULL,
@@ -73,16 +74,17 @@ final class Database_Manager {
 		global $wpdb;
 
 		$data = [
-			'blocked_at' => current_time( 'mysql', true ),
-			'guard'      => sanitize_text_field( $entry['guard'] ?? '' ),
-			'context'    => sanitize_text_field( $entry['context'] ?? '' ),
-			'reason'     => sanitize_textarea_field( $entry['reason'] ?? '' ),
-			'content'    => wp_kses_post( mb_substr( $entry['content'] ?? '', 0, 500 ) ),
-			'ip_address' => sanitize_text_field( $entry['ip_address'] ?? '' ),
-			'user_agent' => sanitize_text_field( mb_substr( $entry['user_agent'] ?? '', 0, 255 ) ),
+			'blocked_at'     => current_time( 'mysql', true ),
+			'guard'          => sanitize_text_field( $entry['guard'] ?? '' ),
+			'guards_matched' => sanitize_text_field( $entry['guards_matched'] ?? '' ),
+			'context'        => sanitize_text_field( $entry['context'] ?? '' ),
+			'reason'         => sanitize_textarea_field( $entry['reason'] ?? '' ),
+			'content'        => wp_kses_post( mb_substr( $entry['content'] ?? '', 0, 500 ) ),
+			'ip_address'     => sanitize_text_field( $entry['ip_address'] ?? '' ),
+			'user_agent'     => sanitize_text_field( mb_substr( $entry['user_agent'] ?? '', 0, 255 ) ),
 		];
 
-		$inserted = $wpdb->insert( self::table_name(), $data, [ '%s', '%s', '%s', '%s', '%s', '%s', '%s' ] );
+		$inserted = $wpdb->insert( self::table_name(), $data, [ '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' ] );
 
 		return $inserted ? (int) $wpdb->insert_id : false;
 	}

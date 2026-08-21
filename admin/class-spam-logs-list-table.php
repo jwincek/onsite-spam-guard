@@ -127,9 +127,39 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 					get_option( 'date_format' ) . ' ' . get_option( 'time_format' )
 				)
 			),
-			'guard', 'context', 'reason', 'ip_address' => esc_html( $item->$column_name ),
+			'context', 'reason', 'ip_address' => esc_html( $item->$column_name ),
 			default => '',
 		};
+	}
+
+	/**
+	 * Guard column — the guard that decided the block, plus any others that
+	 * also matched.
+	 *
+	 * The deciding guard stays on its own line so the column still reads as a
+	 * single value and the guard filter (which matches on it) stays coherent.
+	 * Additional matches appear beneath rather than in a tooltip, so they are
+	 * readable without a mouse.
+	 *
+	 * @param \stdClass $item Log row.
+	 */
+	public function column_guard( $item ): string {
+		$deciding = esc_html( (string) $item->guard );
+
+		$matched = array_filter( array_map( 'trim', explode( ',', (string) ( $item->guards_matched ?? '' ) ) ) );
+		$others  = array_values( array_diff( $matched, [ (string) $item->guard ] ) );
+
+		if ( ! $others ) {
+			return $deciding;
+		}
+
+		return sprintf(
+			'%1$s<br><span class="description">%2$s %3$s</span>',
+			$deciding,
+			/* translators: prefix for the additional guards that also matched a blocked submission. */
+			esc_html__( 'also:', 'onsite-spam-guard' ),
+			esc_html( implode( ', ', $others ) )
+		);
 	}
 
 	/**

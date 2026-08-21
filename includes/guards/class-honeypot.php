@@ -22,7 +22,7 @@ final class Honeypot extends Abstract_Guard {
 	 */
 	public const FIELD = 'simple_spam_shield_website_url';
 
-	public function check( array $data, string $context ): \WP_Error|true {
+	public function check( array $data, string $context, bool $observe_only = false ): \WP_Error|true {
 		// If the honeypot field is present and non-empty, it's a bot.
 		if ( ! empty( $data[ self::FIELD ] ) ) {
 			return $this->fail(

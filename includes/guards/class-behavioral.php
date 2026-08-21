@@ -16,7 +16,7 @@ namespace Simple_Spam_Shield\Guards;
 
 final class Behavioral extends Abstract_Guard {
 
-	public function check( array $data, string $context ): \WP_Error|true {
+	public function check( array $data, string $context, bool $observe_only = false ): \WP_Error|true {
 		$json = $data['simple_spam_shield_behavioral_data'] ?? '';
 
 		// If the behavioral data field is missing (e.g. Jetpack strips it),

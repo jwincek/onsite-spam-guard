@@ -10,6 +10,27 @@ The user-facing changelog shipped to WordPress.org lives in the
 
 ## [Unreleased]
 
+### Added
+- The spam log now records **every** guard that matched a blocked submission,
+  not just the first one to fire. The guard that decided the outcome is still
+  shown on its own line in the log viewer, with any additional matches listed
+  beneath it, so the guard filter and the 7-day summary are unchanged.
+- `Guard_Interface::check()` takes a third `$observe_only` argument. The runner
+  keeps its short-circuit for the *verdict* — the highest-weight failure still
+  decides the outcome and the message the visitor sees — but continues
+  evaluating the remaining guards for the record. Guards called that way must
+  not change state.
+
+### Changed
+- `Duplicate` and `Rate_Limit` skip their transient writes while observing. This
+  matters in both directions: a blocked submission no longer registers itself in
+  the duplicate cache (which would have rejected a visitor who fixed the problem
+  and resubmitted the same content), and no longer consumes rate-limit budget it
+  did not get through on.
+- Database schema 1.1 -> 1.2 adds a `guards_matched` column, applied by
+  `dbDelta` on upgrade. Existing rows are preserved and simply carry an empty
+  value.
+
 ## [1.2.1] - 2026-08-21
 
 ### Fixed
