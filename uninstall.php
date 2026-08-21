@@ -64,10 +64,17 @@ function simple_spam_shield_uninstall_site(): void {
 		delete_option( $option );
 	}
 
-	// 3. Clean up any duplicate-detection transients. They use the pattern
-	// simple_spam_shield_dup_* but cannot be enumerated without a query.
+	// 3. Clean up every transient the plugin creates. Matching on the shared
+	// prefix covers duplicate detection, rate limiting, and anything added
+	// later, rather than naming each family and forgetting one — the
+	// rate-limit transients added in 1.2.0 were missed by the old pattern.
+	//
+	// Underscores are escaped: `_` is a single-character wildcard in SQL LIKE,
+	// so an unescaped pattern matches more loosely than it appears to.
 	$wpdb->query(
-		"DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_simple_spam_shield_dup_%' OR option_name LIKE '_transient_timeout_simple_spam_shield_dup_%'"
+		"DELETE FROM {$wpdb->options}
+		  WHERE option_name LIKE '\\_transient\\_simple\\_spam\\_shield\\_%'
+		     OR option_name LIKE '\\_transient\\_timeout\\_simple\\_spam\\_shield\\_%'"
 	); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 
 	// 4. Delete the stats transient.

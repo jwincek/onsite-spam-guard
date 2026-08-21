@@ -4,7 +4,6 @@
 			"label": "Honeypot field",
 			"description": "Adds a hidden field that bots fill in but humans never see.",
 			"enabled_by_default": true,
-			"field_name": "simple_spam_shield_website_url",
 			"weight": 100
 		},
 		"time_gate": {

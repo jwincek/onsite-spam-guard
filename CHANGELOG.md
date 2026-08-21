@@ -10,6 +10,30 @@ The user-facing changelog shipped to WordPress.org lives in the
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-08-21
+
+### Fixed
+- Allowlist CIDR matching ignored IPv6 entirely. `ip_in_cidr()` used
+  `ip2long()` and 32-bit arithmetic, so a range like `2001:db8::/32` silently
+  never matched — no warning, no log entry, no effect — in the very control
+  that exists to rescue legitimate visitors from false positives. It now
+  compares the packed binary forms from `inet_pton()`, handling both address
+  families through one path, and rejects mismatched families and malformed
+  prefixes rather than over-matching. The allowlist previously had no test
+  coverage at all; it now has 11 cases exercised through the public path.
+- The uninstall routine removed duplicate-detection transients but not the
+  rate-limit transients added in 1.2.0, leaving rows in `wp_options` after
+  deletion. It now matches on the shared prefix, so families added later are
+  covered too. The `LIKE` patterns also now escape `_`, which is a
+  single-character wildcard in SQL and made the old patterns looser than they
+  appeared.
+- The honeypot guard read its field name from `config/guards.json`, but the
+  rendered markup, the front-end script and all eight integration reads
+  hardcoded it. Changing the configured value made the guard look for a field
+  nothing produced, silently disabling the highest-weight guard. The name is
+  now a constant; see #23 for wiring it through properly, which would allow a
+  per-site randomised name.
+
 ## [1.2.0] - 2026-08-21
 
 ### Added
@@ -139,7 +163,8 @@ Initial release.
   their own forms: `simple_spam_shield_check()`,
   `simple_spam_shield_protect_selector()`, and `simple_spam_shield_field_markup()`.
 
-[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/jwincek/onsite-spam-guard/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.3...v1.2.0
 [1.1.3]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.1...v1.1.2

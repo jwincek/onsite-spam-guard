@@ -25,10 +25,22 @@ final class HoneypotTest extends TestCase {
 		$this->assertTrue( $this->guard()->check( [], 'comment' ) );
 	}
 
-	public function test_respects_a_custom_field_name_from_config(): void {
+	/**
+	 * The field name is a constant, not configuration. It used to be readable
+	 * from guards.json while the markup, front-end script and integrations all
+	 * hardcoded it, so a changed value disabled the guard instead of renaming
+	 * the field. Constructor config must not be able to override it.
+	 */
+	public function test_field_name_is_not_overridable_by_config(): void {
 		$guard = new Honeypot( 'honeypot', [ 'field_name' => 'my_trap' ] );
-		$this->assertInstanceOf( WP_Error::class, $guard->check( [ 'my_trap' => 'x' ], 'comment' ) );
-		// The default field name no longer applies.
-		$this->assertTrue( $guard->check( [ 'simple_spam_shield_website_url' => 'x' ], 'comment' ) );
+
+		// The real field still blocks...
+		$this->assertInstanceOf(
+			WP_Error::class,
+			$guard->check( [ Honeypot::FIELD => 'http://spam.example' ], 'comment' )
+		);
+
+		// ...and a name supplied via config is ignored rather than honoured.
+		$this->assertTrue( $guard->check( [ 'my_trap' => 'http://spam.example' ], 'comment' ) );
 	}
 }

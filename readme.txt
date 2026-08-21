@@ -4,7 +4,7 @@ Tags: spam, antispam, comments, honeypot, woocommerce
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -100,6 +100,11 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 
 == Changelog ==
 
+= 1.2.1 =
+* Fixed: allowlist entries using an IPv6 range (for example 2001:db8::/32) never matched. IPv4 ranges, exact addresses and email rules were unaffected.
+* Fixed: rate-limit data left rows behind in the database when the plugin was deleted.
+* Fixed: the honeypot guard's field name is no longer presented as configurable, since changing it disabled the guard rather than renaming the field.
+
 = 1.2.0 =
 * New Rate limit guard: throttles repeated submissions from the same sender (the logged-in user where there is one, otherwise the connection IP). Off by default.
 * New option to also apply WordPress's Disallowed Comment Keys (Settings → Discussion) to every protected form, extending that one blocklist beyond comments to reviews, Jetpack forms, and forms added through the plugin's API.
@@ -136,6 +141,9 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 * Developed by Jerome Wincek, with engineering assistance from Anthropic's Claude.
 
 == Upgrade Notice ==
+
+= 1.2.1 =
+Fixes IPv6 allowlist entries being ignored, plus two smaller issues. Recommended if you allowlist by IP range.
 
 = 1.2.0 =
 Adds an optional rate-limit guard and an option to reuse WordPress's own Disallowed Comment Keys on every protected form. Both are off by default; nothing changes unless you enable them.
