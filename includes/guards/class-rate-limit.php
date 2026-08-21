@@ -39,7 +39,7 @@ final class Rate_Limit extends Abstract_Guard {
 
 		if ( $count >= $max ) {
 			return $this->fail(
-				__( 'Too many submissions — please wait a moment and try again.', 'simple-spam-shield' )
+				__( 'Too many submissions — please wait a moment and try again.', 'onsite-spam-guard' )
 			);
 		}
 

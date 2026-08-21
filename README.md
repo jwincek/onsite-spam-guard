@@ -42,6 +42,7 @@ uninstall.php            → Clean deletion of all plugin data
 | **Honeypot** | 100 | On | Hidden field that bots fill in but humans never see |
 | **Duplicate detection** | 95 | On | Rejects identical submissions within a 60-second window using transient-based hashing |
 | **Time gate** | 90 | On | Rejects submissions completed faster than a human could type (configurable, default 3s), using a server-signed issue time |
+| **Rate limit** | 85 | Off | Throttles repeated submissions from the same sender within a rolling window; keyed on the logged-in user ID when present, the connection IP otherwise |
 | **Signature** | 80 | On | Requires a valid server-signed token (HMAC) proving the form was served by this site; does not expire, so it is cache-safe |
 | **Link limit** | 70 | On | Flags submissions containing too many URLs (configurable, default 3) |
 | **Keyword block** | 60 | On | Rejects submissions matching blocked keywords or phrases |
@@ -72,6 +73,18 @@ This design gives full guard coverage on Jetpack forms while Jetpack stays in co
 ### Allowlist
 
 Submissions from allowlisted IPs or emails bypass all guards entirely. The allowlist supports exact IPs, CIDR ranges (e.g. `10.0.0.0/8`), exact email addresses, and email domain patterns (e.g. `@trusted.org`). IP detection uses the direct connection IP (`REMOTE_ADDR`) by default; the spoofable `X-Forwarded-For` header is honored only when the **Trust proxy headers** option is enabled (for sites behind a trusted reverse proxy), so a visitor cannot forge a header to spoof an allowlisted IP.
+
+### Sharing WordPress's blocklist
+
+The Keyword block guard checks its own list of words and phrases. It can optionally also run each
+submission through **`wp_check_comment_disallowed_list()`** — WordPress's own *Disallowed Comment
+Keys* from Settings → Discussion — via the *Also apply WordPress's Disallowed Comment Keys* option
+on the Guards tab (off by default).
+
+Core only applies that list to comments. Running it through the guard pipeline extends the same
+single, already-maintained blocklist to WooCommerce reviews, Jetpack contact forms, and any form
+integrated through the public API. Jetpack Forms uses the same core function for its own
+submissions; this applies it more broadly, and without the Akismet dependency Jetpack pairs it with.
 
 ### Logging
 

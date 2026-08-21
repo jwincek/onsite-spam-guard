@@ -10,6 +10,8 @@ The user-facing changelog shipped to WordPress.org lives in the
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-21
+
 ### Added
 - Rate-limit guard that throttles repeated submissions from the same sender
   (logged-in user, or IP when anonymous) within a short window. Off by default;
@@ -125,7 +127,8 @@ Initial release.
   their own forms: `simple_spam_shield_check()`,
   `simple_spam_shield_protect_selector()`, and `simple_spam_shield_field_markup()`.
 
-[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.3...HEAD
+[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.3...v1.2.0
 [1.1.3]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.0...v1.1.1

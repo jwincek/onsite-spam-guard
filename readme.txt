@@ -4,7 +4,7 @@ Tags: spam, antispam, comments, honeypot, woocommerce
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.1.3
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,6 +22,7 @@ Protection is built from a pipeline of independent **guards**. Each guard is a s
 * **Duplicate detection** — rejects identical submissions sent within a short window.
 * **Time gate** — rejects submissions completed faster than a human could plausibly type.
 * **Signature** — requires a server-signed token proving the form was served by this site, deterring automated cross-site posting.
+* **Rate limit** (optional) — throttles repeated submissions from the same sender within a short window, keyed on the logged-in user when there is one and the connection IP otherwise.
 * **Link limit** — flags submissions that contain too many URLs.
 * **Keyword block** — rejects submissions matching a configurable blocklist of words or phrases.
 * **Behavioral analysis** (optional) — scores mouse movement, clicks, and time on page to spot bot-like interaction.
@@ -72,9 +73,15 @@ By default the plugin uses the direct connection IP, because forwarded headers c
 
 By default a blocked comment or review is placed in the **spam queue** (Comments → Spam) rather than being rejected outright, so you can restore a false positive with one click — nothing is lost. Open **Spam Guard → Spam Logs** to see which guard blocked it and why, then loosen that guard on the settings page — for example, raise the link limit, lower the behavioral threshold, or add the sender to the allowlist. If you would rather reject blocked comments with an error message, enable that option under **Spam Guard → Settings → General**.
 
+= Can I limit how often one person can submit? =
+
+Yes. Enable **Rate limit** on the Guards tab and set the maximum submissions per minute. It counts per sender — the logged-in user where there is one, otherwise the connection IP — and each form type is counted separately. It is off by default, because on sites where many visitors share an address (an office, a school, or mobile carrier NAT) an IP-based limit can catch people who are not doing anything wrong. Set the maximum to 0 to disable it without turning the guard off.
+
 = Does it replace WordPress's built-in comment moderation? =
 
 No — it complements it. Onsite Spam Guard's guards run *before* WordPress's own comment checks, and those built-ins still run underneath: the duplicate-comment check, the comment flood throttle, the **Disallowed Comment Keys** blocklist, and the "hold a comment with this many links" setting (all under **Settings → Discussion**). Its Keyword, Link limit, and Duplicate guards overlap those, so you can rely on either or both. What it adds on top is the honeypot, timing, signature, and behavioral checks core has no equivalent for, one settings screen with logging, and protection for WooCommerce reviews and Jetpack contact forms — not just comments.
+
+You can also go the other way and put WordPress's list to work everywhere: enable **Also apply WordPress's Disallowed Comment Keys** on the Guards tab and the plugin runs every protected submission through core's own blocklist — so the list you already maintain under Settings → Discussion starts covering reviews, Jetpack forms, and any form added through the plugin's API, not only comments.
 
 = Does it work with caching plugins? =
 
@@ -92,6 +99,10 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 4. The Spam Logs viewer — filter by guard and context, a user-agent column, and per-row and bulk delete actions.
 
 == Changelog ==
+
+= 1.2.0 =
+* New Rate limit guard: throttles repeated submissions from the same sender (the logged-in user where there is one, otherwise the connection IP). Off by default.
+* New option to also apply WordPress's Disallowed Comment Keys (Settings → Discussion) to every protected form, extending that one blocklist beyond comments to reviews, Jetpack forms, and forms added through the plugin's API.
 
 = 1.1.3 =
 * Tested with WordPress 7.1. No functional changes.
@@ -125,6 +136,9 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 * Developed by Jerome Wincek, with engineering assistance from Anthropic's Claude.
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+Adds an optional rate-limit guard and an option to reuse WordPress's own Disallowed Comment Keys on every protected form. Both are off by default; nothing changes unless you enable them.
 
 = 1.1.3 =
 Compatibility bump for WordPress 7.1. No functional changes.

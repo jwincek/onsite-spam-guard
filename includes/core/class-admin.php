@@ -208,7 +208,7 @@ final class Admin {
 			'simple_spam_shield_guards'
 		);
 
-		self::add_toggle( 'simple_spam_shield_use_wp_disallowed_keys', __( 'Also apply WordPress\'s Disallowed Comment Keys (Settings → Discussion) to every protected form', 'simple-spam-shield' ), $guards_page, 'simple_spam_shield_guards', false );
+		self::add_toggle( 'simple_spam_shield_use_wp_disallowed_keys', __( 'Also apply WordPress\'s Disallowed Comment Keys (Settings → Discussion) to every protected form', 'onsite-spam-guard' ), $guards_page, 'simple_spam_shield_guards', false );
 
 		// ---- Allowlist tab ----
 		$allowlist_page = $tabs['allowlist']['page'];
