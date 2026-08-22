@@ -15,32 +15,46 @@ namespace Simple_Spam_Shield\Guards;
 
 final class Duplicate extends Abstract_Guard {
 
-	public function check( array $data, string $context, bool $observe_only = false ): \WP_Error|true {
-		$content = $data['content'] ?? $data['comment'] ?? '';
-		$author  = $data['author'] ?? $data['author_name'] ?? '';
-		$email   = $data['email'] ?? $data['author_email'] ?? '';
-		$ip      = \Simple_Spam_Shield\Core\Request::ip();
-
-		$hash = md5( $content . $author . $email . $ip );
-
-		$transient_key = 'simple_spam_shield_dup_' . $hash;
-		$window        = (int) ( $this->config['window_seconds'] ?? 60 );
-
-		if ( get_transient( $transient_key ) ) {
+	public function check( array $data, string $context ): \WP_Error|true {
+		if ( get_transient( self::transient_key( $data ) ) ) {
 			return $this->fail(
 				__( 'Duplicate submission detected — please wait before resubmitting.', 'onsite-spam-guard' )
 			);
 		}
 
-		// Mark this submission as seen for the duration of the window. Skipped
-		// when only observing, so a submission already blocked by an earlier
-		// guard does not register itself — otherwise a visitor who fixed
-		// whatever tripped them and resubmitted the same content would be
-		// rejected as a duplicate of their own blocked attempt.
-		if ( ! $observe_only ) {
-			set_transient( $transient_key, time(), $window );
-		}
-
 		return true;
+	}
+
+	/**
+	 * Register an accepted submission for the duration of the window.
+	 *
+	 * This deliberately happens on commit rather than during check(): the guard
+	 * asks "have I already taken this exact content?", and a submission some
+	 * other guard rejected was never taken. Recording it during the check would
+	 * refuse a visitor who fixed whatever tripped them and resubmitted, naming
+	 * a duplicate of their own blocked attempt as the reason.
+	 *
+	 * @param array  $data    Submission data.
+	 * @param string $context Submission context.
+	 */
+	public function commit( array $data, string $context ): void {
+		$window = (int) ( $this->config['window_seconds'] ?? 60 );
+
+		set_transient( self::transient_key( $data ), time(), $window );
+	}
+
+	/**
+	 * Transient key identifying a submission, so check() and commit() cannot
+	 * drift apart on how a submission is fingerprinted.
+	 *
+	 * @param array $data Submission data.
+	 */
+	private static function transient_key( array $data ): string {
+		$content = $data['content'] ?? $data['comment'] ?? '';
+		$author  = $data['author'] ?? $data['author_name'] ?? '';
+		$email   = $data['email'] ?? $data['author_email'] ?? '';
+		$ip      = \Simple_Spam_Shield\Core\Request::ip();
+
+		return 'simple_spam_shield_dup_' . md5( $content . $author . $email . $ip );
 	}
 }

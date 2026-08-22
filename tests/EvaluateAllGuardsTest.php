@@ -44,44 +44,41 @@ final class EvaluateAllGuardsTest extends TestCase {
 
 	// --- the guards themselves -------------------------------------------
 
-	public function test_duplicate_does_not_record_the_submission_when_observing(): void {
+	public function test_duplicate_records_only_on_commit(): void {
 		$guard = new Duplicate( 'duplicate', [ 'window_seconds' => 60 ] );
 		$data  = [ 'content' => 'hello', 'author' => 'A', 'email' => 'a@example.com' ];
 
-		$this->assertTrue( $guard->check( $data, 'comment', true ) );
-		// Observing must leave no trace, so the same content still passes.
-		$this->assertTrue( $guard->check( $data, 'comment', true ) );
-
-		// A real (non-observing) pass does record it.
+		// Checking alone leaves no trace, however many times it happens.
 		$this->assertTrue( $guard->check( $data, 'comment' ) );
+		$this->assertTrue( $guard->check( $data, 'comment' ) );
+
+		// Only an accepted submission is recorded.
+		$guard->commit( $data, 'comment' );
 		$this->assertInstanceOf( WP_Error::class, $guard->check( $data, 'comment' ) );
 	}
 
-	public function test_rate_limit_does_not_consume_budget_when_observing(): void {
+	public function test_rate_limit_counts_every_attempt_including_rejected_ones(): void {
 		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_rate_limit_max'] = 2;
 		$guard = new Rate_Limit( 'rate_limit', [ 'max_per_window' => 2, 'window_seconds' => 60 ] );
 
-		for ( $i = 0; $i < 10; $i++ ) {
-			$this->assertTrue( $guard->check( [], 'comment', true ), "observation {$i} consumed budget" );
-		}
-
-		// Budget is untouched, so two real submissions still pass.
+		// The limiter throttles a sender by attempts, so no commit is involved.
 		$this->assertTrue( $guard->check( [], 'comment' ) );
 		$this->assertTrue( $guard->check( [], 'comment' ) );
 		$this->assertInstanceOf( WP_Error::class, $guard->check( [], 'comment' ) );
 	}
 
-	public function test_verdict_is_identical_in_both_modes(): void {
+	public function test_rate_limit_keeps_failing_once_the_window_is_spent(): void {
 		$guard = new Rate_Limit( 'rate_limit', [ 'max_per_window' => 1, 'window_seconds' => 60 ] );
 		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_rate_limit_max'] = 1;
 
-		$guard->check( [], 'comment' );                    // consume the single slot
-		$observed = $guard->check( [], 'comment', true );
-		$real     = $guard->check( [], 'comment' );
+		$guard->check( [], 'comment' );   // consume the single slot
 
-		$this->assertInstanceOf( WP_Error::class, $observed );
-		$this->assertInstanceOf( WP_Error::class, $real );
-		$this->assertSame( $real->get_error_code(), $observed->get_error_code() );
+		$first  = $guard->check( [], 'comment' );
+		$second = $guard->check( [], 'comment' );
+
+		$this->assertInstanceOf( WP_Error::class, $first );
+		$this->assertInstanceOf( WP_Error::class, $second );
+		$this->assertSame( $first->get_error_code(), $second->get_error_code() );
 	}
 
 	// --- the runner -------------------------------------------------------
@@ -112,28 +109,81 @@ final class EvaluateAllGuardsTest extends TestCase {
 	}
 
 	/**
-	 * A blocked submission must not consume rate-limit budget on its way out.
-	 * Before observe-only this was impossible to get wrong, because the
-	 * rate-limit guard never ran once an earlier guard had blocked.
+	 * A submission rejected by another guard must not land in the duplicate
+	 * cache — otherwise the visitor fixes the problem, resubmits, and is
+	 * refused as a duplicate of their own blocked attempt, naming the wrong
+	 * reason. This is the regression #26 was filed for.
 	 */
-	public function test_blocked_submission_does_not_consume_rate_limit_budget(): void {
-		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_rate_limit_max']     = 2;
+	public function test_a_blocked_submission_is_not_recorded_as_a_duplicate(): void {
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_duplicate_enabled']  = true;
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_link_limit_enabled'] = true;
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_link_limit_max']     = 3;
+
+		// Tripped by link_limit (weight 70), well below duplicate (95).
+		$spammy = [
+			'content'                        => 'hi http://a.example http://b.example http://c.example http://d.example',
+			'simple_spam_shield_website_url' => '',
+			'simple_spam_shield_form_loaded' => $this->token(),
+		];
+
+		$first = Guard_Runner::run( $spammy, 'comment' );
+		$this->assertSame( 'simple_spam_shield_link_limit_failed', $first->get_error_code() );
+
+		// Resubmitting the identical text must still name the real problem.
+		$second = Guard_Runner::run( $spammy, 'comment' );
+		$this->assertSame(
+			'simple_spam_shield_link_limit_failed',
+			$second->get_error_code(),
+			'a blocked submission was recorded in the duplicate cache'
+		);
+
+		// And the corrected version goes through.
+		$fixed = [
+			'content'                        => 'hi http://a.example',
+			'simple_spam_shield_website_url' => '',
+			'simple_spam_shield_form_loaded' => $this->token(),
+		];
+		$this->assertTrue( Guard_Runner::run( $fixed, 'comment' ) );
+	}
+
+	/**
+	 * The inverse, and the reason Rate_Limit is not moved to commit(): a sender
+	 * flooding the form is overwhelmingly being rejected by some other guard.
+	 * Counting only accepted submissions would let a bot flood forever while
+	 * still charging a legitimate visitor for a single mistake.
+	 */
+	public function test_a_flooder_blocked_by_another_guard_still_consumes_rate_limit_budget(): void {
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_rate_limit_max']     = 3;
 		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_rate_limit_enabled'] = true;
 
-		$blocked = [
-			'content'                        => 'hello',
+		// Every attempt trips the honeypot (weight 100), above rate_limit (85).
+		$flood = [
+			'content'                        => 'flood',
 			'simple_spam_shield_website_url' => 'http://bot.example',
 			'simple_spam_shield_form_loaded' => $this->token(),
 		];
-		for ( $i = 0; $i < 5; $i++ ) {
-			$this->assertInstanceOf( WP_Error::class, Guard_Runner::run( $blocked, 'comment' ) );
+		for ( $i = 0; $i < 3; $i++ ) {
+			$this->assertSame(
+				'simple_spam_shield_honeypot_failed',
+				Guard_Runner::run( $flood, 'comment' )->get_error_code()
+			);
 		}
 
+		// The honeypot keeps deciding the verdict for the bot's own traffic, as
+		// it should — it outranks the limiter. What proves the attempts were
+		// counted is that the sender's budget is now spent, so even a submission
+		// with nothing wrong with it is throttled.
 		$clean = [
 			'content'                        => 'an ordinary comment',
 			'simple_spam_shield_website_url' => '',
 			'simple_spam_shield_form_loaded' => $this->token(),
 		];
-		$this->assertTrue( Guard_Runner::run( $clean, 'comment' ) );
+		$result = Guard_Runner::run( $clean, 'comment' );
+		$this->assertSame(
+			'simple_spam_shield_rate_limit_failed',
+			$result->get_error_code(),
+			'a flooding sender was never charged for rejected attempts'
+		);
 	}
+
 }

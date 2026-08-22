@@ -32,6 +32,17 @@ abstract class Abstract_Guard implements Guard_Interface {
 	}
 
 	/**
+	 * Record an accepted submission.
+	 *
+	 * Empty by default: most guards read state rather than write it. Guards that
+	 * must remember an accepted submission — `Duplicate` — override this.
+	 *
+	 * @param array  $data    Submission data, as passed to check().
+	 * @param string $context Submission context.
+	 */
+	public function commit( array $data, string $context ): void {} // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Deliberate no-op default for guards that hold no state.
+
+	/**
 	 * Helper: build a WP_Error for a failed guard.
 	 */
 	protected function fail( string $message ): \WP_Error {

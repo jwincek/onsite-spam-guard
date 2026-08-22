@@ -10,7 +10,7 @@ The user-facing changelog shipped to WordPress.org lives in the
 
 ## [Unreleased]
 
-## [1.3.0] - 2026-08-21
+## [1.3.0] - 2026-08-22
 
 ### Added
 - Other plugins can register their own guard through the new
@@ -29,23 +29,34 @@ The user-facing changelog shipped to WordPress.org lives in the
   not just the first one to fire. The guard that decided the outcome is still
   shown on its own line in the log viewer, with any additional matches listed
   beneath it, so the guard filter and the 7-day summary are unchanged.
-- `Guard_Interface::check()` takes a third `$observe_only` argument. The runner
-  keeps its short-circuit for the *verdict* — the highest-weight failure still
-  decides the outcome and the message the visitor sees — but continues
-  evaluating the remaining guards for the record. Guards called that way must
-  not change state.
+- `Guard_Interface` splits evaluation from recording. `check( $data, $context )`
+  evaluates and is called whatever the outcome, so the log can record every
+  guard that matched; the runner keeps its short-circuit for the *verdict*, so
+  the highest-weight failure still decides what the visitor sees. The new
+  `commit( $data, $context )` runs on every enabled guard only once no guard has
+  objected, and is where state describing an accepted submission belongs.
+  `Abstract_Guard::commit()` is an empty default, so guards holding no state are
+  unaffected.
 
 ### Changed
-- `Duplicate` and `Rate_Limit` skip their transient writes while observing, so a
-  submission already blocked by a higher-weight guard no longer registers itself
-  in the duplicate cache and no longer consumes rate-limit budget.
+- `Duplicate` now records on commit instead of during its check, fixing a bug
+  where a submission rejected by any lower-weight guard was still entered in the
+  duplicate cache. A visitor who fixed whatever tripped them and resubmitted was
+  then refused a second time as a duplicate of their own blocked attempt, naming
+  the wrong reason. Only `Honeypot` outranks `Duplicate`, so this affected
+  rejections from six of the eight guards.
+- `Rate_Limit` now counts every attempt, including rejected ones — the opposite
+  correction, for the opposite reason. It sits below `Honeypot`, so it was
+  previously never counting the traffic it exists to throttle: a bot could flood
+  a form indefinitely without consuming any budget, while a legitimate visitor
+  who tripped a guard once did consume it. The limiter was effectively
+  throttling only real users.
 
-  Note the limit of this: a guard only observes once some *earlier* guard has
-  decided the block. `Duplicate` runs at weight 95 with only `Honeypot` above it,
-  so a submission blocked by any of the six lower-weight guards has already been
-  recorded by the time the block happens, and an identical resubmission is then
-  refused as a duplicate. Recording only submissions that clear the whole
-  pipeline needs a separate commit step and is tracked as its own issue.
+  Both of these are bugs in released code, not regressions introduced during
+  this cycle. In 1.2.1 the runner returned on the first failure, so `Rate_Limit`
+  never ran once a higher-weight guard had blocked, and `Duplicate` recorded
+  unconditionally inside its check. Sites running 1.2.0 or 1.2.1 with either
+  guard enabled are affected.
 - Database schema 1.1 -> 1.2 adds a `guards_matched` column, applied by
   `dbDelta` on upgrade. Existing rows are preserved and simply carry an empty
   value.

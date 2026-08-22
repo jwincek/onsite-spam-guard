@@ -8,16 +8,19 @@ use Simple_Spam_Shield\Guards\Abstract_Guard;
 
 /** A guard supplied by a hypothetical third-party plugin. */
 final class Test_External_Guard extends Abstract_Guard {
-	public static int $observed_calls = 0;
+	public static int $checked_calls = 0;
+	public static int $commit_calls  = 0;
 
-	public function check( array $data, string $context, bool $observe_only = false ): \WP_Error|true {
-		if ( $observe_only ) {
-			++self::$observed_calls;
-		}
+	public function check( array $data, string $context ): \WP_Error|true {
+		++self::$checked_calls;
 		if ( str_contains( (string) ( $data['content'] ?? '' ), 'forbidden-by-external' ) ) {
 			return $this->fail( 'Blocked by the external guard.' );
 		}
 		return true;
+	}
+
+	public function commit( array $data, string $context ): void {
+		++self::$commit_calls;
 	}
 }
 
@@ -40,7 +43,8 @@ final class GuardRegistrationTest extends TestCase {
 		$GLOBALS['simple_spam_shield_test_actions']    = [];
 		$_SERVER['REMOTE_ADDR']                        = '198.51.100.9';
 		$_POST                                         = [];
-		Test_External_Guard::$observed_calls           = 0;
+		Test_External_Guard::$checked_calls            = 0;
+		Test_External_Guard::$commit_calls             = 0;
 	}
 
 	private function token(): string {
@@ -108,8 +112,8 @@ final class GuardRegistrationTest extends TestCase {
 		$this->assertSame( 'simple_spam_shield_external_failed', $result->get_error_code() );
 	}
 
-	public function test_registered_guard_is_evaluated_in_observe_mode_after_a_block(): void {
-		// Below the honeypot, so the honeypot decides and this one only observes.
+	public function test_registered_guard_is_still_evaluated_after_another_guard_blocks(): void {
+		// Below the honeypot, so the honeypot decides the verdict first.
 		$this->registerExternalGuard( 10 );
 
 		Guard_Runner::run(
@@ -121,7 +125,24 @@ final class GuardRegistrationTest extends TestCase {
 			'comment'
 		);
 
-		$this->assertSame( 1, Test_External_Guard::$observed_calls );
+		$this->assertSame( 1, Test_External_Guard::$checked_calls, 'the guard should still be evaluated for the record' );
+		$this->assertSame( 0, Test_External_Guard::$commit_calls, 'a blocked submission must never be committed' );
+	}
+
+	public function test_commit_runs_on_every_enabled_guard_once_a_submission_is_accepted(): void {
+		$this->registerExternalGuard( 10 );
+
+		$result = Guard_Runner::run(
+			[
+				'content'                        => 'a perfectly ordinary message',
+				'simple_spam_shield_website_url' => '',
+				'simple_spam_shield_form_loaded' => $this->token(),
+			],
+			'comment'
+		);
+
+		$this->assertTrue( $result );
+		$this->assertSame( 1, Test_External_Guard::$commit_calls );
 	}
 
 	public function test_a_class_that_does_not_implement_the_contract_is_skipped(): void {

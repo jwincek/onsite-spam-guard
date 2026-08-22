@@ -23,7 +23,25 @@ final class DuplicateTest extends TestCase {
 			'email'   => 'bob@example.com',
 		];
 		$this->assertTrue( $this->guard()->check( $data, 'comment' ) );
+
+		// The runner commits once no guard has objected; that is what records
+		// the submission, not the check itself.
+		$this->guard()->commit( $data, 'comment' );
+
 		$this->assertInstanceOf( WP_Error::class, $this->guard()->check( $data, 'comment' ) );
+	}
+
+	/** Checking without committing must leave nothing behind. */
+	public function test_a_check_alone_never_records_the_submission(): void {
+		$data = [
+			'content' => 'hello there',
+			'author'  => 'Bob',
+			'email'   => 'bob@example.com',
+		];
+
+		for ( $i = 0; $i < 5; $i++ ) {
+			$this->assertTrue( $this->guard()->check( $data, 'comment' ), "check {$i} recorded the submission" );
+		}
 	}
 
 	public function test_allows_a_different_submission(): void {
@@ -33,6 +51,7 @@ final class DuplicateTest extends TestCase {
 			'email'   => 'bob@example.com',
 		];
 		$this->assertTrue( $this->guard()->check( $first, 'comment' ) );
+		$this->guard()->commit( $first, 'comment' );
 
 		$second            = $first;
 		$second['content'] = 'a completely different message';
@@ -46,6 +65,7 @@ final class DuplicateTest extends TestCase {
 			'email'   => 'bob@example.com',
 		];
 		$this->assertTrue( $this->guard()->check( $data, 'comment' ) );
+		$this->guard()->commit( $data, 'comment' );
 
 		// The same content from a different IP is not a duplicate.
 		$_SERVER['REMOTE_ADDR'] = '203.0.113.9';
