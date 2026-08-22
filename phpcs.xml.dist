@@ -5,6 +5,8 @@
 	<file>.</file>
 	<exclude-pattern>vendor/*</exclude-pattern>
 	<exclude-pattern>node_modules/*</exclude-pattern>
+	<!-- Build output is a copy of the source; scanning it reports every class twice. -->
+	<exclude-pattern>build/*</exclude-pattern>
 	<!-- Unit tests use stub globals and test-only conventions, not WPCS. -->
 	<exclude-pattern>tests/*</exclude-pattern>
 

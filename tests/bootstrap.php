@@ -125,6 +125,31 @@ if ( ! function_exists( 'apply_filters' ) ) {
 		return $value;
 	}
 }
+// --- In-memory action registry -----------------------------------------------
+// In WordPress actions and filters share a mechanism, but actions take no
+// return value, so they get their own store here to keep the stubs honest.
+$GLOBALS['simple_spam_shield_test_actions'] = [];
+
+if ( ! function_exists( 'add_action' ) ) {
+	function add_action( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
+		$GLOBALS['simple_spam_shield_test_actions'][ $hook ][] = $callback;
+		return true;
+	}
+}
+if ( ! function_exists( 'do_action' ) ) {
+	function do_action( $hook, ...$args ) {
+		foreach ( $GLOBALS['simple_spam_shield_test_actions'][ $hook ] ?? [] as $callback ) {
+			$callback( ...$args );
+		}
+	}
+}
+if ( ! function_exists( '_doing_it_wrong' ) ) {
+	function _doing_it_wrong( $function_name, $message, $version ) {
+		// Recorded rather than emitted: these are deliberate in some tests.
+		$GLOBALS['simple_spam_shield_test_doing_it_wrong'][] = compact( 'function_name', 'message', 'version' );
+	}
+}
+
 if ( ! function_exists( 'wp_die' ) ) {
 	function wp_die( $message = '', $title = '', $args = [] ) {
 		// Throw instead of exiting so tests can assert the hard-block path.

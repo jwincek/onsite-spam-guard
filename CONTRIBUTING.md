@@ -134,15 +134,31 @@ so guards never need to know about comment arrays vs. Jetpack field data.
    `enabled_by_default`, `weight`, and any per-guard thresholds (read in the
    guard via `$this->config[...]`).
 
-3. **Register it** in `Guard_Runner::init()`'s `$guard_map` (slug → class).
+3. **Register it** in `Guard_Runner::definitions()`'s `$builtin_classes`
+   (slug → class).
 
-   The on/off toggle appears on the settings page automatically (the admin
-   screen reads `guards.json`). Add a numeric/text setting in
-   `Admin::register_settings()` only if the guard needs one.
+   The on/off toggle appears on the settings page automatically, because
+   `Admin::register_settings()` and the pipeline both read
+   `Guard_Runner::definitions()`. Add a numeric/text setting in
+   `Admin::register_settings()` only if the guard needs a threshold.
 
 4. **Add tests** in `tests/My_GuardTest.php`, covering both the blocking and
    passing paths plus the Jetpack-context behavior if the guard depends on
    JS-injected fields.
+
+**Guards belonging to another plugin** do not go through steps 2 and 3. They are
+registered from outside with the `simple_spam_shield_guards` filter, which
+carries the class in the definition itself — see "Adding your own guard" in
+`README.md`. Anything the filter returns that is not a `Guard_Interface`
+implementation is refused with `_doing_it_wrong()`, and a filter that returns a
+non-array leaves the built-in guards in place rather than dropping the site's
+protection. Keep `definitions()` the single source of truth for what the
+pipeline runs, so a registered guard is never a second-class citizen.
+
+**Known limitation:** the runner only puts a guard in observe mode once an
+*earlier* guard has decided the block, so `Duplicate` and `Rate_Limit` still
+record submissions rejected by a lower-weight guard. Tracked in issue #26; a new
+state-holding guard inherits the same caveat.
 
 ## Distribution
 

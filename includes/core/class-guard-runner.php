@@ -27,9 +27,54 @@ final class Guard_Runner {
 	public static function init(): void {
 		self::$guards = []; // Idempotent: re-initializing replaces, never appends.
 
-		$definitions = Config::get( 'guards', 'guards', [] );
+		foreach ( self::definitions() as $slug => $def ) {
+			$class = $def['class'] ?? null;
 
-		$guard_map = [
+			if ( ! is_string( $class ) || ! class_exists( $class ) ) {
+				continue;
+			}
+
+			// A guard that does not implement the contract would fail at the
+			// first submission; skip it now and say why, rather than fataling
+			// on someone's comment form.
+			if ( ! is_subclass_of( $class, Guard_Interface::class ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: guard slug, 2: class name, 3: interface name. */
+						esc_html__( 'Guard "%1$s" was skipped: %2$s does not implement %3$s.', 'onsite-spam-guard' ),
+						esc_html( (string) $slug ),
+						esc_html( $class ),
+						'Guard_Interface'
+					),
+					'1.3.0'
+				);
+				continue;
+			}
+
+			self::$guards[] = new $class( (string) $slug, $def );
+		}
+
+		// Sort by weight descending (highest priority first).
+		usort( self::$guards, fn( Guard_Interface $a, Guard_Interface $b ) => $b->get_weight() <=> $a->get_weight() );
+	}
+
+	/**
+	 * The guard definitions, after filtering.
+	 *
+	 * Built-in guards come from config/guards.json; each entry is given the
+	 * class that implements it. Other plugins can register their own guard, or
+	 * adjust or remove a built-in one, through the
+	 * `simple_spam_shield_guards` filter.
+	 *
+	 * This is the single source of truth for both the pipeline and the
+	 * settings screen, so a registered guard automatically gets its own on/off
+	 * toggle on the Guards tab without any extra work.
+	 *
+	 * @return array<string, array<string, mixed>> Slug => definition.
+	 */
+	public static function definitions(): array {
+		$builtin_classes = [
 			'honeypot'      => \Simple_Spam_Shield\Guards\Honeypot::class,
 			'time_gate'     => \Simple_Spam_Shield\Guards\Time_Gate::class,
 			'nonce'         => \Simple_Spam_Shield\Guards\Nonce::class,
@@ -40,19 +85,50 @@ final class Guard_Runner {
 			'behavioral'    => \Simple_Spam_Shield\Guards\Behavioral::class,
 		];
 
-		foreach ( $definitions as $slug => $def ) {
-			if ( ! isset( $guard_map[ $slug ] ) ) {
+		$definitions = [];
+
+		foreach ( Config::get( 'guards', 'guards', [] ) as $slug => $def ) {
+			if ( ! isset( $builtin_classes[ $slug ] ) ) {
 				continue;
 			}
 
-			$class    = $guard_map[ $slug ];
-			$instance = new $class( $slug, $def );
-
-			self::$guards[] = $instance;
+			$def['class']         = $builtin_classes[ $slug ];
+			$definitions[ $slug ] = $def;
 		}
 
-		// Sort by weight descending (highest priority first).
-		usort( self::$guards, fn( Guard_Interface $a, Guard_Interface $b ) => $b->get_weight() <=> $a->get_weight() );
+		/**
+		 * Filter the guards that make up the spam-check pipeline.
+		 *
+		 * Each entry is keyed by slug and understands:
+		 *
+		 *   class              Fully-qualified class implementing Guard_Interface.
+		 *   label              Shown on the Guards settings tab.
+		 *   description        Optional longer explanation.
+		 *   weight             Higher runs first; the highest-weight failure
+		 *                      decides the outcome and the visitor's message.
+		 *   enabled_by_default Whether the toggle starts on.
+		 *
+		 * Any other keys are handed to the guard's constructor as its config.
+		 *
+		 * Hook this before `plugins_loaded` priority 10 — registering it when
+		 * your plugin file loads is the usual way.
+		 *
+		 * A registered guard must honour the `$observe_only` argument to
+		 * `check()`: the runner keeps evaluating after a submission has already
+		 * been blocked so the log can record every guard that matched, and
+		 * guards called that way must not change any state.
+		 *
+		 * @since 1.3.0
+		 *
+		 * @param array<string, array<string, mixed>> $definitions Slug => definition.
+		 */
+		/** @var mixed $filtered */
+		$filtered = apply_filters( 'simple_spam_shield_guards', $definitions );
+
+		// A filter belonging to another plugin can return anything. Falling back
+		// to an empty list would silently disable every guard and leave the site
+		// unprotected, so fall back to the built-in definitions instead.
+		return is_array( $filtered ) ? $filtered : $definitions;
 	}
 
 	/**
@@ -106,6 +182,30 @@ final class Guard_Runner {
 		}
 
 		self::log_block( $matched[0], $context, $verdict->get_error_message(), $data, $matched );
+
+		/**
+		 * Fires when a submission has been blocked.
+		 *
+		 * Runs after the block is logged and just before the error is returned
+		 * to whichever integration is handling the submission. Use it to
+		 * notify, count, or feed a dashboard without polling the log table.
+		 *
+		 * Thanks to the pipeline evaluating every guard, $matched lists all of
+		 * them, not just the one that decided the outcome — $guard is always
+		 * $matched[0].
+		 *
+		 * $data carries the submitted content, author name and email, so treat
+		 * it as personal data: do not send it anywhere the site owner has not
+		 * agreed to.
+		 *
+		 * @since 1.3.0
+		 *
+		 * @param string   $guard   Slug of the guard that decided the block.
+		 * @param string   $context Form context, e.g. 'comment' or a custom label.
+		 * @param string[] $matched Every guard that matched, in weight order.
+		 * @param array    $data    Normalized submission data.
+		 */
+		do_action( 'simple_spam_shield_blocked', $matched[0], $context, $matched, $data );
 
 		return $verdict;
 	}

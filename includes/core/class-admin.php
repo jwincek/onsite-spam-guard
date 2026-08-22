@@ -145,7 +145,9 @@ final class Admin {
 			echo '<p>' . esc_html__( 'Enable or disable individual spam checks.', 'onsite-spam-guard' ) . '</p>';
 		}, $guards_page );
 
-		$guard_defs = Config::get( 'guards', 'guards', [] );
+		// The filtered definitions, so a guard registered by another plugin
+		// through simple_spam_shield_guards gets its own toggle here too.
+		$guard_defs = Guard_Runner::definitions();
 		foreach ( $guard_defs as $slug => $def ) {
 			self::add_toggle(
 				"simple_spam_shield_{$slug}_enabled",

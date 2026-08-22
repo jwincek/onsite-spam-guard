@@ -151,6 +151,60 @@ if ( function_exists( 'simple_spam_shield_field_markup' ) ) {
 
 Without step 2, only the content-based guards (keyword, link limit, duplicate) apply.
 
+### Adding your own guard
+
+Register a class implementing `Guard_Interface` through the
+`simple_spam_shield_guards` filter, and it joins the pipeline as a first-class
+guard — sorted by weight, short-circuiting on failure, logged, and given its own
+on/off toggle on the Guards settings tab automatically.
+
+```php
+add_filter( 'simple_spam_shield_guards', function ( array $guards ) {
+    $guards['acme_blocklist'] = [
+        'class'              => \Acme\Blocklist_Guard::class,
+        'label'              => 'Acme blocklist',
+        'weight'             => 65,   // higher runs first
+        'enabled_by_default' => true,
+    ];
+    return $guards;
+} );
+```
+
+Register it when your plugin file loads, so the filter is in place before the
+pipeline is built on `plugins_loaded`.
+
+Your guard must honour the third argument to `check()`:
+
+```php
+public function check( array $data, string $context, bool $observe_only = false ): \WP_Error|true {
+    // ... decide ...
+    if ( ! $observe_only ) {
+        // only now may you write transients, options, or rows
+    }
+}
+```
+
+The runner keeps evaluating after a submission has already been blocked so the
+log can record every guard that matched. Guards called that way must return the
+same verdict **without changing any state** — see `Duplicate` and `Rate_Limit`
+for worked examples.
+
+The same filter can adjust or remove a built-in guard by editing or unsetting
+its entry.
+
+### Reacting to a block
+
+```php
+add_action( 'simple_spam_shield_blocked', function ( $guard, $context, $matched, $data ) {
+    // $guard   — the guard that decided the block
+    // $matched — every guard that matched, in weight order ($matched[0] === $guard)
+    // $context — 'comment', 'woo_review', 'jetpack_form', or your own label
+}, 10, 4 );
+```
+
+`$data` carries the submitted content, author name and email, so treat it as
+personal data.
+
 ## Lineage
 
 The plugin's architecture draws from two sources:
