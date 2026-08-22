@@ -102,7 +102,8 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 
 = 1.3.0 =
 * The spam log now records every guard that matched a blocked submission, not just the first one. The guard that decided the outcome is still shown on its own line, with any additional matches listed beneath it.
-* A submission caught by the honeypot no longer counts against the duplicate and rate-limit guards, so it cannot use up a real visitor's allowance.
+* Fixed: a submission rejected by one guard was recorded as "seen" by the duplicate guard, so a visitor who corrected the problem and resubmitted was refused a second time — told they had submitted a duplicate rather than what was actually wrong.
+* Fixed: the rate limit was not counting submissions that another guard had already rejected, which is most of what a spam bot sends. A bot could keep submitting indefinitely without ever reaching the limit, while a legitimate visitor who tripped a guard once did count against it. Rejected attempts now count.
 * For developers: other plugins can now register their own guard through the simple_spam_shield_guards filter. A registered guard runs in the pipeline, appears in the log, and gets its own toggle on the Guards tab. A new simple_spam_shield_blocked action fires whenever a submission is blocked. See the readme in the plugin's repository.
 
 = 1.2.1 =
@@ -148,7 +149,7 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 == Upgrade Notice ==
 
 = 1.3.0 =
-Adds an upgrade to the database table for the richer spam log. Existing log entries are kept. Nothing needs to be reconfigured.
+Recommended if you use the duplicate or rate-limit guard: both were recording the wrong submissions, which let a bot bypass the rate limit and could refuse a genuine visitor as a duplicate. Upgrades the log table; existing entries are kept and nothing needs reconfiguring.
 
 = 1.2.1 =
 Fixes IPv6 allowlist entries being ignored, plus two smaller issues. Recommended if you allowlist by IP range.

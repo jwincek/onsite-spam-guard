@@ -112,20 +112,33 @@ so guards never need to know about comment arrays vs. Jetpack field data.
    namespace Simple_Spam_Shield\Guards;
 
    final class My_Guard extends Abstract_Guard {
-       public function check( array $data, string $context, bool $observe_only = false ): \WP_Error|true {
+       public function check( array $data, string $context ): \WP_Error|true {
            // Return true to pass, or $this->fail( $message ) to block.
        }
    }
    ```
 
-   **`$observe_only` matters if your guard changes state.** The runner keeps
-   evaluating after a submission has already been blocked, so the log can record
-   every guard that matched rather than only the first. Guards called that way
-   must return their verdict *without* writing anything — no transients, no
-   options, no queries that mutate. `Duplicate` and `Rate_Limit` are the worked
-   examples: both put their write on the pass path behind
-   `if ( ! $observe_only )`. The verdict must be identical either way. A guard
-   with no side effects can ignore the flag.
+   **A guard is evaluated whatever the outcome.** The runner keeps going after a
+   submission has been blocked, so the log can record every guard that matched
+   rather than only the first. `check()` must return the same verdict either
+   way.
+
+   **State goes in `commit()`, not `check()`.** The runner calls `commit()` on
+   every enabled guard only once no guard has objected, so a guard never records
+   a submission that something else rejected. `Abstract_Guard::commit()` is an
+   empty default; override it only if your guard remembers something.
+
+   The two built-in state-holding guards sit on opposite sides of this on
+   purpose, and the reasoning is worth understanding before adding a third:
+
+   | Guard | Question it asks | Records |
+   | --- | --- | --- |
+   | `Duplicate` | have I already *taken* this content? | in `commit()` — a rejected submission was never taken |
+   | `Rate_Limit` | is this sender *hammering* the form? | in `check()` — a rejected attempt is still an attempt |
+
+   Getting `Rate_Limit` the other way round means a bot can flood the form
+   forever without ever consuming budget, while a legitimate visitor who trips a
+   guard once does consume it — the limiter ends up throttling only real users.
 
    The file/class naming follows the autoloader: `My_Guard` →
    `class-my-guard.php`.
@@ -154,11 +167,6 @@ implementation is refused with `_doing_it_wrong()`, and a filter that returns a
 non-array leaves the built-in guards in place rather than dropping the site's
 protection. Keep `definitions()` the single source of truth for what the
 pipeline runs, so a registered guard is never a second-class citizen.
-
-**Known limitation:** the runner only puts a guard in observe mode once an
-*earlier* guard has decided the block, so `Duplicate` and `Rate_Limit` still
-record submissions rejected by a lower-weight guard. Tracked in issue #26; a new
-state-holding guard inherits the same caveat.
 
 ## Distribution
 

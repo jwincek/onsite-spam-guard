@@ -173,21 +173,34 @@ add_filter( 'simple_spam_shield_guards', function ( array $guards ) {
 Register it when your plugin file loads, so the filter is in place before the
 pipeline is built on `plugins_loaded`.
 
-Your guard must honour the third argument to `check()`:
+Your guard is evaluated even when an earlier guard has already blocked, so the
+log can record every guard that matched. `check()` must therefore return the
+same verdict whatever the outcome. Anything you want to remember about a
+submission goes in `commit()`, which the runner calls only once no guard has
+objected:
 
 ```php
-public function check( array $data, string $context, bool $observe_only = false ): \WP_Error|true {
-    // ... decide ...
-    if ( ! $observe_only ) {
-        // only now may you write transients, options, or rows
-    }
+public function check( array $data, string $context ): \WP_Error|true {
+    // Evaluate only. Called whatever the outcome, so no side effects that
+    // assume the submission was accepted.
+}
+
+public function commit( array $data, string $context ): void {
+    // The submission cleared every guard. Record it here.
 }
 ```
 
-The runner keeps evaluating after a submission has already been blocked so the
-log can record every guard that matched. Guards called that way must return the
-same verdict **without changing any state** — see `Duplicate` and `Rate_Limit`
-for worked examples.
+`Abstract_Guard::commit()` is an empty default, so a guard holding no state can
+simply omit it.
+
+The distinction is the difference between two questions. `Duplicate` asks "have
+I already taken this exact content?", so it records on commit — a submission
+some other guard rejected was never taken, and recording it would refuse the
+visitor who fixed the problem and resubmitted. `Rate_Limit` asks "is this sender
+hammering the form?", so it counts inside `check()`, including rejected
+attempts: a flooding sender is overwhelmingly being rejected by some other
+guard, and counting only what got through would let a bot flood forever while
+still charging a legitimate visitor for one mistake.
 
 The same filter can adjust or remove a built-in guard by editing or unsetting
 its entry.

@@ -113,10 +113,11 @@ final class Guard_Runner {
 		 * Hook this before `plugins_loaded` priority 10 — registering it when
 		 * your plugin file loads is the usual way.
 		 *
-		 * A registered guard must honour the `$observe_only` argument to
-		 * `check()`: the runner keeps evaluating after a submission has already
-		 * been blocked so the log can record every guard that matched, and
-		 * guards called that way must not change any state.
+		 * A registered guard is evaluated even after another guard has blocked,
+		 * so the log can record every guard that matched. `check()` must
+		 * therefore return the same verdict whatever the outcome. State
+		 * describing an *accepted* submission belongs in `commit()`, which the
+		 * runner calls only once no guard has objected.
 		 *
 		 * @since 1.3.0
 		 *
@@ -151,19 +152,20 @@ final class Guard_Runner {
 
 		$verdict = null;
 		$matched = [];
+		$enabled = [];
 
 		foreach ( self::$guards as $guard ) {
 			if ( ! $guard->is_enabled() ) {
 				continue;
 			}
 
-			// Once a guard has blocked, the remaining ones are evaluated for
-			// the record only: their verdict is collected but they must not
-			// change any state. The submission's fate was decided by the first
-			// failure, so nothing here can alter what the visitor sees.
-			$observe_only = null !== $verdict;
+			// Every enabled guard is evaluated even once one has blocked, so the
+			// log can record each guard that matched rather than only the first.
+			// The verdict is still decided by the highest-weight failure, so
+			// nothing evaluated later changes what the visitor sees.
+			$enabled[] = $guard;
 
-			$result = $guard->check( $data, $context, $observe_only );
+			$result = $guard->check( $data, $context );
 
 			if ( ! is_wp_error( $result ) ) {
 				continue;
@@ -177,7 +179,14 @@ final class Guard_Runner {
 			}
 		}
 
+		// Nothing objected: tell the guards the submission was accepted, so the
+		// ones holding state record it. Doing this only now is the whole point —
+		// a guard must not record a submission that some later guard rejects.
 		if ( null === $verdict ) {
+			foreach ( $enabled as $guard ) {
+				$guard->commit( $data, $context );
+			}
+
 			return true;
 		}
 
