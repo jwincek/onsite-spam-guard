@@ -10,7 +10,7 @@ The user-facing changelog shipped to WordPress.org lives in the
 
 ## [Unreleased]
 
-## [1.3.0] - 2026-08-22
+## [1.3.0] - 2026-08-24
 
 ### Added
 - Other plugins can register their own guard through the new
