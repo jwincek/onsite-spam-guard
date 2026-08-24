@@ -1,0 +1,33 @@
+version: 2
+updates:
+  # GitHub Actions only.
+  #
+  # Deliberately no composer entry. `require` is just `php: >=8.2`, and
+  # .distignore drops /vendor, /composer.json and /composer.lock, so nothing
+  # Composer installs ever reaches the zip — every dependency here is dev
+  # tooling. Updating it would be churn on a solo-maintained plugin, and two of
+  # these are actively hostile to unattended bumps: a WPCS major surfaces new
+  # sniffs and a PHPStan major surfaces new errors, both failing CI without any
+  # change to shipped code.
+  #
+  # There is no package.json, so no npm ecosystem to watch.
+  #
+  # Action versions are the opposite case: they drift silently, and the only
+  # signal is a runner deprecation warning nobody reads until the action stops
+  # working. This repository is the one that is actually live on WordPress.org,
+  # so a release workflow that breaks on a retired action is the expensive
+  # version of that surprise.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      # One PR for the routine bumps; majors arrive separately so a breaking
+      # action change is reviewed on its own rather than buried in a batch.
+      actions-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    labels:
+      - dependencies
