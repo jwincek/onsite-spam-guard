@@ -19,7 +19,7 @@ jobs:
     name: Validate release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Refuse to publish a tag whose version metadata disagrees with itself.
       # WordPress.org serves whatever `Stable tag` points at, so a mismatch
@@ -52,7 +52,7 @@ jobs:
     env:
       HAS_SVN_CREDENTIALS: ${{ secrets.SVN_USERNAME != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Git tags are v-prefixed (v1.2.0) but WordPress.org versions are not.
       # The deploy action below defaults VERSION to the raw tag name, which
