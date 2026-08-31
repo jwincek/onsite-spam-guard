@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-22T17:37:25+00:00\n"
+"POT-Creation-Date: 2026-08-31T17:39:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: onsite-spam-guard\n"
@@ -129,12 +129,12 @@ msgstr ""
 
 #: includes/core/class-admin.php:110
 #: includes/core/class-admin.php:111
-#: includes/core/class-admin.php:397
+#: includes/core/class-admin.php:402
 msgid "Spam Logs"
 msgstr ""
 
 #: includes/core/class-admin.php:130
-#: includes/core/class-admin.php:285
+#: includes/core/class-admin.php:290
 msgid "General"
 msgstr ""
 
@@ -179,6 +179,7 @@ msgid "Minimum seconds before submit"
 msgstr ""
 
 #: includes/core/class-admin.php:161
+#: includes/core/class-admin.php:168
 msgid "seconds"
 msgstr ""
 
@@ -187,117 +188,129 @@ msgid "Maximum links per submission"
 msgstr ""
 
 #: includes/core/class-admin.php:163
-msgid "Rate limit: max submissions per minute"
+msgid "Duplicate detection window"
 msgstr ""
 
 #: includes/core/class-admin.php:163
-msgid "per sender (0 = no limit)"
+msgid "seconds — how long an accepted submission is remembered"
 msgstr ""
 
-#: includes/core/class-admin.php:176
+#: includes/core/class-admin.php:167
+msgid "Rate limit: max submissions"
+msgstr ""
+
+#: includes/core/class-admin.php:167
+msgid "per sender, per window (0 = no limit)"
+msgstr ""
+
+#: includes/core/class-admin.php:168
+msgid "Rate limit: window length"
+msgstr ""
+
+#: includes/core/class-admin.php:181
 msgid "Behavioral suspicion threshold"
 msgstr ""
 
-#: includes/core/class-admin.php:183
+#: includes/core/class-admin.php:188
 msgid "Score between 0.0 (lenient) and 1.0 (strict). Submissions scoring at or above this threshold are blocked. Default 0.6."
 msgstr ""
 
-#: includes/core/class-admin.php:199
+#: includes/core/class-admin.php:204
 msgid "Blocked keywords"
 msgstr ""
 
-#: includes/core/class-admin.php:206
+#: includes/core/class-admin.php:211
 msgid "One keyword or phrase per line. Case-insensitive."
 msgstr ""
 
-#: includes/core/class-admin.php:213
+#: includes/core/class-admin.php:218
 msgid "Also apply WordPress's Disallowed Comment Keys (Settings → Discussion) to every protected form"
 msgstr ""
 
-#: includes/core/class-admin.php:217
-#: includes/core/class-admin.php:293
+#: includes/core/class-admin.php:222
+#: includes/core/class-admin.php:298
 msgid "Allowlist"
 msgstr ""
 
-#: includes/core/class-admin.php:218
+#: includes/core/class-admin.php:223
 msgid "Submissions from allowlisted IPs or emails bypass all guards."
 msgstr ""
 
-#: includes/core/class-admin.php:229
+#: includes/core/class-admin.php:234
 msgid "Allowed IPs and emails"
 msgstr ""
 
-#: includes/core/class-admin.php:236
+#: includes/core/class-admin.php:241
 msgid "One entry per line. Supports: exact IPs (192.168.1.1), CIDR ranges (10.0.0.0/8), exact emails (user@example.com), or email domains (@trusted.org)."
 msgstr ""
 
-#: includes/core/class-admin.php:253
+#: includes/core/class-admin.php:258
 msgid "Trust proxy headers for IP detection"
 msgstr ""
 
-#: includes/core/class-admin.php:258
+#: includes/core/class-admin.php:263
 msgid "Use the X-Forwarded-For header to determine the visitor IP."
 msgstr ""
 
-#: includes/core/class-admin.php:259
+#: includes/core/class-admin.php:264
 msgid "Enable only if this site is behind a trusted reverse proxy or load balancer (e.g. Cloudflare, Nginx). When off, the direct connection IP is used. Turning this on without a trusted proxy lets visitors spoof their IP and bypass the allowlist."
 msgstr ""
 
-#: includes/core/class-admin.php:268
-#: includes/core/class-admin.php:297
+#: includes/core/class-admin.php:273
+#: includes/core/class-admin.php:302
 msgid "Logging"
 msgstr ""
 
-#: includes/core/class-admin.php:269
+#: includes/core/class-admin.php:274
 msgid "Log blocked submissions to database"
 msgstr ""
 
-#: includes/core/class-admin.php:270
+#: includes/core/class-admin.php:275
 msgid "Delete logs older than"
 msgstr ""
 
-#: includes/core/class-admin.php:270
+#: includes/core/class-admin.php:275
 msgid "days (0 = keep forever)"
 msgstr ""
 
-#: includes/core/class-admin.php:271
+#: includes/core/class-admin.php:276
 msgid "Delete all plugin data (spam logs and settings) when this plugin is deleted"
 msgstr ""
 
-#: includes/core/class-admin.php:289
+#: includes/core/class-admin.php:294
 msgid "Guards"
 msgstr ""
 
 #. translators: 1: number of blocked submissions, 2: link to logs page
-#: includes/core/class-admin.php:324
+#: includes/core/class-admin.php:329
 #, php-format
 msgid "%1$d submissions blocked. %2$s"
 msgstr ""
 
-#: includes/core/class-admin.php:327
+#: includes/core/class-admin.php:332
 msgid "View spam logs →"
 msgstr ""
 
-#: includes/core/class-admin.php:402
+#: includes/core/class-admin.php:407
 msgid "All spam logs cleared."
 msgstr ""
 
-#: includes/core/class-admin.php:412
+#: includes/core/class-admin.php:417
 msgid "Delete all log entries?"
 msgstr ""
 
-#: includes/core/class-admin.php:413
+#: includes/core/class-admin.php:418
 msgid "Clear all logs"
 msgstr ""
 
 #. translators: %d: number of submissions blocked in the last 7 days.
-#: includes/core/class-admin.php:422
+#: includes/core/class-admin.php:427
 #, php-format
 msgid "Blocked in the last 7 days: %d."
 msgstr ""
 
 #. translators: 1: guard name, 2: number of blocks by that guard.
-#: includes/core/class-admin.php:429
+#: includes/core/class-admin.php:434
 #, php-format
 msgid "Most active guard: %1$s (%2$d)."
 msgstr ""
@@ -340,7 +353,7 @@ msgstr ""
 msgid "Security check failed — please refresh the page and try again."
 msgstr ""
 
-#: includes/guards/class-rate-limit.php:42
+#: includes/guards/class-rate-limit.php:45
 msgid "Too many submissions — please wait a moment and try again."
 msgstr ""
 

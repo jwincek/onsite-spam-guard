@@ -160,7 +160,12 @@ final class Admin {
 
 		self::add_number( 'simple_spam_shield_time_gate_seconds', __( 'Minimum seconds before submit', 'onsite-spam-guard' ), $guards_page, 'simple_spam_shield_guards', 3, 1, 30, __( 'seconds', 'onsite-spam-guard' ) );
 		self::add_number( 'simple_spam_shield_link_limit_max', __( 'Maximum links per submission', 'onsite-spam-guard' ), $guards_page, 'simple_spam_shield_guards', 3, 0, 50 );
-		self::add_number( 'simple_spam_shield_rate_limit_max', __( 'Rate limit: max submissions per minute', 'onsite-spam-guard' ), $guards_page, 'simple_spam_shield_guards', 10, 0, 1000, __( 'per sender (0 = no limit)', 'onsite-spam-guard' ) );
+		self::add_number( 'simple_spam_shield_duplicate_window_seconds', __( 'Duplicate detection window', 'onsite-spam-guard' ), $guards_page, 'simple_spam_shield_guards', 60, 1, 86400, __( 'seconds — how long an accepted submission is remembered', 'onsite-spam-guard' ) );
+
+		// "per minute" was baked into this label while the window was fixed at
+		// 60 seconds. Now that the window is settable, the label would be wrong.
+		self::add_number( 'simple_spam_shield_rate_limit_max', __( 'Rate limit: max submissions', 'onsite-spam-guard' ), $guards_page, 'simple_spam_shield_guards', 10, 0, 1000, __( 'per sender, per window (0 = no limit)', 'onsite-spam-guard' ) );
+		self::add_number( 'simple_spam_shield_rate_limit_window_seconds', __( 'Rate limit: window length', 'onsite-spam-guard' ), $guards_page, 'simple_spam_shield_guards', 60, 1, 86400, __( 'seconds', 'onsite-spam-guard' ) );
 
 		// Behavioral threshold.
 		register_setting( 'onsite-spam-guard', 'simple_spam_shield_behavioral_threshold', [
@@ -470,7 +475,14 @@ final class Admin {
 	private static function add_number( string $option, string $label, string $page, string $section, int $default, int $min, int $max, string $suffix = '' ): void {
 		register_setting( 'onsite-spam-guard', $option, [
 			'type'              => 'integer',
-			'sanitize_callback' => 'absint',
+			// Clamp to the field's own range rather than using absint(): the
+			// min/max attributes are client-side only, and absint() takes the
+			// absolute value, so -5 arrived as 5 instead of the floor. Two of
+			// these settings are transient lifetimes, where a stored 0 means
+			// "never expires" and would make a block permanent.
+			'sanitize_callback' => static function ( $value ) use ( $min, $max ): int {
+				return max( $min, min( $max, (int) $value ) );
+			},
 			'default'           => $default,
 		] );
 
