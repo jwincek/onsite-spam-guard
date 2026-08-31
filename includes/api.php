@@ -55,9 +55,12 @@ if ( ! function_exists( 'simple_spam_shield_check' ) ) {
 		// empty for a JSON body), falling back to the form-POST superglobal.
 		// Each branch sanitizes at the point of access.
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Anti-spam check on a third-party submission; values are sanitized on read.
+		// The documented $fields key stays 'simple_spam_shield_website_url' — it
+		// is a public contract and unrelated to the per-site name rendered in
+		// markup (#23). Only the $_POST fallback needs to accept either name.
 		$website    = isset( $fields['simple_spam_shield_website_url'] )
 			? sanitize_text_field( (string) $fields['simple_spam_shield_website_url'] )
-			: sanitize_text_field( wp_unslash( $_POST['simple_spam_shield_website_url'] ?? '' ) );
+			: \Simple_Spam_Shield\Guards\Honeypot::value_from_request( $_POST );
 		$token      = isset( $fields['simple_spam_shield_form_loaded'] )
 			? sanitize_text_field( (string) $fields['simple_spam_shield_form_loaded'] )
 			: sanitize_text_field( wp_unslash( $_POST['simple_spam_shield_form_loaded'] ?? '' ) );

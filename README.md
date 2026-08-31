@@ -39,7 +39,7 @@ uninstall.php            → Clean deletion of all plugin data
 
 | Guard | Weight | Default | Description |
 |---|---|---|---|
-| **Honeypot** | 100 | On | Hidden field that bots fill in but humans never see |
+| **Honeypot** | 100 | On | Hidden field that bots fill in but humans never see. The field name is derived from the site's signing secret, so it differs per install rather than being a fixed target a bot author can skip-list once |
 | **Duplicate detection** | 95 | On | Rejects identical submissions within a 60-second window using transient-based hashing |
 | **Time gate** | 90 | On | Rejects submissions completed faster than a human could type (configurable, default 3s), using a server-signed issue time |
 | **Rate limit** | 85 | Off | Throttles repeated submissions from the same sender within a rolling window; keyed on the logged-in user ID when present, the connection IP otherwise |
@@ -103,6 +103,8 @@ When the plugin is deleted (not just deactivated), `uninstall.php` drops the cus
 Other plugins can run their own form submissions through Onsite Spam Guard's guards via a small, stable public API (`includes/api.php`). Integrate through these prefixed functions — not the internal classes — and wrap calls in `function_exists()` so your plugin degrades gracefully when Onsite Spam Guard is inactive.
 
 **1. Check a submission (server side).** Pass the human-meaningful fields; the hidden honeypot/token/behavioral fields are read from `$_POST` automatically. Returns `true` or a `WP_Error`.
+
+The honeypot's rendered field name is per-site, so read it from `Honeypot::field_name()` rather than hardcoding it — or simply let `simple_spam_shield_field_markup()` render the field for you, which is the usual path. The `$fields` key in the call below stays `simple_spam_shield_website_url` regardless; that is a stable contract, unrelated to the name on the wire.
 
 ```php
 if ( function_exists( 'simple_spam_shield_check' ) ) {

@@ -66,6 +66,21 @@ final class Token {
 	/**
 	 * Get the per-site signing secret, generating and storing it on first use.
 	 */
+	/**
+	 * Derive a stable, site-specific value from the signing secret.
+	 *
+	 * Stable for a site, so cached pages and in-flight forms keep working, and
+	 * unpredictable across sites, so a value derived here cannot be guessed
+	 * from the outside. Used for the honeypot field name, which would otherwise
+	 * be identical on every install and therefore trivially skip-listed.
+	 *
+	 * @param string $purpose Distinguishes derived values from one another.
+	 * @param int    $length  Hex characters to return.
+	 */
+	public static function derive( string $purpose, int $length = 12 ): string {
+		return substr( hash_hmac( 'sha256', $purpose, self::secret() ), 0, max( 1, $length ) );
+	}
+
 	private static function secret(): string {
 		$secret = get_option( self::SECRET_OPTION );
 
