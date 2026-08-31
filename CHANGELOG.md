@@ -10,6 +10,33 @@ The user-facing changelog shipped to WordPress.org lives in the
 
 ## [Unreleased]
 
+## [Unreleased]
+
+### Added
+- `simple_spam_shield_duplicate_window_seconds` and
+  `simple_spam_shield_rate_limit_window_seconds` settings on the Guards tab.
+  Both windows were fixed at 60 seconds in `config/guards.json` with no UI, so
+  the only way to move them was editing a file inside the plugin that an update
+  overwrites. A rate limit of "20 per hour" is now expressible, and a busy
+  comment thread can take a shorter duplicate window rather than disabling the
+  guard. Defaults are unchanged at 60 seconds, and the JSON value remains the
+  fallback when the option is unset.
+
+### Changed
+- The rate-limit maximum is labelled "max submissions" with the window stated
+  separately. "per minute" was baked into the label while the window was fixed.
+- Number settings are clamped to their own min/max when saved. They were
+  sanitised with `absint()`, which ignores the field's range entirely and
+  returns the *absolute* value, so -5 was stored as 5 rather than the floor.
+
+### Fixed
+- A window of 0 can no longer produce a permanent block. `set_transient()`
+  treats 0 as "no expiration" (`wp-includes/option.php`), so a zero window
+  would have made a duplicate block last forever and a throttled sender
+  throttled forever. Both guards now floor the window at 1 second when reading
+  it, which covers a value written by anything other than the settings form —
+  the save-time clamp alone would not.
+
 ## [1.3.0] - 2026-08-24
 
 ### Added

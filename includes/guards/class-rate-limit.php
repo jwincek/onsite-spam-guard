@@ -28,7 +28,10 @@ final class Rate_Limit extends Abstract_Guard {
 			return true;
 		}
 
-		$window = (int) ( $this->config['window_seconds'] ?? 60 );
+		// Floored at 1: set_transient() treats 0 as "no expiration", which would
+		// make this block permanent. The settings field clamps too, but only on
+		// save — this covers a value stored by anything else.
+		$window = max( 1, (int) get_option( 'simple_spam_shield_rate_limit_window_seconds', $this->config['window_seconds'] ?? 60 ) );
 
 		// Identify the sender: the logged-in user, else the connection IP.
 		$user_id = get_current_user_id();

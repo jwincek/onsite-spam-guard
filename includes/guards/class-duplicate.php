@@ -38,7 +38,10 @@ final class Duplicate extends Abstract_Guard {
 	 * @param string $context Submission context.
 	 */
 	public function commit( array $data, string $context ): void {
-		$window = (int) ( $this->config['window_seconds'] ?? 60 );
+		// Floored at 1: set_transient() treats 0 as "no expiration", which would
+		// make this block permanent. The settings field clamps too, but only on
+		// save — this covers a value stored by anything else.
+		$window = max( 1, (int) get_option( 'simple_spam_shield_duplicate_window_seconds', $this->config['window_seconds'] ?? 60 ) );
 
 		set_transient( self::transient_key( $data ), time(), $window );
 	}

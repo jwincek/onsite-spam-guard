@@ -75,7 +75,7 @@ By default a blocked comment or review is placed in the **spam queue** (Comments
 
 = Can I limit how often one person can submit? =
 
-Yes. Enable **Rate limit** on the Guards tab and set the maximum submissions per minute. It counts per sender — the logged-in user where there is one, otherwise the connection IP — and each form type is counted separately. It is off by default, because on sites where many visitors share an address (an office, a school, or mobile carrier NAT) an IP-based limit can catch people who are not doing anything wrong. Set the maximum to 0 to disable it without turning the guard off.
+Yes. Enable **Rate limit** on the Guards tab, then set the maximum number of submissions and the window they are counted over — 20 per hour and 5 per minute are both expressible. It counts per sender — the logged-in user where there is one, otherwise the connection IP — and each form type is counted separately. It is off by default, because on sites where many visitors share an address (an office, a school, or mobile carrier NAT) an IP-based limit can catch people who are not doing anything wrong. Set the maximum to 0 to disable it without turning the guard off.
 
 = Does it replace WordPress's built-in comment moderation? =
 
@@ -99,6 +99,11 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 4. The Spam Logs viewer — filter by guard and context, a user-agent column, and per-row and bulk delete actions.
 
 == Changelog ==
+
+= 1.4.0 =
+* The duplicate-detection window and the rate-limit window are now settable on the Guards tab. Both were fixed at 60 seconds and could only be changed by editing a file inside the plugin, which an update overwrote. A rate limit of "20 per hour" is now expressible, and a busy comment thread where several people legitimately post a short reply within a minute can use a shorter duplicate window instead of turning the guard off.
+* The rate-limit maximum is no longer labelled "per minute", since the window is no longer always a minute.
+* Number settings are now range-checked when saved. Previously a value outside a field's range was stored as given, and a negative number was stored as its positive equivalent.
 
 = 1.3.0 =
 * The spam log now records every guard that matched a blocked submission, not just the first one. The guard that decided the outcome is still shown on its own line, with any additional matches listed beneath it.

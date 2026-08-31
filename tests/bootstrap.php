@@ -50,7 +50,8 @@ if ( ! function_exists( 'get_transient' ) ) {
 }
 if ( ! function_exists( 'set_transient' ) ) {
 	function set_transient( $key, $value, $expiration = 0 ) {
-		$GLOBALS['simple_spam_shield_test_transients'][ $key ] = $value;
+		$GLOBALS['simple_spam_shield_test_transients'][ $key ]            = $value;
+		$GLOBALS['simple_spam_shield_test_transient_expirations'][ $key ] = $expiration;
 		return true;
 	}
 }
