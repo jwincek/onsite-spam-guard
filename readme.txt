@@ -93,10 +93,11 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 
 == Screenshots ==
 
-1. The tabbed settings page — the Guards tab, with individual guard toggles and per-guard thresholds.
-2. The Allowlist tab — allowed IPs, CIDR ranges, and emails, plus the trusted-proxy option.
-3. The Logging tab — log retention and the option to keep or delete data when the plugin is removed.
-4. The Spam Logs viewer — filter by guard and context, a user-agent column, and per-row and bulk delete actions.
+1. The tabbed settings page — the Guards tab, with individual guard toggles and the thresholds that apply to every form.
+2. The Per-form tab — override any threshold for one form, so a contact form can be stricter than a comment thread. Blank fields use the global value.
+3. The Allowlist tab — allowed IPs, CIDR ranges, and emails, plus the trusted-proxy option.
+4. The Logging tab — log retention and the option to keep or delete data when the plugin is removed.
+5. The Spam Logs viewer — every guard that matched, filters by guard and context, a user-agent column, and per-row and bulk delete actions.
 
 == Changelog ==
 

@@ -1,0 +1,13 @@
+{
+  "name": "onsite-spam-guard",
+  "private": true,
+  "description": "Development tooling for Onsite Spam Guard. Not part of the distributed plugin; the shipped package is PHP only.",
+  "license": "GPL-2.0-or-later",
+  "type": "module",
+  "scripts": {
+    "screenshots": "node bin/screenshots.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1"
+  }
+}
