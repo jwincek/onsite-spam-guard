@@ -13,6 +13,18 @@ The user-facing changelog shipped to WordPress.org lives in the
 ## [Unreleased]
 
 ### Added
+- Per-form threshold overrides. Every guard threshold was global — one link
+  limit, one time gate, one rate limit — applied identically to comments,
+  WooCommerce reviews, Jetpack forms and anything integrated through the API, so
+  the only way to resolve a conflict between two forms was to loosen the setting
+  for both. A new **Per-form** settings tab overrides any of six thresholds per
+  context: minimum submit time, maximum links, duplicate window, rate-limit
+  maximum, rate-limit window, and behavioral threshold. A blank field inherits,
+  so one threshold can be changed without restating the rest.
+- `simple_spam_shield_contexts` filter, so a plugin protecting its own form
+  through `simple_spam_shield_check()` can register that form and have it appear
+  on the Per-form tab. Registration affects configurability only — an
+  unregistered form is still protected, using the global thresholds.
 - `simple_spam_shield_duplicate_window_seconds` and
   `simple_spam_shield_rate_limit_window_seconds` settings on the Guards tab.
   Both windows were fixed at 60 seconds in `config/guards.json` with no UI, so

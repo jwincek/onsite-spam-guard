@@ -101,6 +101,8 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 == Changelog ==
 
 = 1.4.0 =
+* New **Per-form** settings tab. Guard thresholds used to apply identically to every form on the site, so making a contact form stricter also made the comment form stricter. Thresholds can now be set per form — a comment thread can allow several links while a contact form allows one, and a long application form can require a longer fill time than a comment box. Leave a field blank to use the global value.
+* Plugins that protect their own forms through this plugin can register them so they appear on the Per-form tab. A form that does not register is still protected; it uses the global thresholds.
 * The duplicate-detection window and the rate-limit window are now settable on the Guards tab. Both were fixed at 60 seconds and could only be changed by editing a file inside the plugin, which an update overwrote. A rate limit of "20 per hour" is now expressible, and a busy comment thread where several people legitimately post a short reply within a minute can use a shorter duplicate window instead of turning the guard off.
 * The rate-limit maximum is no longer labelled "per minute", since the window is no longer always a minute.
 * Number settings are now range-checked when saved. Previously a value outside a field's range was stored as given, and a negative number was stored as its positive equivalent.

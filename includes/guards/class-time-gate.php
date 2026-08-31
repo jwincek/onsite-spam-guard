@@ -12,7 +12,7 @@ namespace Simple_Spam_Shield\Guards;
 final class Time_Gate extends Abstract_Guard {
 
 	public function check( array $data, string $context ): \WP_Error|true {
-		$min_seconds = (int) get_option( 'simple_spam_shield_time_gate_seconds', $this->config['min_seconds'] ?? 3 );
+		$min_seconds = (int) $this->threshold( 'simple_spam_shield_time_gate_seconds', $context, $this->config['min_seconds'] ?? 3 );
 
 		$token = (string) ( $data['simple_spam_shield_form_loaded'] ?? '' );
 

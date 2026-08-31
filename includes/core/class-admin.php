@@ -217,6 +217,35 @@ final class Admin {
 
 		self::add_toggle( 'simple_spam_shield_use_wp_disallowed_keys', __( 'Also apply WordPress\'s Disallowed Comment Keys (Settings → Discussion) to every protected form', 'onsite-spam-guard' ), $guards_page, 'simple_spam_shield_guards', false );
 
+		// ---- Per-form tab ----
+		// One section per registered context. Thresholds stay global; these
+		// only override them, so every field is blank by default and shows the
+		// global value it would otherwise inherit.
+		$contexts_page = $tabs['contexts']['page'];
+
+		add_settings_section(
+			'simple_spam_shield_contexts_intro',
+			__( 'Per-form thresholds', 'onsite-spam-guard' ),
+			function (): void {
+				echo '<p>' . esc_html__( 'Guard thresholds on the Guards tab apply to every form. Where one form needs different values — a contact form is more suspicious of links than a comment thread, and a long application form needs a longer minimum fill time than a comment box — override them here. Leave a field blank to use the global value.', 'onsite-spam-guard' ) . '</p>';
+				echo '<p class="description">' . esc_html__( 'Forms added by other plugins appear here once they register themselves. A form that has not is still protected; it uses the global thresholds.', 'onsite-spam-guard' ) . '</p>';
+			},
+			$contexts_page
+		);
+
+		foreach ( Contexts::all() as $context => $definition ) {
+			$section = 'simple_spam_shield_context_' . $context;
+
+			add_settings_section( $section, $definition['label'], '__return_null', $contexts_page );
+
+			self::add_number_override( 'simple_spam_shield_time_gate_seconds', $context, __( 'Minimum seconds before submit', 'onsite-spam-guard' ), $contexts_page, $section, 3, 1, 30 );
+			self::add_number_override( 'simple_spam_shield_link_limit_max', $context, __( 'Maximum links per submission', 'onsite-spam-guard' ), $contexts_page, $section, 3, 0, 50 );
+			self::add_number_override( 'simple_spam_shield_duplicate_window_seconds', $context, __( 'Duplicate detection window', 'onsite-spam-guard' ), $contexts_page, $section, 60, 1, 86400 );
+			self::add_number_override( 'simple_spam_shield_rate_limit_max', $context, __( 'Rate limit: max submissions', 'onsite-spam-guard' ), $contexts_page, $section, 10, 0, 1000 );
+			self::add_number_override( 'simple_spam_shield_rate_limit_window_seconds', $context, __( 'Rate limit: window length', 'onsite-spam-guard' ), $contexts_page, $section, 60, 1, 86400 );
+			self::add_float_override( 'simple_spam_shield_behavioral_threshold', $context, __( 'Behavioral suspicion threshold', 'onsite-spam-guard' ), $contexts_page, $section, 0.6 );
+		}
+
 		// ---- Allowlist tab ----
 		$allowlist_page = $tabs['allowlist']['page'];
 		add_settings_section( 'simple_spam_shield_allowlist', __( 'Allowlist', 'onsite-spam-guard' ), function () {
@@ -293,6 +322,10 @@ final class Admin {
 			'guards'    => [
 				'label' => __( 'Guards', 'onsite-spam-guard' ),
 				'page'  => 'onsite-spam-guard-guards',
+			],
+			'contexts'  => [
+				'label' => __( 'Per-form', 'onsite-spam-guard' ),
+				'page'  => 'onsite-spam-guard-contexts',
 			],
 			'allowlist' => [
 				'label' => __( 'Allowlist', 'onsite-spam-guard' ),
@@ -498,6 +531,94 @@ final class Admin {
 			if ( $suffix ) {
 				echo ' ' . esc_html( $suffix );
 			}
+		}, $page, $section );
+	}
+
+	/**
+	 * Register an integer override of a global setting, for one context.
+	 *
+	 * Blank means inherit, which is why this cannot reuse add_number(): an
+	 * integer field has no way to express "unset", and storing 0 would be a real
+	 * value rather than an absence. The stored value is a string for that
+	 * reason — '' for inherit, the number otherwise.
+	 */
+	private static function add_number_override( string $option, string $context, string $label, string $page, string $section, int $global_default, int $min, int $max ): void {
+		$name = Contexts::option( $option, $context );
+
+		register_setting( 'onsite-spam-guard', $name, [
+			'type'              => 'string',
+			'sanitize_callback' => static function ( $value ) use ( $min, $max ): string {
+				if ( '' === $value || null === $value ) {
+					return '';
+				}
+
+				return (string) max( $min, min( $max, (int) $value ) );
+			},
+			'default'           => '',
+		] );
+
+		add_settings_field( $name, $label, static function () use ( $name, $option, $global_default, $min, $max ): void {
+			$value  = (string) get_option( $name, '' );
+			$global = get_option( $option, $global_default );
+
+			printf(
+				'<input type="number" name="%1$s" value="%2$s" min="%3$d" max="%4$d" step="1" class="small-text" placeholder="%5$s"> <span class="description">%6$s</span>',
+				esc_attr( $name ),
+				esc_attr( $value ),
+				absint( $min ),
+				absint( $max ),
+				/* translators: placeholder shown in a blank per-form override field. */
+				esc_attr__( 'inherit', 'onsite-spam-guard' ),
+				esc_html(
+					sprintf(
+						/* translators: %s: the global value this form inherits when the field is blank. */
+						__( 'blank = use the global value (%s)', 'onsite-spam-guard' ),
+						(string) $global
+					)
+				)
+			);
+		}, $page, $section );
+	}
+
+	/**
+	 * Register a float override of a global setting, for one context.
+	 *
+	 * Separate from add_number_override() only because the behavioral threshold
+	 * is a 0.0-1.0 score rather than a whole number.
+	 */
+	private static function add_float_override( string $option, string $context, string $label, string $page, string $section, float $global_default ): void {
+		$name = Contexts::option( $option, $context );
+
+		register_setting( 'onsite-spam-guard', $name, [
+			'type'              => 'string',
+			'sanitize_callback' => static function ( $value ): string {
+				if ( '' === $value || null === $value ) {
+					return '';
+				}
+
+				return (string) max( 0.0, min( 1.0, (float) $value ) );
+			},
+			'default'           => '',
+		] );
+
+		add_settings_field( $name, $label, static function () use ( $name, $option, $global_default ): void {
+			$value  = (string) get_option( $name, '' );
+			$global = get_option( $option, $global_default );
+
+			printf(
+				'<input type="number" name="%1$s" value="%2$s" min="0.0" max="1.0" step="0.1" class="small-text" placeholder="%3$s"> <span class="description">%4$s</span>',
+				esc_attr( $name ),
+				esc_attr( $value ),
+				/* translators: placeholder shown in a blank per-form override field. */
+				esc_attr__( 'inherit', 'onsite-spam-guard' ),
+				esc_html(
+					sprintf(
+						/* translators: %s: the global value this form inherits when the field is blank. */
+						__( 'blank = use the global value (%s)', 'onsite-spam-guard' ),
+						(string) $global
+					)
+				)
+			);
 		}, $page, $section );
 	}
 }

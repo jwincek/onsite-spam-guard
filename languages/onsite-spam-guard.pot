@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-31T17:39:26+00:00\n"
+"POT-Creation-Date: 2026-08-31T18:20:12+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: onsite-spam-guard\n"
@@ -129,12 +129,12 @@ msgstr ""
 
 #: includes/core/class-admin.php:110
 #: includes/core/class-admin.php:111
-#: includes/core/class-admin.php:402
+#: includes/core/class-admin.php:435
 msgid "Spam Logs"
 msgstr ""
 
 #: includes/core/class-admin.php:130
-#: includes/core/class-admin.php:290
+#: includes/core/class-admin.php:319
 msgid "General"
 msgstr ""
 
@@ -155,10 +155,12 @@ msgid "Choose which form types to protect."
 msgstr ""
 
 #: includes/core/class-admin.php:138
+#: includes/core/class-contexts.php:32
 msgid "WordPress comments"
 msgstr ""
 
 #: includes/core/class-admin.php:139
+#: includes/core/class-contexts.php:33
 msgid "WooCommerce product reviews"
 msgstr ""
 
@@ -175,6 +177,7 @@ msgid "Enable or disable individual spam checks."
 msgstr ""
 
 #: includes/core/class-admin.php:161
+#: includes/core/class-admin.php:241
 msgid "Minimum seconds before submit"
 msgstr ""
 
@@ -184,10 +187,12 @@ msgid "seconds"
 msgstr ""
 
 #: includes/core/class-admin.php:162
+#: includes/core/class-admin.php:242
 msgid "Maximum links per submission"
 msgstr ""
 
 #: includes/core/class-admin.php:163
+#: includes/core/class-admin.php:243
 msgid "Duplicate detection window"
 msgstr ""
 
@@ -196,6 +201,7 @@ msgid "seconds — how long an accepted submission is remembered"
 msgstr ""
 
 #: includes/core/class-admin.php:167
+#: includes/core/class-admin.php:244
 msgid "Rate limit: max submissions"
 msgstr ""
 
@@ -204,10 +210,12 @@ msgid "per sender, per window (0 = no limit)"
 msgstr ""
 
 #: includes/core/class-admin.php:168
+#: includes/core/class-admin.php:245
 msgid "Rate limit: window length"
 msgstr ""
 
 #: includes/core/class-admin.php:181
+#: includes/core/class-admin.php:246
 msgid "Behavioral suspicion threshold"
 msgstr ""
 
@@ -227,96 +235,129 @@ msgstr ""
 msgid "Also apply WordPress's Disallowed Comment Keys (Settings → Discussion) to every protected form"
 msgstr ""
 
-#: includes/core/class-admin.php:222
-#: includes/core/class-admin.php:298
+#: includes/core/class-admin.php:228
+msgid "Per-form thresholds"
+msgstr ""
+
+#: includes/core/class-admin.php:230
+msgid "Guard thresholds on the Guards tab apply to every form. Where one form needs different values — a contact form is more suspicious of links than a comment thread, and a long application form needs a longer minimum fill time than a comment box — override them here. Leave a field blank to use the global value."
+msgstr ""
+
+#: includes/core/class-admin.php:231
+msgid "Forms added by other plugins appear here once they register themselves. A form that has not is still protected; it uses the global thresholds."
+msgstr ""
+
+#: includes/core/class-admin.php:251
+#: includes/core/class-admin.php:331
 msgid "Allowlist"
 msgstr ""
 
-#: includes/core/class-admin.php:223
+#: includes/core/class-admin.php:252
 msgid "Submissions from allowlisted IPs or emails bypass all guards."
 msgstr ""
 
-#: includes/core/class-admin.php:234
+#: includes/core/class-admin.php:263
 msgid "Allowed IPs and emails"
 msgstr ""
 
-#: includes/core/class-admin.php:241
+#: includes/core/class-admin.php:270
 msgid "One entry per line. Supports: exact IPs (192.168.1.1), CIDR ranges (10.0.0.0/8), exact emails (user@example.com), or email domains (@trusted.org)."
 msgstr ""
 
-#: includes/core/class-admin.php:258
+#: includes/core/class-admin.php:287
 msgid "Trust proxy headers for IP detection"
 msgstr ""
 
-#: includes/core/class-admin.php:263
+#: includes/core/class-admin.php:292
 msgid "Use the X-Forwarded-For header to determine the visitor IP."
 msgstr ""
 
-#: includes/core/class-admin.php:264
+#: includes/core/class-admin.php:293
 msgid "Enable only if this site is behind a trusted reverse proxy or load balancer (e.g. Cloudflare, Nginx). When off, the direct connection IP is used. Turning this on without a trusted proxy lets visitors spoof their IP and bypass the allowlist."
 msgstr ""
 
-#: includes/core/class-admin.php:273
 #: includes/core/class-admin.php:302
+#: includes/core/class-admin.php:335
 msgid "Logging"
 msgstr ""
 
-#: includes/core/class-admin.php:274
+#: includes/core/class-admin.php:303
 msgid "Log blocked submissions to database"
 msgstr ""
 
-#: includes/core/class-admin.php:275
+#: includes/core/class-admin.php:304
 msgid "Delete logs older than"
 msgstr ""
 
-#: includes/core/class-admin.php:275
+#: includes/core/class-admin.php:304
 msgid "days (0 = keep forever)"
 msgstr ""
 
-#: includes/core/class-admin.php:276
+#: includes/core/class-admin.php:305
 msgid "Delete all plugin data (spam logs and settings) when this plugin is deleted"
 msgstr ""
 
-#: includes/core/class-admin.php:294
+#: includes/core/class-admin.php:323
 msgid "Guards"
 msgstr ""
 
+#: includes/core/class-admin.php:327
+msgid "Per-form"
+msgstr ""
+
 #. translators: 1: number of blocked submissions, 2: link to logs page
-#: includes/core/class-admin.php:329
+#: includes/core/class-admin.php:362
 #, php-format
 msgid "%1$d submissions blocked. %2$s"
 msgstr ""
 
-#: includes/core/class-admin.php:332
+#: includes/core/class-admin.php:365
 msgid "View spam logs →"
 msgstr ""
 
-#: includes/core/class-admin.php:407
+#: includes/core/class-admin.php:440
 msgid "All spam logs cleared."
 msgstr ""
 
-#: includes/core/class-admin.php:417
+#: includes/core/class-admin.php:450
 msgid "Delete all log entries?"
 msgstr ""
 
-#: includes/core/class-admin.php:418
+#: includes/core/class-admin.php:451
 msgid "Clear all logs"
 msgstr ""
 
 #. translators: %d: number of submissions blocked in the last 7 days.
-#: includes/core/class-admin.php:427
+#: includes/core/class-admin.php:460
 #, php-format
 msgid "Blocked in the last 7 days: %d."
 msgstr ""
 
 #. translators: 1: guard name, 2: number of blocks by that guard.
-#: includes/core/class-admin.php:434
+#: includes/core/class-admin.php:467
 #, php-format
 msgid "Most active guard: %1$s (%2$d)."
 msgstr ""
 
+#. translators: placeholder shown in a blank per-form override field.
+#: includes/core/class-admin.php:571
+#: includes/core/class-admin.php:613
+msgid "inherit"
+msgstr ""
+
+#. translators: %s: the global value this form inherits when the field is blank.
+#: includes/core/class-admin.php:575
+#: includes/core/class-admin.php:617
+#, php-format
+msgid "blank = use the global value (%s)"
+msgstr ""
+
 #: includes/core/class-assets.php:85
 msgid "Website"
+msgstr ""
+
+#: includes/core/class-contexts.php:34
+msgid "Jetpack contact forms"
 msgstr ""
 
 #. translators: 1: guard slug, 2: class name, 3: interface name.
@@ -325,7 +366,7 @@ msgstr ""
 msgid "Guard \"%1$s\" was skipped: %2$s does not implement %3$s."
 msgstr ""
 
-#: includes/guards/class-behavioral.php:43
+#: includes/guards/class-behavioral.php:44
 msgid "Submission rejected — suspicious activity detected."
 msgstr ""
 

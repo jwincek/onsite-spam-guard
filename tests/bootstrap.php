@@ -43,6 +43,13 @@ if ( ! function_exists( 'add_option' ) ) {
 // --- In-memory transient store ---------------------------------------------
 $GLOBALS['simple_spam_shield_test_transients'] = [];
 
+if ( ! function_exists( 'sanitize_key' ) ) {
+	// Mirrors wp-includes/formatting.php: lowercase, then strip anything
+	// outside [a-z0-9_-].
+	function sanitize_key( $key ) {
+		return preg_replace( '/[^a-z0-9_\-]/', '', strtolower( (string) $key ) );
+	}
+}
 if ( ! function_exists( 'get_transient' ) ) {
 	function get_transient( $key ) {
 		return $GLOBALS['simple_spam_shield_test_transients'][ $key ] ?? false;

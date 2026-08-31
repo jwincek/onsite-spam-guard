@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class Rate_Limit extends Abstract_Guard {
 
 	public function check( array $data, string $context ): \WP_Error|true {
-		$max = (int) get_option( 'simple_spam_shield_rate_limit_max', $this->config['max_per_window'] ?? 10 );
+		$max = (int) $this->threshold( 'simple_spam_shield_rate_limit_max', $context, $this->config['max_per_window'] ?? 10 );
 
 		// A max of 0 (or less) disables the limit.
 		if ( $max <= 0 ) {
@@ -31,7 +31,7 @@ final class Rate_Limit extends Abstract_Guard {
 		// Floored at 1: set_transient() treats 0 as "no expiration", which would
 		// make this block permanent. The settings field clamps too, but only on
 		// save — this covers a value stored by anything else.
-		$window = max( 1, (int) get_option( 'simple_spam_shield_rate_limit_window_seconds', $this->config['window_seconds'] ?? 60 ) );
+		$window = max( 1, (int) $this->threshold( 'simple_spam_shield_rate_limit_window_seconds', $context, $this->config['window_seconds'] ?? 60 ) );
 
 		// Identify the sender: the logged-in user, else the connection IP.
 		$user_id = get_current_user_id();
