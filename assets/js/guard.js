@@ -20,7 +20,11 @@
 
 	// Forms rendered by simple_spam_shield_field_markup() already carry this
 	// honeypot field; we enhance them too (behavioral handler, missing fields).
-	var HONEYPOT_NAME = 'simple_spam_shield_website_url';
+	// Per-site name (#23), supplied by the server. The literal is the fallback
+	// for a cached copy of this script served before the payload gained the
+	// field; the server accepts that name too.
+	var LEGACY_HONEYPOT_NAME = 'simple_spam_shield_website_url';
+	var HONEYPOT_NAME = simpleSpamShieldGuard.honeypot || LEGACY_HONEYPOT_NAME;
 
 	// --- Behavioral analysis tracking ---
 	// Ported from Comment & Form Guard.
@@ -74,13 +78,16 @@
 
 		// Honeypot field — looks like a legitimate "website" field to bots.
 		// Skipped when the form already carries one (server-rendered markup).
-		if ( ! hasField( form, HONEYPOT_NAME ) ) {
+		// The legacy name counts as carrying one: a page cached before the
+		// per-site name (#23) still holds that field, and adding a second
+		// honeypot beside it would leave two "website" inputs in one form.
+		if ( ! hasField( form, HONEYPOT_NAME ) && ! hasField( form, LEGACY_HONEYPOT_NAME ) ) {
 			var hp = document.createElement( 'div' );
 			hp.className = 'onsite-spam-guard-hp-wrap';
 			hp.setAttribute( 'aria-hidden', 'true' );
 			hp.innerHTML =
-				'<label for="simple_spam_shield_website_url">Website</label>' +
-				'<input type="text" name="simple_spam_shield_website_url" id="simple_spam_shield_website_url" value="" tabindex="-1" autocomplete="off">';
+				'<label for="' + HONEYPOT_NAME + '">Website</label>' +
+				'<input type="text" name="' + HONEYPOT_NAME + '" id="' + HONEYPOT_NAME + '" value="" tabindex="-1" autocomplete="off">';
 			form.appendChild( hp );
 		}
 
@@ -110,7 +117,9 @@
 			document.querySelectorAll( selector ).forEach( injectFields );
 		} );
 
-		document.querySelectorAll( 'input[name="' + HONEYPOT_NAME + '"]' ).forEach( function ( input ) {
+		document.querySelectorAll(
+			'input[name="' + HONEYPOT_NAME + '"], input[name="' + LEGACY_HONEYPOT_NAME + '"]'
+		).forEach( function ( input ) {
 			var form = input.closest( 'form' );
 			if ( form ) {
 				injectFields( form );

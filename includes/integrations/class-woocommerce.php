@@ -76,7 +76,7 @@ final class WooCommerce {
 			// plugin nonce to verify at this stage (that is the optional Nonce
 			// guard's job downstream). Values are sanitized on read.
 			// phpcs:disable WordPress.Security.NonceVerification.Missing
-			'simple_spam_shield_website_url'     => sanitize_text_field( wp_unslash( $_POST['simple_spam_shield_website_url'] ?? '' ) ),
+			'simple_spam_shield_website_url'     => \Simple_Spam_Shield\Guards\Honeypot::value_from_request( $_POST ),
 			'simple_spam_shield_form_loaded'     => sanitize_text_field( wp_unslash( $_POST['simple_spam_shield_form_loaded'] ?? '' ) ),
 			'simple_spam_shield_behavioral_data' => sanitize_textarea_field( wp_unslash( $_POST['simple_spam_shield_behavioral_data'] ?? '' ) ),
 			// phpcs:enable WordPress.Security.NonceVerification.Missing

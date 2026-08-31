@@ -40,6 +40,7 @@ final class Assets {
 		wp_localize_script( 'onsite-spam-guard-frontend', 'simpleSpamShieldGuard', [
 			'token'     => Token::issue(),
 			'selectors' => self::selectors(),
+			'honeypot'  => \Simple_Spam_Shield\Guards\Honeypot::field_name(),
 		] );
 	}
 
@@ -80,8 +81,13 @@ final class Assets {
 	 * @return string
 	 */
 	public static function field_markup(): string {
+		// Per-site field name (#23), so the honeypot is not a fixed target a bot
+		// author can skip-list once and defeat everywhere.
+		$field = \Simple_Spam_Shield\Guards\Honeypot::field_name();
+
 		$honeypot = sprintf(
-			'<div class="onsite-spam-guard-hp-wrap" aria-hidden="true"><label for="simple_spam_shield_website_url">%s</label><input type="text" name="simple_spam_shield_website_url" id="simple_spam_shield_website_url" value="" tabindex="-1" autocomplete="off"></div>',
+			'<div class="onsite-spam-guard-hp-wrap" aria-hidden="true"><label for="%1$s">%2$s</label><input type="text" name="%1$s" id="%1$s" value="" tabindex="-1" autocomplete="off"></div>',
+			esc_attr( $field ),
 			esc_html__( 'Website', 'onsite-spam-guard' )
 		);
 

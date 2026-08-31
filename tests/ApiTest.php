@@ -67,7 +67,16 @@ final class ApiTest extends TestCase {
 
 	public function test_field_markup_contains_all_hidden_fields(): void {
 		$markup = simple_spam_shield_field_markup();
-		$this->assertStringContainsString( 'name="simple_spam_shield_website_url"', $markup );
+		// The honeypot name is per-site (#23), so assert the derived one.
+		$this->assertStringContainsString(
+			'name="' . \Simple_Spam_Shield\Guards\Honeypot::field_name() . '"',
+			$markup
+		);
+		$this->assertStringNotContainsString(
+			'name="simple_spam_shield_website_url"',
+			$markup,
+			'the fixed legacy name must no longer be rendered'
+		);
 		$this->assertStringContainsString( 'name="simple_spam_shield_form_loaded"', $markup );
 		$this->assertStringContainsString( 'name="simple_spam_shield_behavioral_data"', $markup );
 	}

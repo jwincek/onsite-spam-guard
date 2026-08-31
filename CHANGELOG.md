@@ -10,7 +10,26 @@ The user-facing changelog shipped to WordPress.org lives in the
 
 ## [Unreleased]
 
-## [Unreleased]
+## [1.4.0] - 2026-08-31
+
+### Security
+- The honeypot field name is now derived per site from the signing secret
+  (`ossg_<12 hex>`) instead of being `simple_spam_shield_website_url` on every
+  install. A fixed name made the highest-weight guard a permanent, skip-listable
+  target: a bot author who encountered the plugin once could defeat the honeypot
+  on every site running it. The name is stable for a site, so cached pages and
+  forms already open in a browser keep working.
+
+  The legacy name is still accepted on submission, which matters more than it
+  looks: a page cached before this release serves a form carrying the old name,
+  and without the fallback that submission would arrive with no honeypot value
+  and pass rather than block — failing open, silently, for as long as the cache
+  lives. The reader takes the first *non-empty* value of the two, so an empty
+  new field cannot mask a bot that filled the old one.
+
+  Only the rendered name changed. The `$fields` key accepted by
+  `simple_spam_shield_check()` remains `simple_spam_shield_website_url`, so no
+  integration needs updating.
 
 ### Added
 - Per-form threshold overrides. Every guard threshold was global — one link

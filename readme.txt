@@ -4,7 +4,7 @@ Tags: spam, antispam, comments, honeypot, woocommerce
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.3.0
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,6 +101,7 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 == Changelog ==
 
 = 1.4.0 =
+* The hidden honeypot field now has a different name on every site, derived from the site's own secret. Previously every installation used the same name, so a spammer who learned it once could skip that field on every site running this plugin. Nothing to configure, and forms already open in a visitor's browser keep working.
 * New **Per-form** settings tab. Guard thresholds used to apply identically to every form on the site, so making a contact form stricter also made the comment form stricter. Thresholds can now be set per form — a comment thread can allow several links while a contact form allows one, and a long application form can require a longer fill time than a comment box. Leave a field blank to use the global value.
 * Plugins that protect their own forms through this plugin can register them so they appear on the Per-form tab. A form that does not register is still protected; it uses the global thresholds.
 * The duplicate-detection window and the rate-limit window are now settable on the Guards tab. Both were fixed at 60 seconds and could only be changed by editing a file inside the plugin, which an update overwrote. A rate limit of "20 per hour" is now expressible, and a busy comment thread where several people legitimately post a short reply within a minute can use a shorter duplicate window instead of turning the guard off.
