@@ -168,6 +168,42 @@ non-array leaves the built-in guards in place rather than dropping the site's
 protection. Keep `definitions()` the single source of truth for what the
 pipeline runs, so a registered guard is never a second-class citizen.
 
+## Screenshots
+
+The WordPress.org screenshots in `.wordpress-org/` are generated, not taken by
+hand:
+
+```sh
+npm install                       # once
+npx playwright install chromium   # once
+npm run screenshots
+```
+
+The script drives Playwright's own Chromium rather than an installed Chrome, so
+the renderer is pinned to the Playwright version in `package.json` and does not
+drift when a browser auto-updates. `npm` is only ever needed for this — the
+shipped plugin is PHP only, and `.distignore` keeps `bin/`, `package.json` and
+`node_modules` out of the package.
+
+It logs in by minting an auth cookie through wp-cli, so it never needs anyone's
+password, and it seeds fictional blocked submissions for the log viewer and
+deletes exactly those rows afterwards.
+
+If wp-cli on your machine needs extra arguments to reach the database, pass them
+through:
+
+```sh
+OSG_WP_ARGS="--require=/tmp/dbhost.php" npm run screenshots
+```
+
+Other variables: `OSG_URL` (default `http://vchs-test.local`), `OSG_OUT`,
+`OSG_TIMEOUT`.
+
+**Numbering is load-bearing.** `screenshot-N.png` pairs with the Nth line of the
+`== Screenshots ==` block in `readme.txt`. A gap or a mismatch fails silently on
+WordPress.org — captions attach to the wrong image. The `SHOTS` array in
+`bin/screenshots.mjs` is the source of that order; keep the two in step.
+
 ## Distribution
 
 The shipped package is runtime-only. `.distignore` is the single source of

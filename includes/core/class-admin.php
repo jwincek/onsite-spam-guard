@@ -562,13 +562,11 @@ final class Admin {
 			$global = get_option( $option, $global_default );
 
 			printf(
-				'<input type="number" name="%1$s" value="%2$s" min="%3$d" max="%4$d" step="1" class="small-text" placeholder="%5$s"> <span class="description">%6$s</span>',
+				'<input type="number" name="%1$s" value="%2$s" min="%3$d" max="%4$d" step="1" class="small-text"> <span class="description">%5$s</span>',
 				esc_attr( $name ),
 				esc_attr( $value ),
 				absint( $min ),
 				absint( $max ),
-				/* translators: placeholder shown in a blank per-form override field. */
-				esc_attr__( 'inherit', 'onsite-spam-guard' ),
 				esc_html(
 					sprintf(
 						/* translators: %s: the global value this form inherits when the field is blank. */
@@ -606,11 +604,9 @@ final class Admin {
 			$global = get_option( $option, $global_default );
 
 			printf(
-				'<input type="number" name="%1$s" value="%2$s" min="0.0" max="1.0" step="0.1" class="small-text" placeholder="%3$s"> <span class="description">%4$s</span>',
+				'<input type="number" name="%1$s" value="%2$s" min="0.0" max="1.0" step="0.1" class="small-text"> <span class="description">%3$s</span>',
 				esc_attr( $name ),
 				esc_attr( $value ),
-				/* translators: placeholder shown in a blank per-form override field. */
-				esc_attr__( 'inherit', 'onsite-spam-guard' ),
 				esc_html(
 					sprintf(
 						/* translators: %s: the global value this form inherits when the field is blank. */

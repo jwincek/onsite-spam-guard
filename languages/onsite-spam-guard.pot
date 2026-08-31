@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-31T18:48:07+00:00\n"
+"POT-Creation-Date: 2026-08-31T19:16:49+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: onsite-spam-guard\n"
@@ -339,15 +339,9 @@ msgstr ""
 msgid "Most active guard: %1$s (%2$d)."
 msgstr ""
 
-#. translators: placeholder shown in a blank per-form override field.
-#: includes/core/class-admin.php:571
-#: includes/core/class-admin.php:613
-msgid "inherit"
-msgstr ""
-
 #. translators: %s: the global value this form inherits when the field is blank.
-#: includes/core/class-admin.php:575
-#: includes/core/class-admin.php:617
+#: includes/core/class-admin.php:573
+#: includes/core/class-admin.php:613
 #, php-format
 msgid "blank = use the global value (%s)"
 msgstr ""
