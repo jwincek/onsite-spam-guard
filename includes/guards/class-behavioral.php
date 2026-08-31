@@ -33,8 +33,9 @@ final class Behavioral extends Abstract_Guard {
 
 		$score = $this->calculate_score( $behavioral );
 
-		$threshold = (float) get_option(
+		$threshold = (float) $this->threshold(
 			'simple_spam_shield_behavioral_threshold',
+			$context,
 			$this->config['threshold'] ?? 0.6
 		);
 

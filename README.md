@@ -151,6 +151,42 @@ if ( function_exists( 'simple_spam_shield_field_markup' ) ) {
 
 Without step 2, only the content-based guards (keyword, link limit, duplicate) apply.
 
+### Registering your form for per-form settings
+
+Guard thresholds are global by default. A site can override any of them for one
+form — a contact form is reasonably stricter about links than a comment thread,
+and a long application form needs a longer minimum fill time than a comment box.
+Without overrides the only way to settle a conflict between two forms is to
+loosen the setting for both, weakening protection everywhere to fix one place.
+
+Register the context you pass to `simple_spam_shield_check()` and it gains its
+own section on the **Per-form** settings tab:
+
+```php
+add_filter( 'simple_spam_shield_contexts', function ( array $contexts ) {
+    $contexts['commission_form'] = [ 'label' => 'Commission requests' ];
+    return $contexts;
+} );
+```
+
+Register it when your plugin file loads, so the filter is in place before
+`admin_init` builds the settings screen.
+
+Registration is optional and affects configurability only. **A form that never
+registers is still fully protected** — it just uses the global thresholds, with
+nowhere to override them.
+
+Overridable thresholds: minimum submit time, maximum links, duplicate window,
+rate-limit maximum, rate-limit window, and behavioral threshold. Each resolves
+in this order:
+
+1. the per-form override, if the site set one
+2. the global setting on the Guards tab
+3. the default in `config/guards.json`
+
+A blank override field means inherit, so a site can override one threshold for a
+form without restating the rest.
+
 ### Adding your own guard
 
 Register a class implementing `Guard_Interface` through the

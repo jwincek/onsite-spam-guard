@@ -66,7 +66,19 @@ function simple_spam_shield_uninstall_site(): void {
 		delete_option( $option );
 	}
 
-	// 3. Clean up every transient the plugin creates. Matching on the shared
+	// 3. Delete per-context threshold overrides. These cannot be listed
+	// individually: there is one per setting per context, and contexts are
+	// registered by other plugins at runtime, so the set is not knowable here.
+	// Matching the `<option>__<context>` suffix covers every one.
+	//
+	// Underscores are escaped because `_` is a single-character wildcard in
+	// SQL LIKE, so an unescaped pattern matches more loosely than it looks.
+	$wpdb->query(
+		"DELETE FROM {$wpdb->options}
+		  WHERE option_name LIKE 'simple\_spam\_shield\_%\_\_%'"
+	); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+
+	// 4. Clean up every transient the plugin creates. Matching on the shared
 	// prefix covers duplicate detection, rate limiting, and anything added
 	// later, rather than naming each family and forgetting one — the
 	// rate-limit transients added in 1.2.0 were missed by the old pattern.
@@ -79,10 +91,10 @@ function simple_spam_shield_uninstall_site(): void {
 		     OR option_name LIKE '\\_transient\\_timeout\\_simple\\_spam\\_shield\\_%'"
 	); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 
-	// 4. Delete the stats transient.
+	// 5. Delete the stats transient.
 	delete_transient( 'simple_spam_shield_stats' );
 
-	// 5. Clear the scheduled retention-purge cron event.
+	// 6. Clear the scheduled retention-purge cron event.
 	wp_clear_scheduled_hook( 'simple_spam_shield_purge_logs' );
 }
 

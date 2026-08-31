@@ -54,6 +54,38 @@ abstract class Abstract_Guard implements Guard_Interface {
 	}
 
 	/**
+	 * Resolve a threshold for the form the submission came from.
+	 *
+	 * Thresholds are global by default, but a site can override any of them for
+	 * one context — the right link limit genuinely differs between a comment
+	 * thread and a contact form, and without overrides the only way to settle a
+	 * conflict between two forms is to loosen the setting for both.
+	 *
+	 * Resolution order, first hit wins:
+	 *
+	 *   1. the context override, if the site set one
+	 *   2. the global setting
+	 *   3. the default from config/guards.json, then the literal passed in
+	 *
+	 * An override stored as an empty string means "inherit", which is how the
+	 * settings screen represents a field left blank.
+	 *
+	 * @param string $option  Global option name.
+	 * @param string $context Submission context.
+	 * @param mixed  $default Fallback when neither is set.
+	 * @return mixed
+	 */
+	protected function threshold( string $option, string $context, mixed $default ): mixed {
+		$override = get_option( \Simple_Spam_Shield\Core\Contexts::option( $option, $context ), '' );
+
+		if ( '' !== $override && null !== $override && false !== $override ) {
+			return $override;
+		}
+
+		return get_option( $option, $default );
+	}
+
+	/**
 	 * Whether the context is a built-in form whose JS-injected fields (token,
 	 * behavioral data) are guaranteed to be present.
 	 *
