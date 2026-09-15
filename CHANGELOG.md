@@ -12,6 +12,16 @@ The user-facing changelog shipped to WordPress.org lives in the
 
 ## [Unreleased]
 
+### Fixed
+- The link limit counted an autolinked URL twice. Rich-text editors produce
+  `<a href="https://x">https://x</a>` constantly — one link a reader sees, two
+  matches — so a WP Job Manager description carrying four links, one of them
+  autolinked, counted five and was rejected at the default limit of three. It
+  now counts distinct addresses, ignoring trailing sentence punctuation. The
+  trade is that a submission repeating one address many times counts as one
+  link, which is the honest reading of "how many links is this" and is squarely
+  what the keyword and duplicate guards are for.
+
 ### Added
 - BuddyPress private messages integration, **off by default**. BuddyPress
   applies WordPress's disallowed-keys and moderation lists to the activity
