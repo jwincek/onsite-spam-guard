@@ -4,7 +4,7 @@ Config-driven spam prevention for WordPress Comments, WooCommerce Product Review
 
 ## Architecture
 
-This plugin follows a **config-driven, layered architecture**, pioneered by [shelter-pet-sync](https://github.com/jwincek/shelter-pet-sync), adapted for spam prevention and extended:
+This plugin follows a **config-driven, layered architecture**, pioneered by [ShelterKit Pets](https://github.com/jwincek/shelterkit-pets), adapted for spam prevention and extended:
 
 ```
 config/                  → JSON definitions (guard rules, default settings)
@@ -284,7 +284,7 @@ personal data.
 
 The plugin's architecture draws from two sources:
 
-- **[shelter-pet-sync](https://github.com/jwincek/shelter-pet-sync)** — The config-driven, layered structure: `config/` JSON definitions, `includes/core/` infrastructure, namespaced autoloader, activation/deactivation hooks, and the guard-as-ability pattern.
+- **[ShelterKit Pets](https://github.com/jwincek/shelterkit-pets)** — The config-driven, layered structure: `config/` JSON definitions, `includes/core/` infrastructure, namespaced autoloader, activation/deactivation hooks, and the guard-as-ability pattern.
 
 - **Comment & Form Guard** — Five features were ported and adapted: duplicate submission detection (transient-based hashing), behavioral analysis (mouse/click/time scoring), the allowlist system (IP, CIDR, email, domain matching with proxy-aware IP detection), database-backed logging with `WP_List_Table`, and `uninstall.php` for clean plugin deletion.
 
