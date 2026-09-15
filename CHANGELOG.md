@@ -13,6 +13,19 @@ The user-facing changelog shipped to WordPress.org lives in the
 ## [Unreleased]
 
 ### Added
+- Contact Form 7 integration: every form is protected when that plugin is
+  active, with a **Contact Form 7 forms** toggle under Protection targets. A
+  blocked submission is marked as spam through Contact Form 7's purpose-built
+  `wpcf7_spam` filter rather than as a field validation error — a validation
+  error tells the sender which field to change, which is precisely what a
+  spammer wants to learn. The reason is recorded in Contact Form 7's own spam
+  log alongside the plugin name.
+- Because Contact Form 7 field names are author-defined, the mapping reads the
+  form's tag *types* instead of matching on names: textarea and text values are
+  screened as content, the email field supplies the sender's address, and `url`
+  fields are excluded so a form asking for the visitor's website cannot trip the
+  link limit. Text fields are included deliberately — the default template's
+  subject is a plain text field, and subject lines are a common spam vector.
 - WP Job Manager integration: the frontend job submission form is protected when
   that plugin is active, with a **WP Job Manager job submissions** toggle under
   Protection targets. It hooks the same extension points WP Job Manager uses for

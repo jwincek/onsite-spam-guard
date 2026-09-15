@@ -70,6 +70,35 @@ Jetpack contact forms require special handling because Jetpack's form processor 
 
 This design gives full guard coverage on Jetpack forms while Jetpack stays in complete control of the submission lifecycle and rejection UX.
 
+### Contact Form 7
+
+Every form is protected when Contact Form 7 is active. The verdict goes through
+`wpcf7_spam`, Contact Form 7's purpose-built spam hook, rather than
+`wpcf7_validate`: a validation error is keyed to a field and tells the sender
+what to change, which is what a spammer wants to know. Marking the submission as
+spam surfaces the form's own spam message and records the reason via
+`add_spam_log()`, so it appears next to Contact Form 7's own entries.
+
+Hidden fields are appended through `wpcf7_form_elements` — the filter Contact
+Form 7's own Turnstile module uses. Not `wpcf7_form_hidden_fields`, which
+renders every value as `type="hidden"`; the honeypot has to be a text input a
+bot will fill.
+
+**Field names are author-defined, so nothing matches on them.** The mapping
+reads the form's tag types via `scan_form_tags()`:
+
+| Guard input | Tag basetypes |
+| --- | --- |
+| `content` | `textarea` + `text` |
+| `author` | first `text` |
+| `email` | first `email` |
+
+`text` is included in content on purpose: the default template's `your-subject`
+is a plain text field, and a subject line is a real spam vector. `url` and `tel`
+fields are excluded — a form asking for the sender's website receives a URL from
+every legitimate submission, and counting it would push ordinary messages past
+the link limit.
+
 ### WP Job Manager
 
 The frontend job submission form is protected when WP Job Manager is active,

@@ -141,6 +141,10 @@ final class Admin {
 
 		// Only offered when the plugin providing the form is present, so the
 		// list of targets describes this site rather than a catalogue.
+		if ( defined( 'WPCF7_VERSION' ) ) {
+			self::add_toggle( 'simple_spam_shield_protect_cf7', __( 'Contact Form 7 forms', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_targets', true );
+		}
+
 		if ( defined( 'JOB_MANAGER_VERSION' ) ) {
 			self::add_toggle( 'simple_spam_shield_protect_job_manager', __( 'WP Job Manager job submissions', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_targets', true );
 		}
