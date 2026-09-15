@@ -239,12 +239,41 @@ final class Guard_Runner {
 		// works for any form (comments, reviews, Jetpack, or a third-party
 		// form via simple_spam_shield_check()). It is escaped on insert and
 		// only ever rendered escaped in the log table.
+
+		/**
+		 * Filters the submission content written to the spam log.
+		 *
+		 * Recording what was submitted is what makes a block reviewable — a
+		 * false positive is hard to recognise without it. But not every
+		 * protected surface is public: correspondence a site's users expect to
+		 * be private should not accumulate in a table the administrator
+		 * browses, simply because a guard objected to it.
+		 *
+		 * Return an empty string to record the block without its content. The
+		 * guards still run on the real submission either way; only what is
+		 * persisted changes. The rest of the row — guard, context, IP, user
+		 * agent, timestamp — is unaffected, and is what a site owner needs in
+		 * order to act.
+		 *
+		 * @since 1.5.0
+		 *
+		 * @param string $content The content about to be logged.
+		 * @param string $context Submission context.
+		 * @param array  $data    The full normalized submission data.
+		 */
+		$logged_content = (string) apply_filters(
+			'simple_spam_shield_log_content',
+			(string) ( $data['content'] ?? '' ),
+			$context,
+			$data
+		);
+
 		Database_Manager::insert( [
 			'guard'          => $guard,
 			'guards_matched' => implode( ',', $matched ),
 			'context'        => $context,
 			'reason'         => $reason,
-			'content'        => (string) ( $data['content'] ?? '' ),
+			'content'        => $logged_content,
 			'ip_address'     => Request::ip(),
 			'user_agent'     => sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ?? '' ) ),
 		] );

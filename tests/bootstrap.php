@@ -75,6 +75,55 @@ if ( ! function_exists( '__' ) ) {
 		return $text;
 	}
 }
+if ( ! function_exists( 'wp_kses_post' ) ) {
+	// The real one strips disallowed HTML; for these tests the value only needs
+	// to pass through, since what is asserted is which content arrives.
+	function wp_kses_post( $data ) {
+		return (string) $data;
+	}
+}
+if ( ! function_exists( 'current_time' ) ) {
+	function current_time( $type = 'mysql', $gmt = 0 ) {
+		return 'mysql' === $type ? gmdate( 'Y-m-d H:i:s' ) : time();
+	}
+}
+
+/**
+ * Minimal $wpdb, enough for Database_Manager::insert(). Rows are collected in a
+ * global so a test can assert what would have been written without a database.
+ */
+if ( ! class_exists( 'Simple_Spam_Shield_Test_WPDB' ) ) {
+	class Simple_Spam_Shield_Test_WPDB {
+		public string $prefix     = 'wp_';
+		public int    $insert_id  = 0;
+		public string $last_error = '';
+
+		public function insert( $table, $data, $format = null ) {
+			$GLOBALS['simple_spam_shield_test_log_rows'][] = $data;
+			$this->insert_id = count( $GLOBALS['simple_spam_shield_test_log_rows'] );
+
+			return 1;
+		}
+	}
+}
+
+$GLOBALS['simple_spam_shield_test_log_rows'] = [];
+$GLOBALS['wpdb']                             = new Simple_Spam_Shield_Test_WPDB();
+
+if ( ! function_exists( 'user_can' ) ) {
+	function user_can( $user, $capability, ...$args ) {
+		$id = is_object( $user ) ? (int) $user->ID : (int) $user;
+
+		return in_array( $capability, $GLOBALS['simple_spam_shield_test_user_caps'][ $id ] ?? [], true );
+	}
+}
+if ( ! function_exists( 'get_userdata' ) ) {
+	function get_userdata( $user_id ) {
+		$users = $GLOBALS['simple_spam_shield_test_users'] ?? [];
+
+		return isset( $users[ $user_id ] ) ? (object) $users[ $user_id ] : false;
+	}
+}
 if ( ! function_exists( 'current_user_can' ) ) {
 	function current_user_can( $capability, ...$args ) {
 		return $GLOBALS['simple_spam_shield_test_caps'][ $capability ] ?? false;
