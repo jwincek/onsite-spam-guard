@@ -162,7 +162,14 @@ final class Contact_Form_7 {
 		// line is a real spam vector — screening only textareas would let it
 		// through. A name landing in the content too is harmless: names do not
 		// carry links or blocked keywords.
-		$content = array_merge( $textareas, $texts );
+		//
+		// The exception is a text field holding nothing but a URL. Plenty of
+		// forms ask for a website with `[text your-website]` rather than
+		// `[url ...]`, and that value is structurally a URL however it was
+		// declared — counting it would push a genuine enquiry over the link
+		// limit for filling the form in correctly. Link-stuffing puts URLs
+		// among prose, which still counts.
+		$content = array_merge( $textareas, array_filter( $texts, [ __CLASS__, 'is_not_bare_url' ] ) );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Anti-spam check on a public submission; Contact Form 7 verifies its own nonce. Values are sanitized on read.
 		return [
@@ -174,6 +181,15 @@ final class Contact_Form_7 {
 			'simple_spam_shield_behavioral_data' => sanitize_textarea_field( wp_unslash( $_POST['simple_spam_shield_behavioral_data'] ?? '' ) ),
 		];
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
+	}
+
+	/**
+	 * Whether a value is something other than a single bare URL.
+	 *
+	 * @param string $value A posted field value.
+	 */
+	private static function is_not_bare_url( string $value ): bool {
+		return ! preg_match( '#^https?://[^\s<>"\']+$#i', trim( $value ) );
 	}
 
 	/**
