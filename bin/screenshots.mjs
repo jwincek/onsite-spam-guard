@@ -49,7 +49,17 @@ const LOGS_URL     = `${ SITE }/wp-admin/admin.php?page=onsite-spam-guard-spam-l
 /** The published order. Keep in step with readme.txt `== Screenshots ==`. */
 const SHOTS = [
 	{ n: 1, url: SETTINGS_URL, tab: 'guards',    name: 'Guards tab' },
-	{ n: 2, url: SETTINGS_URL, tab: 'contexts',  name: 'Per-form tab' },
+	// Every active integration adds a section here, so the tab grows without
+	// bound as more forms are protected. Show the first few whole sections
+	// rather than a 6000px image the listing page shrinks to mush.
+	// Every active integration adds a section here, so the tab grows without
+	// bound. Show the intro plus the two sections that illustrate the caption —
+	// a comment thread beside a contact form — rather than a 6000px image the
+	// listing page shrinks to mush.
+	{
+		n: 2, url: SETTINGS_URL, tab: 'contexts', name: 'Per-form tab',
+		sections: [ 'WordPress comments', 'Contact Form 7 forms' ],
+	},
 	{ n: 3, url: SETTINGS_URL, tab: 'allowlist', name: 'Allowlist tab' },
 	{ n: 4, url: SETTINGS_URL, tab: 'logging',   name: 'Logging tab' },
 	{ n: 5, url: LOGS_URL,     tab: null,        name: 'Spam Logs viewer' },
@@ -236,6 +246,64 @@ async function main() {
 					},
 					shot.tab
 				);
+			}
+
+			// Trim to whole sections. Cutting by pixel height would end the
+			// image mid-field; removing surplus sections ends it on a clean
+			// boundary.
+			//
+			// Scoped to the active tab's panel: every tab renders into the same
+			// container and is shown or hidden with CSS, so an unscoped query
+			// walks all five tabs' headings and removes the wrong ones.
+			if ( shot.sections && shot.tab ) {
+				const kept = await page.evaluate(
+					( { tab, keep } ) => {
+						const panel = document.querySelector( `[data-sss-panel="${ tab }"]` );
+						if ( ! panel ) {
+							return null;
+						}
+
+						const headings = Array.from( panel.querySelectorAll( 'h2' ) );
+						const found    = [];
+
+						// The first heading introduces the tab and carries its
+						// explanatory text, so it always stays.
+						headings.slice( 1 ).forEach( ( heading ) => {
+							const title = heading.textContent.trim();
+
+							if ( keep.includes( title ) ) {
+								found.push( title );
+								return;
+							}
+
+							// Remove the heading and everything up to the next one.
+							let node = heading;
+							while ( node ) {
+								const next = node.nextElementSibling;
+								node.remove();
+								if ( ! next || next.tagName === 'H2' ) {
+									break;
+								}
+								node = next;
+							}
+						} );
+
+						return found;
+					},
+					{ tab: shot.tab, keep: shot.sections }
+				);
+
+				if ( null === kept ) {
+					throw new Error( `Could not find the "${ shot.tab }" panel to trim.` );
+				}
+
+				// Fail loudly rather than publishing a shot missing the sections
+				// it was meant to show — a renamed section would otherwise pass
+				// silently and leave a thinner image than intended.
+				const missing = shot.sections.filter( ( name ) => ! kept.includes( name ) );
+				if ( missing.length ) {
+					throw new Error( `Sections not found on the "${ shot.tab }" tab: ${ missing.join( ', ' ) }` );
+				}
 			}
 
 			// Drop rows left over from local testing on the dev site — a
