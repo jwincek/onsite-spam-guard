@@ -141,6 +141,13 @@ final class Admin {
 
 		// Only offered when the plugin providing the form is present, so the
 		// list of targets describes this site rather than a catalogue.
+		// Off by default, unlike the other targets. Private messages are
+		// correspondence between people who already know each other, so the
+		// site owner should opt in rather than discover their users throttled.
+		if ( function_exists( 'bp_is_active' ) && bp_is_active( 'messages' ) ) {
+			self::add_toggle( 'simple_spam_shield_protect_bp_messages', __( 'BuddyPress private messages', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_targets', false );
+		}
+
 		if ( defined( 'WPCF7_VERSION' ) ) {
 			self::add_toggle( 'simple_spam_shield_protect_cf7', __( 'Contact Form 7 forms', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_targets', true );
 		}

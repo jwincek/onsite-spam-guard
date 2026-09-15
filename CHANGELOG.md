@@ -13,6 +13,18 @@ The user-facing changelog shipped to WordPress.org lives in the
 ## [Unreleased]
 
 ### Added
+- BuddyPress private messages integration, **off by default**. BuddyPress
+  applies WordPress's disallowed-keys and moderation lists to the activity
+  stream but applies nothing at all to private messages, leaving message spam
+  unaddressed. The guards that fit authenticated messaging are the rate limit
+  and duplicate detection, keyed on the sender; moderators are never throttled.
+- Message bodies are never persisted to the spam log. A block records the
+  sender, the time, and which guard objected — enough to act on — without
+  accumulating private correspondence in a table the administrator browses. The
+  guards still read the real message; only what is stored changes.
+- New `simple_spam_shield_log_content` filter, which is what makes that
+  possible. Return an empty string to record a block without its content, for
+  any surface where what was submitted should not be retained.
 - Contact Form 7 integration: every form is protected when that plugin is
   active, with a **Contact Form 7 forms** toggle under Protection targets. A
   blocked submission is marked as spam through Contact Form 7's purpose-built

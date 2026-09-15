@@ -70,6 +70,37 @@ Jetpack contact forms require special handling because Jetpack's form processor 
 
 This design gives full guard coverage on Jetpack forms while Jetpack stays in complete control of the submission lifecycle and rejection UX.
 
+### BuddyPress private messages
+
+Off by default. BuddyPress has no pre-save hook that can return an error, but
+`messages_message_before_save` passes the message **by reference**, and
+`BP_Messages_Message::send()` bails on empty recipients on the line immediately
+after — before any row is written. Clearing them is therefore a clean abort, and
+`messages_new_message()` turns it into BuddyPress's generic "Message was not
+sent. Please try again." That vagueness is the right behaviour here: it names
+nothing a spammer can work around.
+
+Hooking the model rather than the transport means one hook covers every send
+path — the REST endpoint, both AJAX template packs, the compose and view
+screens, and WP-CLI — and nothing writes to the messages table except `send()`
+itself.
+
+**Message bodies are never logged.** The integration registers a
+`simple_spam_shield_log_content` filter returning an empty string for its own
+context, so a block records the sender, the time and the deciding guard while
+the message itself is never persisted. The guards read the real content to
+decide; only what is stored changes. The filter is public, for any integration
+protecting content that should not be retained:
+
+```php
+add_filter( 'simple_spam_shield_log_content', function ( $content, $context ) {
+    return 'my_private_form' === $context ? '' : $content;
+}, 10, 2 );
+```
+
+Moderators are exempt: throttling someone who sends legitimate bulk
+correspondence, and locking them out of their own inbox, is worse than the spam.
+
 ### Contact Form 7
 
 Every form is protected when Contact Form 7 is active. The verdict goes through
