@@ -178,6 +178,60 @@ final class ContactForm7IntegrationTest extends TestCase {
 		$this->assertFalse( Contact_Form_7::check( false, $submission ) );
 	}
 
+	/**
+	 * Plenty of forms ask for a website with `[text your-website]` rather than
+	 * `[url ...]`. That value is structurally a URL however it was declared, so
+	 * counting it would reject a genuine enquiry for filling the form in
+	 * correctly — found by submitting through real Contact Form 7, not in
+	 * review.
+	 */
+	public function test_a_text_field_holding_only_a_url_does_not_count_as_a_link(): void {
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_link_limit_enabled'] = true;
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_link_limit_max']     = 3;
+		$_POST['simple_spam_shield_form_loaded']                                             = $this->token();
+
+		$form = new Fake_CF7_Form(
+			[
+				new Fake_CF7_Tag( 'your-name', 'text' ),
+				new Fake_CF7_Tag( 'your-website', 'text' ),   // text, not url
+				new Fake_CF7_Tag( 'your-message', 'textarea' ),
+			]
+		);
+		$submission = new Fake_CF7_Submission(
+			[
+				'your-name'    => 'Jane',
+				'your-website' => 'https://jane.example',
+				'your-message' => 'Refs: https://a.example https://b.example https://c.example',
+			],
+			$form
+		);
+
+		$this->assertFalse( Contact_Form_7::check( false, $submission ) );
+	}
+
+	/** The exclusion is narrow: URLs among prose in a text field still count. */
+	public function test_a_text_field_stuffed_with_links_still_counts(): void {
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_link_limit_enabled'] = true;
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_link_limit_max']     = 3;
+		$_POST['simple_spam_shield_form_loaded']                                             = $this->token();
+
+		$form = new Fake_CF7_Form(
+			[
+				new Fake_CF7_Tag( 'your-name', 'text' ),
+				new Fake_CF7_Tag( 'your-message', 'textarea' ),
+			]
+		);
+		$submission = new Fake_CF7_Submission(
+			[
+				'your-name'    => 'Buy https://a.example now https://b.example also https://c.example and https://d.example',
+				'your-message' => 'hi',
+			],
+			$form
+		);
+
+		$this->assertTrue( Contact_Form_7::check( false, $submission ) );
+	}
+
 	public function test_links_in_the_message_still_count(): void {
 		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_link_limit_enabled'] = true;
 		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_link_limit_max']     = 2;

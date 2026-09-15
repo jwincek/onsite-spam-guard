@@ -130,6 +130,12 @@ fields are excluded — a form asking for the sender's website receives a URL fr
 every legitimate submission, and counting it would push ordinary messages past
 the link limit.
 
+That exclusion is by *value* as well as by type. Plenty of forms ask for a
+website with `[text your-website]` rather than `[url ...]`, and a text field
+holding nothing but a URL is structurally a URL however it was declared, so it
+is left out of the content too. The exclusion is deliberately narrow: URLs
+appearing *among* prose still count, which is what link-stuffing looks like.
+
 ### WP Job Manager
 
 The frontend job submission form is protected when WP Job Manager is active,
