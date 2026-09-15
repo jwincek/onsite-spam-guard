@@ -8,11 +8,11 @@ Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Config-driven spam protection for comments, WooCommerce reviews, and Jetpack contact forms — no external services, API keys, or CAPTCHAs.
+Config-driven spam protection for comments, WooCommerce reviews, Jetpack forms, and WP Job Manager submissions — no external services or CAPTCHAs.
 
 == Description ==
 
-Onsite Spam Guard blocks spam on the forms your visitors actually use — WordPress comments, WooCommerce product reviews, and Jetpack contact form blocks — without sending anything to a third-party service, requiring an API key, or putting a CAPTCHA in front of your users.
+Onsite Spam Guard blocks spam on the forms your visitors actually use — WordPress comments, WooCommerce product reviews, Jetpack contact form blocks, and WP Job Manager job submissions — without sending anything to a third-party service, requiring an API key, or putting a CAPTCHA in front of your users.
 
 Protection is built from a pipeline of independent **guards**. Each guard is a small, focused check (a hidden honeypot field, a submit-speed gate, a keyword filter, and so on). Guards run in priority order, and the first one to fail blocks the submission. Every guard can be toggled and tuned from a single settings page, and every block can be logged for review.
 
@@ -41,6 +41,7 @@ Protection is built from a pipeline of independent **guards**. Each guard is a s
 * WordPress comments (always).
 * WooCommerce product reviews (when WooCommerce is active).
 * Jetpack contact form blocks (when Jetpack is active).
+* WP Job Manager job submissions (when WP Job Manager is active).
 
 == Installation ==
 
@@ -76,6 +77,12 @@ By default a blocked comment or review is placed in the **spam queue** (Comments
 = Can I limit how often one person can submit? =
 
 Yes. Enable **Rate limit** on the Guards tab, then set the maximum number of submissions and the window they are counted over — 20 per hour and 5 per minute are both expressible. It counts per sender — the logged-in user where there is one, otherwise the connection IP — and each form type is counted separately. It is off by default, because on sites where many visitors share an address (an office, a school, or mobile carrier NAT) an IP-based limit can catch people who are not doing anything wrong. Set the maximum to 0 to disable it without turning the guard off.
+
+= Does this work with WP Job Manager? =
+
+Yes. When WP Job Manager is active the frontend job submission form is protected automatically — including the "save as draft" path — and a **WP Job Manager job submissions** switch appears under Protection targets on the General tab. WP Job Manager's own answer to submission spam is Google reCAPTCHA; this gives you the same protection without the third-party service or the puzzle your posters have to solve.
+
+Job listings run longer than comments and legitimately carry more links, so the form gets its own section on the **Per-form** tab. Two thresholds are worth setting there: raise the link limit, and raise the minimum submit time well above the site-wide default — nobody writes a job description in three seconds, so a longer minimum costs genuine posters nothing and stops scripted submissions. The company website, video and Twitter fields are never counted as content links, so filling them in normally cannot trip the limit.
 
 = Does it replace WordPress's built-in comment moderation? =
 

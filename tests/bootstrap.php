@@ -190,6 +190,13 @@ if ( ! function_exists( 'sanitize_text_field' ) ) {
 		return trim( (string) preg_replace( '/[\r\n\t ]+/', ' ', wp_strip_all_tags( $str ) ) );
 	}
 }
+if ( ! function_exists( 'is_email' ) ) {
+	// Good enough for the integration tests: core's version is far stricter,
+	// but the only decision riding on it is email-vs-URL.
+	function is_email( $email ) {
+		return (bool) filter_var( (string) $email, FILTER_VALIDATE_EMAIL );
+	}
+}
 if ( ! function_exists( 'sanitize_textarea_field' ) ) {
 	function sanitize_textarea_field( $str ) {
 		return is_string( $str ) ? wp_strip_all_tags( $str ) : '';

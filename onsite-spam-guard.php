@@ -97,6 +97,7 @@ function simple_spam_shield_init(): void {
 	\Simple_Spam_Shield\Integrations\Comments::init();
 	\Simple_Spam_Shield\Integrations\WooCommerce::init();
 	\Simple_Spam_Shield\Integrations\Jetpack_Forms::init();
+	\Simple_Spam_Shield\Integrations\Job_Manager::init();
 
 	// 4. Front-end assets (honeypot field + JS timer).
 	add_action( 'wp_enqueue_scripts', [ \Simple_Spam_Shield\Core\Assets::class, 'enqueue' ] );

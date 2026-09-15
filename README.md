@@ -54,7 +54,7 @@ Guards run in descending weight order. All can be toggled individually from the 
 
 ### Front-end injection
 
-`guard.js` automatically finds comment forms, WooCommerce review forms, and Jetpack contact form blocks on the page via CSS selectors. It injects hidden fields for the honeypot, the signed form token, and behavioral data into each form. A `MutationObserver` (debounced) catches dynamically-loaded forms (e.g. AJAX-loaded WooCommerce reviews). The token is an HMAC-signed `<issued_at>.<signature>` string minted server-side (`includes/core/class-token.php`); the time gate reads the signed issue time and the signature guard verifies authenticity. Behavioral data (mouse movement count, click count, time on page) is collected continuously and serialized into a JSON hidden field at submit time.
+`guard.js` automatically finds comment forms, WooCommerce review forms, Jetpack contact form blocks, and the WP Job Manager submission form on the page via CSS selectors. It injects hidden fields for the honeypot, the signed form token, and behavioral data into each form. A `MutationObserver` (debounced) catches dynamically-loaded forms (e.g. AJAX-loaded WooCommerce reviews). The token is an HMAC-signed `<issued_at>.<signature>` string minted server-side (`includes/core/class-token.php`); the time gate reads the signed issue time and the signature guard verifies authenticity. Behavioral data (mouse movement count, click count, time on page) is collected continuously and serialized into a JSON hidden field at submit time.
 
 ### Server-side pipeline
 
@@ -69,6 +69,30 @@ Jetpack contact forms require special handling because Jetpack's form processor 
 - **Phase 2** (`jetpack_contact_form_is_spam` filter) — Fires during Jetpack's own processing. If Phase 1 flagged the submission, this filter returns `true` immediately and Jetpack handles the rejection through its native UX. If Phase 1 passed, the content-based guards (keyword block, link limit, duplicate detection) run against Jetpack's structured `$form_data`. The JS-dependent guards skip automatically in Phase 2 via context-aware logic, avoiding duplicate checks.
 
 This design gives full guard coverage on Jetpack forms while Jetpack stays in complete control of the submission lifecycle and rejection UX.
+
+### WP Job Manager
+
+The frontend job submission form is protected when WP Job Manager is active,
+through the same extension points WP Job Manager uses for its own reCAPTCHA
+(`WP_Job_Manager_Recaptcha::maybe_enable_recaptcha`): `submit_job_form_end`
+renders the hidden fields inside the form, and the verdict returns through
+`submit_job_form_validate_fields`, which already returns `true|WP_Error` and
+displays the error — the contract `Guard_Runner::run()` satisfies unchanged.
+
+`submit_draft_job_form_validate_fields` is hooked as well. The draft-save path
+deliberately skips `validate_fields()`, so hooking only the main filter would
+leave "save as draft" unprotected.
+
+Only `job_title` and `job_description` are inspected as content.
+`company_website`, `company_video`, `company_twitter`, and an `application`
+field holding a URL are excluded on purpose: a legitimate listing fills them,
+and folding them into the content would inflate the link count with valid data.
+An `application` value is passed as the submitter's email only when it really is
+an address.
+
+The form registers a `job_submission` context, so a site can raise the link
+limit and the minimum submit time for job listings without loosening either
+anywhere else.
 
 ### Allowlist
 
