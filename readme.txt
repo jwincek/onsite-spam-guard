@@ -4,7 +4,7 @@ Tags: spam, antispam, comments, honeypot, woocommerce
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.4.0
+Stable tag: 1.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -96,7 +96,7 @@ Because Contact Form 7 lets you name fields whatever you like, nothing here matc
 
 Yes. When WP Job Manager is active the frontend job submission form is protected automatically — including the "save as draft" path — and a **WP Job Manager job submissions** switch appears under Protection targets on the General tab. WP Job Manager's own answer to submission spam is Google reCAPTCHA; this gives you the same protection without the third-party service or the puzzle your posters have to solve.
 
-Job listings run longer than comments and legitimately carry more links, so the form gets its own section on the **Per-form** tab. Two thresholds are worth setting there: raise the link limit, and raise the minimum submit time well above the site-wide default — nobody writes a job description in three seconds, so a longer minimum costs genuine posters nothing and stops scripted submissions. The company website, video and Twitter fields are never counted as content links, so filling them in normally cannot trip the limit.
+Job listings run longer than comments and legitimately carry more links, so the form gets its own section on the **Per-form** tab. Two thresholds are worth setting there, and the first is worth doing before you take your first listing: **raise the link limit** — the default of 3 suits a comment, while an ordinary job description linking to an about page, a benefits page, a team page and an application page already has four. Then raise the minimum submit time well above the site-wide default — nobody writes a job description in three seconds, so a longer minimum costs genuine posters nothing and stops scripted submissions. The company website, video and Twitter fields are never counted as content links, so filling them in normally cannot trip the limit.
 
 = Does it replace WordPress's built-in comment moderation? =
 
@@ -121,6 +121,14 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 5. The Spam Logs viewer — every guard that matched, filters by guard and context, a user-agent column, and per-row and bulk delete actions.
 
 == Changelog ==
+
+= 1.5.0 =
+* Contact Form 7 forms are now protected. Every form is covered the moment the plugin is active — there is no tag to add to each form and no per-form setup, so forms you build later are protected too. A blocked submission is marked as spam, so the visitor sees the spam message you configured for that form, and the reason is recorded in Contact Form 7's own spam log.
+* WP Job Manager job submissions are now protected, including the "save as draft" path. WP Job Manager's built-in answer to submission spam is Google reCAPTCHA; this is the same protection with no third-party service and no puzzle for the person posting the job.
+* BuddyPress private messages can now be protected, **off by default**. BuddyPress applies WordPress's blocklists to the activity stream but nothing at all to private messages. The checks that suit private messaging are the rate limit and duplicate detection, keyed on the sender rather than on what they wrote, and moderators are never throttled. **Message bodies are never written to the spam log** — a block records who sent it, when, and which check objected, so private correspondence does not accumulate in a table for an administrator to browse.
+* Each newly protected form gets its own section on the Per-form tab, so a contact form, a job listing and a comment thread can have thresholds suited to each.
+* Fixed: the link limit counted a linked web address twice whenever the link text was the address itself — which is what happens when a visual editor turns a pasted address into a link. An ordinary job description or comment with four links could be counted as five and rejected. Repeated addresses now count once.
+* Fixed: a field holding nothing but a web address is no longer counted as a link in Contact Form 7 forms, whether it was built as a URL field or a plain text one. Asking visitors for their website could otherwise push a genuine message over the link limit.
 
 = 1.4.0 =
 * The hidden honeypot field now has a different name on every site, derived from the site's own secret. Previously every installation used the same name, so a spammer who learned it once could skip that field on every site running this plugin. Nothing to configure, and forms already open in a visitor's browser keep working.
@@ -177,6 +185,9 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 * Developed by Jerome Wincek, with engineering assistance from Anthropic's Claude.
 
 == Upgrade Notice ==
+
+= 1.5.0 =
+Adds protection for Contact Form 7, WP Job Manager and BuddyPress private messages. Also fixes link counting: a linked web address whose text is the address itself was counted twice, which could reject ordinary submissions containing four links. Nothing needs reconfiguring.
 
 = 1.3.0 =
 Recommended if you use the duplicate or rate-limit guard: both were recording the wrong submissions, which let a bot bypass the rate limit and could refuse a genuine visitor as a duplicate. Upgrades the log table; existing entries are kept and nothing needs reconfiguring.
