@@ -10,6 +10,25 @@ The user-facing changelog shipped to WordPress.org lives in the
 
 ## [Unreleased]
 
+## [Unreleased]
+
+### Added
+- WP Job Manager integration: the frontend job submission form is protected when
+  that plugin is active, with a **WP Job Manager job submissions** toggle under
+  Protection targets. It hooks the same extension points WP Job Manager uses for
+  its own reCAPTCHA — `submit_job_form_end` to render the hidden fields, and
+  both `submit_job_form_validate_fields` and
+  `submit_draft_job_form_validate_fields` for the verdict. Registering both
+  matters: the draft-save path deliberately skips `validate_fields()`, so
+  hooking only the first would leave "save as draft" unprotected.
+- The submission form registers a `job_submission` context, so its thresholds
+  can be tuned on the Per-form tab independently of the rest of the site. Job
+  listings run long and carry more links than a comment, and a time gate suited
+  to a comment box is far too lenient for a form that takes minutes to fill.
+  Only the title and description are inspected as content — the company website,
+  video and Twitter fields are structured values a legitimate listing always
+  fills, and counting them as content links would reject ordinary submissions.
+
 ## [1.4.0] - 2026-08-31
 
 ### Security

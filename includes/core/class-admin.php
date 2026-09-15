@@ -139,6 +139,12 @@ final class Admin {
 		self::add_toggle( 'simple_spam_shield_protect_woo_reviews', __( 'WooCommerce product reviews', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_targets', true );
 		self::add_toggle( 'simple_spam_shield_protect_jetpack_forms', __( 'Jetpack contact form blocks', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_targets', true );
 
+		// Only offered when the plugin providing the form is present, so the
+		// list of targets describes this site rather than a catalogue.
+		if ( defined( 'JOB_MANAGER_VERSION' ) ) {
+			self::add_toggle( 'simple_spam_shield_protect_job_manager', __( 'WP Job Manager job submissions', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_targets', true );
+		}
+
 		// ---- Guards tab ----
 		$guards_page = $tabs['guards']['page'];
 		add_settings_section( 'simple_spam_shield_guards', __( 'Spam guards', 'onsite-spam-guard' ), function () {
