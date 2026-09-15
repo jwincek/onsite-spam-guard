@@ -82,17 +82,15 @@ Yes. Enable **Rate limit** on the Guards tab, then set the maximum number of sub
 
 = Does this work with Contact Form 7? =
 
-Yes. Every Contact Form 7 form on the site is protected automatically once the plugin is active, and a **Contact Form 7 forms** switch appears under Protection targets on the General tab. A blocked submission is marked as spam, so the visitor sees the message you configured for spam on that form, and the reason is recorded in Contact Form 7's own spam log next to the plugin name.
+Yes. Every Contact Form 7 form on the site is protected the moment the plugin is active, and a **Contact Form 7 forms** switch appears under Protection targets on the General tab.
 
-Because Contact Form 7 lets you name fields whatever you like, nothing here matches on field names. It reads the *types* you built the form from: the message and text fields are screened for content — including the subject line, which spam often targets — the email field is used as the sender's address, and dedicated URL fields are left out, so a form asking for the visitor's website cannot trip the link limit just by being filled in correctly.
+**There is nothing to add to your forms.** You do not place a tag in each form, and there is no per-form setup — forms you build later are covered the same way, with no step to forget.
 
-= Does this work with BuddyPress private messages? =
+What runs is the full set of guards rather than a single trick: a hidden field bots fill in, a check that the form was not submitted faster than a person could type, a signature proving the submission came from your site, duplicate detection, an optional rate limit, and your own keyword and link rules. A bot written to step around any one of those still has to get past the rest.
 
-Yes, and it is **off by default** — turn on **BuddyPress private messages** under Protection targets on the General tab. BuddyPress applies WordPress's blocklists to the activity stream but nothing at all to private messages, so message spam is otherwise unaddressed.
+A blocked submission is marked as spam, so the visitor sees the message you configured for spam on that form, and the reason is recorded in Contact Form 7's own spam log next to the plugin name.
 
-The controls that suit private messaging are the rate limit and duplicate detection, keyed on the sender rather than on what they wrote, and moderators are never throttled. A blocked message is not sent, and the sender sees BuddyPress's ordinary "Message was not sent" notice — deliberately vague, because telling a spammer which check caught them only helps them get past it next time.
-
-**Message bodies are never written to the spam log.** The guards read the message to decide, but the log records only who sent it, when, and which guard objected. Private correspondence does not accumulate in a table for an administrator to browse, and that is not something you have to configure — it is how the integration behaves.
+Because Contact Form 7 lets you name fields whatever you like, nothing here matches on field names. It reads the *types* you built the form from: the message and text fields are screened for content — including the subject line, which spam often targets — and the email field is used as the sender's address. A field holding nothing but a web address is not counted as a link, whether you built it with a URL field or a plain text one, so asking visitors for their website cannot trip the link limit just by being filled in correctly. Links written *among* your visitor's words still count, which is what spam actually looks like.
 
 = Does this work with WP Job Manager? =
 
