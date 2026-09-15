@@ -42,6 +42,7 @@ Protection is built from a pipeline of independent **guards**. Each guard is a s
 * WooCommerce product reviews (when WooCommerce is active).
 * Jetpack contact form blocks (when Jetpack is active).
 * WP Job Manager job submissions (when WP Job Manager is active).
+* Contact Form 7 forms (when Contact Form 7 is active).
 
 == Installation ==
 
@@ -77,6 +78,12 @@ By default a blocked comment or review is placed in the **spam queue** (Comments
 = Can I limit how often one person can submit? =
 
 Yes. Enable **Rate limit** on the Guards tab, then set the maximum number of submissions and the window they are counted over — 20 per hour and 5 per minute are both expressible. It counts per sender — the logged-in user where there is one, otherwise the connection IP — and each form type is counted separately. It is off by default, because on sites where many visitors share an address (an office, a school, or mobile carrier NAT) an IP-based limit can catch people who are not doing anything wrong. Set the maximum to 0 to disable it without turning the guard off.
+
+= Does this work with Contact Form 7? =
+
+Yes. Every Contact Form 7 form on the site is protected automatically once the plugin is active, and a **Contact Form 7 forms** switch appears under Protection targets on the General tab. A blocked submission is marked as spam, so the visitor sees the message you configured for spam on that form, and the reason is recorded in Contact Form 7's own spam log next to the plugin name.
+
+Because Contact Form 7 lets you name fields whatever you like, nothing here matches on field names. It reads the *types* you built the form from: the message and text fields are screened for content — including the subject line, which spam often targets — the email field is used as the sender's address, and dedicated URL fields are left out, so a form asking for the visitor's website cannot trip the link limit just by being filled in correctly.
 
 = Does this work with WP Job Manager? =
 
