@@ -104,7 +104,12 @@ final class Keyword_Block extends Abstract_Guard {
 			return str_contains( $haystack, $keyword );
 		}
 
-		$pattern = '/(?<![\p{L}\p{N}_])' . preg_quote( $keyword, '/' ) . '(?![\p{L}\p{N}_])/iu';
+		// Underscore is a separator, not part of a word. `\b` counted it as a
+		// word character, which let any underscore-joined name escape:
+		// "casino_bonus_77" and "promo_casino@example.com" never matched a
+		// blocked "casino". Usernames and email addresses use it exactly as
+		// they use hyphens and dots, and the email is screened in every form.
+		$pattern = '/(?<![\p{L}\p{N}])' . preg_quote( $keyword, '/' ) . '(?![\p{L}\p{N}])/iu';
 
 		return 1 === preg_match( $pattern, $haystack );
 	}
