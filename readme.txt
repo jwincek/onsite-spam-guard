@@ -108,6 +108,14 @@ No — it complements it. Onsite Spam Guard's guards run *before* WordPress's ow
 
 You can also go the other way and put WordPress's list to work everywhere: enable **Also apply WordPress's Disallowed Comment Keys** on the Guards tab and the plugin runs every protected submission through core's own blocklist — so the list you already maintain under Settings → Discussion starts covering reviews, Jetpack forms, and any form added through the plugin's API, not only comments.
 
+= Can I try a change before it starts blocking anything? =
+
+Yes. Turn on **Monitor mode** on the General tab and the plugin keeps checking every submission and recording what it *would* have blocked, but lets everything through. The spam log labels those entries **Would have blocked**, so after a few days you can see exactly what a new setting would have caught — including anything it would have caught by mistake — before you rely on it.
+
+You can also monitor a single form while the rest stay protected: on the **Per-form** tab, set that form's mode to **Monitor**. This is the safest way to switch on protection for a new form.
+
+While monitor mode is on for the whole site, a notice on every admin screen reminds you that nothing is being blocked.
+
 = Does it work with caching plugins? =
 
 Yes. The timing and authenticity checks use a token whose signature does not expire (unlike a WordPress nonce, which would go stale on a cached page and block legitimate visitors), so full-page caching does not produce false positives.

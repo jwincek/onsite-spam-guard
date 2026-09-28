@@ -15,9 +15,15 @@ namespace Simple_Spam_Shield\Core;
 
 final class Database_Manager {
 
-	private const DB_VERSION     = '1.2';
+	private const DB_VERSION     = '1.3';
 	private const DB_VERSION_KEY = 'simple_spam_shield_db_version';
-	private const STATS_KEY      = 'simple_spam_shield_stats';
+
+	/** A submission that was refused. */
+	public const OUTCOME_BLOCKED = 'blocked';
+
+	/** A submission that would have been refused, but was let through under monitor mode. */
+	public const OUTCOME_MONITORED = 'monitored';
+	private const STATS_KEY        = 'simple_spam_shield_stats';
 
 	/**
 	 * Get the full table name with prefix.
@@ -47,6 +53,7 @@ final class Database_Manager {
 			blocked_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
 			guard varchar(50) NOT NULL,
 			guards_matched varchar(255) NOT NULL DEFAULT '',
+			outcome varchar(20) NOT NULL DEFAULT 'blocked',
 			context varchar(50) NOT NULL,
 			reason text NOT NULL,
 			content longtext NOT NULL,
@@ -55,7 +62,8 @@ final class Database_Manager {
 			PRIMARY KEY  (id),
 			KEY blocked_at (blocked_at),
 			KEY guard (guard),
-			KEY context (context)
+			KEY context (context),
+			KEY outcome (outcome)
 		) {$charset_collate};";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -77,6 +85,10 @@ final class Database_Manager {
 			'blocked_at'     => current_time( 'mysql', true ),
 			'guard'          => sanitize_text_field( $entry['guard'] ?? '' ),
 			'guards_matched' => sanitize_text_field( $entry['guards_matched'] ?? '' ),
+			// Whether the submission was actually refused, or only would have
+			// been under monitor mode. Existing rows default to 'blocked', which
+			// is what every row written before 1.6.0 was.
+			'outcome'        => self::OUTCOME_MONITORED === ( $entry['outcome'] ?? '' ) ? self::OUTCOME_MONITORED : self::OUTCOME_BLOCKED,
 			'context'        => sanitize_text_field( $entry['context'] ?? '' ),
 			'reason'         => sanitize_textarea_field( $entry['reason'] ?? '' ),
 			'content'        => wp_kses_post( mb_substr( $entry['content'] ?? '', 0, 500 ) ),
@@ -84,7 +96,7 @@ final class Database_Manager {
 			'user_agent'     => sanitize_text_field( mb_substr( $entry['user_agent'] ?? '', 0, 255 ) ),
 		];
 
-		$inserted = $wpdb->insert( self::table_name(), $data, [ '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' ] );
+		$inserted = $wpdb->insert( self::table_name(), $data, array_fill( 0, count( $data ), '%s' ) );
 
 		return $inserted ? (int) $wpdb->insert_id : false;
 	}
@@ -108,6 +120,10 @@ final class Database_Manager {
 		if ( ! empty( $filters['context'] ) ) {
 			$clauses[] = 'context = %s';
 			$params[]  = (string) $filters['context'];
+		}
+		if ( ! empty( $filters['outcome'] ) && in_array( $filters['outcome'], [ self::OUTCOME_BLOCKED, self::OUTCOME_MONITORED ], true ) ) {
+			$clauses[] = 'outcome = %s';
+			$params[]  = (string) $filters['outcome'];
 		}
 
 		$where = $clauses ? ' WHERE ' . implode( ' AND ', $clauses ) : '';
@@ -203,7 +219,7 @@ final class Database_Manager {
 	/**
 	 * Get cached blocked-submission stats for the last 7 days.
 	 *
-	 * @return array{week_total:int,top_guard:string,top_count:int}
+	 * @return array{week_total:int,week_monitored:int,top_guard:string,top_count:int}
 	 */
 	public static function get_stats(): array {
 		$cached = get_transient( self::STATS_KEY );
@@ -215,24 +231,38 @@ final class Database_Manager {
 		$table = self::table_name();
 		$since = gmdate( 'Y-m-d H:i:s', time() - WEEK_IN_SECONDS );
 
+		// Only real blocks count as blocked. A submission let through under
+		// monitor mode is reported separately, so the headline figure never
+		// claims protection the site did not actually apply.
 		$week_total = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(id) FROM {$table} WHERE blocked_at >= %s", // phpcs:ignore WordPress.DB.PreparedSQL
-				$since
+				"SELECT COUNT(id) FROM {$table} WHERE blocked_at >= %s AND outcome = %s", // phpcs:ignore WordPress.DB.PreparedSQL
+				$since,
+				self::OUTCOME_BLOCKED
+			)
+		);
+
+		$week_monitored = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(id) FROM {$table} WHERE blocked_at >= %s AND outcome = %s", // phpcs:ignore WordPress.DB.PreparedSQL
+				$since,
+				self::OUTCOME_MONITORED
 			)
 		);
 
 		$top = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT guard, COUNT(id) AS hits FROM {$table} WHERE blocked_at >= %s GROUP BY guard ORDER BY hits DESC LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL
-				$since
+				"SELECT guard, COUNT(id) AS hits FROM {$table} WHERE blocked_at >= %s AND outcome = %s GROUP BY guard ORDER BY hits DESC LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL
+				$since,
+				self::OUTCOME_BLOCKED
 			)
 		);
 
 		$stats = [
-			'week_total' => $week_total,
-			'top_guard'  => $top->guard ?? '',
-			'top_count'  => isset( $top->hits ) ? (int) $top->hits : 0,
+			'week_total'     => $week_total,
+			'week_monitored' => $week_monitored,
+			'top_guard'      => $top->guard ?? '',
+			'top_count'      => isset( $top->hits ) ? (int) $top->hits : 0,
 		];
 
 		set_transient( self::STATS_KEY, $stats, 15 * MINUTE_IN_SECONDS );

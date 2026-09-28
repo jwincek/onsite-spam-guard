@@ -127,7 +127,12 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 					get_option( 'date_format' ) . ' ' . get_option( 'time_format' )
 				)
 			),
-			'context', 'reason', 'ip_address' => esc_html( $item->$column_name ),
+			'context', 'ip_address' => esc_html( $item->$column_name ),
+			// A monitored row was let through; say so where the verdict is read,
+			// so it is never mistaken for a block.
+			'reason' => Database_Manager::OUTCOME_MONITORED === ( $item->outcome ?? '' )
+				? '<strong>' . esc_html__( 'Would have blocked', 'onsite-spam-guard' ) . '</strong> — ' . esc_html( $item->reason )
+				: esc_html( $item->reason ),
 			default => '',
 		};
 	}
@@ -196,6 +201,7 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		$current_guard   = isset( $_GET['filter_guard'] ) ? sanitize_text_field( wp_unslash( $_GET['filter_guard'] ) ) : '';
 		$current_context = isset( $_GET['filter_context'] ) ? sanitize_text_field( wp_unslash( $_GET['filter_context'] ) ) : '';
+		$current_outcome = isset( $_GET['filter_outcome'] ) ? sanitize_text_field( wp_unslash( $_GET['filter_outcome'] ) ) : '';
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		$guards   = Database_Manager::distinct_values( 'guard' );
@@ -229,6 +235,22 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 				esc_attr( $context ),
 				selected( $current_context, $context, false ),
 				esc_html( $context )
+			);
+		}
+		echo '</select>';
+
+		echo '<label class="screen-reader-text" for="filter_outcome">' . esc_html__( 'Filter by outcome', 'onsite-spam-guard' ) . '</label>';
+		echo '<select name="filter_outcome" id="filter_outcome">';
+		foreach ( [
+			''                                  => __( 'All outcomes', 'onsite-spam-guard' ),
+			Database_Manager::OUTCOME_BLOCKED   => __( 'Blocked', 'onsite-spam-guard' ),
+			Database_Manager::OUTCOME_MONITORED => __( 'Would have blocked', 'onsite-spam-guard' ),
+		] as $value => $label ) {
+			printf(
+				'<option value="%s"%s>%s</option>',
+				esc_attr( $value ),
+				selected( $current_outcome, $value, false ),
+				esc_html( $label )
 			);
 		}
 		echo '</select>';
@@ -270,6 +292,7 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 		$filters = [
 			'guard'   => isset( $_GET['filter_guard'] ) ? sanitize_text_field( wp_unslash( $_GET['filter_guard'] ) ) : '',
 			'context' => isset( $_GET['filter_context'] ) ? sanitize_text_field( wp_unslash( $_GET['filter_context'] ) ) : '',
+			'outcome' => isset( $_GET['filter_outcome'] ) ? sanitize_text_field( wp_unslash( $_GET['filter_outcome'] ) ) : '',
 		];
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 

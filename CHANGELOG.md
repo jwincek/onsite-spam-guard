@@ -8,6 +8,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 The user-facing changelog shipped to WordPress.org lives in the
 `== Changelog ==` section of `readme.txt`; keep the two in sync.
 
+## [Unreleased]
+
+### Added
+- Monitor mode (#48): evaluate every guard and log what would be blocked, but
+  block nothing. Set site-wide on the General tab, and overridable per form on
+  the Per-form tab (inherit / enforce / monitor) in either direction, so one
+  form can be trialled while the rest stay enforced. Every threshold change was
+  previously tried in production; both false positives fixed in 1.5.0 were found
+  only by stress-testing before release.
+- Log rows record an `outcome` — `blocked` or `monitored` — through a schema
+  migration (1.2 -> 1.3). Rows written before the upgrade read as `blocked`,
+  which is what they were. The log viewer labels monitored rows "Would have
+  blocked" and can filter by outcome, and the 7-day summary counts them
+  separately so the headline figure never claims protection that was not
+  applied.
+- An admin notice on every screen while site-wide monitor mode is on, and a
+  list of monitored forms on the plugin's own screens. Monitor mode blocks
+  nothing by design, which makes forgetting it switched on the worst failure
+  this plugin has.
+
+### Changed
+- `simple_spam_shield_blocked` does not fire for a submission let through by
+  monitor mode. It is documented as firing on a block, and a listener acting on
+  it would otherwise act on accepted traffic. `Guard_Runner::is_monitoring()`
+  is public for code that needs to know.
+
 ## [1.5.1] - 2026-09-28
 
 ### Fixed

@@ -33,6 +33,7 @@ function simple_spam_shield_uninstall_site(): void {
 	// 2. Delete all plugin options.
 	$options = [
 		'simple_spam_shield_enabled',
+		'simple_spam_shield_monitor_mode',
 		'simple_spam_shield_hard_block',
 		'simple_spam_shield_protect_comments',
 		'simple_spam_shield_protect_woo_reviews',
