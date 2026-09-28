@@ -58,6 +58,15 @@ final class Duplicate extends Abstract_Guard {
 		$email   = $data['email'] ?? $data['author_email'] ?? '';
 		$ip      = \Simple_Spam_Shield\Core\Request::ip();
 
-		return 'simple_spam_shield_dup_' . md5( $content . $author . $email . $ip );
+		// Each field is prefixed with its byte length. Joining them directly
+		// let text cross a field boundary unnoticed — "Great post, Sam" with no
+		// author and "Great post, " from "Sam" produced the same key, so a
+		// genuine second comment could be refused as a duplicate. JSON would
+		// also be unambiguous, but json_encode() fails on invalid UTF-8, and
+		// every such submission would then share a single key.
+		$parts   = [ (string) $content, (string) $author, (string) $email, $ip ];
+		$encoded = implode( '|', array_map( static fn( string $part ): string => strlen( $part ) . ':' . $part, $parts ) );
+
+		return 'simple_spam_shield_dup_' . md5( $encoded );
 	}
 }
