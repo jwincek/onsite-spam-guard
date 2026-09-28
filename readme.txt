@@ -4,7 +4,7 @@ Tags: spam, antispam, comments, honeypot, woocommerce
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -126,6 +126,12 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 
 == Changelog ==
 
+= 1.5.1 =
+* Fixed: with **Trust proxy headers** enabled, the visitor's address is now read from the entry your proxy added, which a visitor cannot set. Previously it could be taken from a value supplied by the visitor, which could affect the allowlist, the rate limit and duplicate detection. **Updating is recommended for every site using this setting.** The setting's description and the FAQ now also explain what it relies on: your server accepting traffic only from the proxy.
+* Fixed: blocked keywords now match in every script. A single-word keyword written in Cyrillic, Greek, Chinese, Japanese or another non-Latin script never matched before, and upper- and lower-case versions of non-Latin text were treated as different. If you block words in a language other than English, they will start working with this update.
+* Fixed: "Clear all logs" could leave a blank, half-drawn admin page on some servers instead of returning to the log with a confirmation. The logs were still cleared.
+* Fixed: two different comments could occasionally be mistaken for duplicates of each other when their text differed only in where the author's name ended and the message began.
+
 = 1.5.0 =
 * Contact Form 7 forms are now protected. Every form is covered the moment the plugin is active — there is no tag to add to each form and no per-form setup, so forms you build later are protected too. A blocked submission is marked as spam, so the visitor sees the spam message you configured for that form, and the reason is recorded in Contact Form 7's own spam log.
 * WP Job Manager job submissions are now protected, including the "save as draft" path. WP Job Manager's built-in answer to submission spam is Google reCAPTCHA; this is the same protection with no third-party service and no puzzle for the person posting the job.
@@ -189,6 +195,9 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 * Developed by Jerome Wincek, with engineering assistance from Anthropic's Claude.
 
 == Upgrade Notice ==
+
+= 1.5.1 =
+Recommended for every site that has "Trust proxy headers" turned on. Also makes blocked keywords work in non-Latin scripts, and fixes "Clear all logs" on some servers.
 
 = 1.5.0 =
 Adds protection for Contact Form 7, WP Job Manager and BuddyPress private messages. Also fixes link counting: a linked web address whose text is the address itself was counted twice, which could reject ordinary submissions containing four links. Nothing needs reconfiguring.

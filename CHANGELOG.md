@@ -8,6 +8,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 The user-facing changelog shipped to WordPress.org lives in the
 `== Changelog ==` section of `readme.txt`; keep the two in sync.
 
+## [1.5.1] - 2026-09-28
+
+### Fixed
+- **Client IP with the trusted-proxy option enabled.** `Request::ip()` read the
+  leftmost `X-Forwarded-For` entry. Proxies append to that header rather than
+  replace it, so the leftmost entry is client-supplied; the address the site's
+  own proxy recorded is at the right. It now reads the proxy-appended entry and
+  nothing to its left, which affects the allowlist, rate limit and duplicate
+  detection. New `simple_spam_shield_trusted_proxy_hops` filter for sites
+  behind more than one proxy. The previous test asserted the leftmost entry
+  was correct. The settings text and FAQ now state the option's actual
+  precondition: the server accepting traffic only from the proxy.
+- **Keyword matching outside Latin script.** Single words were matched with
+  `\b` and no `u` flag, and lowercased with `strtolower()`, which folds ASCII
+  only in PHP 8. A Cyrillic, Greek or CJK single-word keyword therefore never
+  matched, and non-Latin case-folding never worked. Now uses `mb_strtolower()`
+  after `mb_scrub()`, Unicode-aware letter boundaries, and substring matching
+  for scripts written without spaces between words. Also corrects a latent
+  false positive: the old `\b` matched "café" inside "cafés".
+- **"Clear all logs" redirect.** The handler ran in the menu page's render
+  callback, after `admin-header.php` had printed. It worked only where the page
+  happened to be fully buffered; on a typical host the redirect failed with
+  "headers already sent" and `exit` left a truncated page. Now runs on
+  `load-{$page_hook}`, before any output.
+- **Duplicate fingerprint.** Fields were concatenated before hashing, so text
+  crossing a field boundary produced the same key for different submissions.
+  Each field is now length-prefixed.
+
 ## [1.5.0] - 2026-09-15
 
 ## [Unreleased]
