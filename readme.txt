@@ -75,6 +75,8 @@ By default the plugin uses the direct connection IP, because forwarded headers c
 
 The visitor's address is then read from the entry your proxy added to the X-Forwarded-For header, which a visitor cannot forge. That relies on your server accepting traffic *only* from the proxy: if it can also be reached directly, a visitor who goes around the proxy can still supply an address of their choosing. With Cloudflare, that means restricting your server to Cloudflare's published address ranges.
 
+To check your setup, look at **What this server sees** beneath the setting. It shows the address your request arrived from, whether a forwarded header was present, and the address the plugin is using, with a plain verdict on whether the setting matches. The same check runs under **Tools → Site Health**, and is marked critical when the setting is on, an allowlist is in use, and a request reached the server without passing through a proxy.
+
 If your site sits behind **two** proxies — Cloudflare in front of a load balancer, for example — every visitor will appear to come from a Cloudflare address. A developer can correct that with the `simple_spam_shield_trusted_proxy_hops` filter, returning the number of proxies in front of the site.
 
 = A legitimate submission was blocked. What do I do? =

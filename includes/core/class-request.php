@@ -38,24 +38,7 @@ final class Request {
 			$raw     = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) );
 			$entries = array_values( array_filter( array_map( 'trim', explode( ',', $raw ) ), static fn( $entry ) => '' !== $entry ) );
 
-			/**
-			 * Filters how many trusted proxies sit in front of the site.
-			 *
-			 * Each proxy appends the address it received the request from, so
-			 * the visitor's address is this many entries from the right of
-			 * X-Forwarded-For. The default of 1 fits a site behind a single
-			 * proxy — Cloudflare straight to the server, or one load balancer.
-			 * Behind two (Cloudflare in front of a load balancer), return 2;
-			 * otherwise every visitor resolves to a Cloudflare edge address.
-			 *
-			 * Anything further left than this was supplied by the client and
-			 * is never used.
-			 *
-			 * @since 1.5.1
-			 *
-			 * @param int $hops Number of trusted proxies. Minimum 1.
-			 */
-			$hops  = max( 1, (int) apply_filters( 'simple_spam_shield_trusted_proxy_hops', 1 ) );
+			$hops  = self::trusted_proxy_hops();
 			$index = count( $entries ) - $hops;
 
 			if ( $index >= 0 && filter_var( $entries[ $index ], FILTER_VALIDATE_IP ) ) {
@@ -64,5 +47,33 @@ final class Request {
 		}
 
 		return filter_var( $remote, FILTER_VALIDATE_IP ) ? $remote : '0.0.0.0';
+	}
+	/**
+	 * How many trusted proxies sit in front of the site.
+	 *
+	 * Shared by ip() and the proxy diagnostics, so the diagnostics always
+	 * report on the address the plugin actually uses.
+	 *
+	 * @return int At least 1.
+	 */
+	public static function trusted_proxy_hops(): int {
+		/**
+		 * Filters how many trusted proxies sit in front of the site.
+		 *
+		 * Each proxy appends the address it received the request from, so
+		 * the visitor's address is this many entries from the right of
+		 * X-Forwarded-For. The default of 1 fits a site behind a single
+		 * proxy — Cloudflare straight to the server, or one load balancer.
+		 * Behind two (Cloudflare in front of a load balancer), return 2;
+		 * otherwise every visitor resolves to a Cloudflare edge address.
+		 *
+		 * Anything further left than this was supplied by the client and
+		 * is never used.
+		 *
+		 * @since 1.5.1
+		 *
+		 * @param int $hops Number of trusted proxies. Minimum 1.
+		 */
+		return max( 1, (int) apply_filters( 'simple_spam_shield_trusted_proxy_hops', 1 ) );
 	}
 }
