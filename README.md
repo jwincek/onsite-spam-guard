@@ -160,6 +160,31 @@ The form registers a `job_submission` context, so a site can raise the link
 limit and the minimum submit time for job listings without loosening either
 anywhere else.
 
+### Monitor mode
+
+Monitor mode evaluates every guard and logs the result but blocks nothing, so a
+threshold change or a newly enabled integration can be tried against real
+traffic before it takes effect. It is set site-wide on the General tab and can
+be overridden per form on the Per-form tab — **Enforce** or **Monitor** — in
+either direction, so one form can be trialled while the rest stay enforced.
+
+It is applied in `Guard_Runner::run()`, which every integration and
+`simple_spam_shield_check()` go through, so forms registered by other plugins
+are covered without changes on their side.
+
+A monitored submission is **accepted**: the runner returns `true`, and
+state-holding guards `commit()` it as they would a clean one. It is logged with
+`outcome = 'monitored'`, the log viewer labels it "Would have blocked", and the
+7-day summary counts it separately from real blocks.
+
+**`simple_spam_shield_blocked` does not fire for monitored submissions.** It is
+documented as firing when a submission has been blocked, and a listener acting
+on it — banning an address, say — would otherwise act on traffic the site let
+through. Use `Guard_Runner::is_monitoring( $context )` if you need to know.
+
+Because monitor mode blocks nothing, the plugin announces it on every admin
+screen while it is on site-wide, and lists monitored forms on its own screens.
+
 ### Allowlist
 
 Submissions from allowlisted IPs or emails bypass all guards entirely. The allowlist supports exact IPs, CIDR ranges (e.g. `10.0.0.0/8`), exact email addresses, and email domain patterns (e.g. `@trusted.org`). IP detection uses the direct connection IP (`REMOTE_ADDR`) by default; the spoofable `X-Forwarded-For` header is honored only when the **Trust proxy headers** option is enabled (for sites behind a trusted reverse proxy), so a visitor cannot forge a header to spoof an allowlisted IP.

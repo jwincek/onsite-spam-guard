@@ -190,6 +190,22 @@ final class Guard_Runner {
 			return true;
 		}
 
+		// Monitor mode: record what would have happened, then let it through.
+		if ( self::is_monitoring( $context ) ) {
+			self::log_block( $matched[0], $context, $verdict->get_error_message(), $data, $matched, Database_Manager::OUTCOME_MONITORED );
+
+			// The submission is accepted, so state-holding guards record it
+			// exactly as they would a clean one. `simple_spam_shield_blocked`
+			// deliberately does not fire: it promises a block, and a listener
+			// acting on it — banning an address, say — would otherwise act on
+			// traffic that was let through.
+			foreach ( $enabled as $guard ) {
+				$guard->commit( $data, $context );
+			}
+
+			return true;
+		}
+
 		self::log_block( $matched[0], $context, $verdict->get_error_message(), $data, $matched );
 
 		/**
@@ -220,6 +236,29 @@ final class Guard_Runner {
 	}
 
 	/**
+	 * Whether submissions to this form are only being monitored.
+	 *
+	 * A per-form setting wins over the site-wide one in either direction, so a
+	 * single form can be trialled while the rest are enforced, or one form kept
+	 * enforced while the rest are monitored.
+	 *
+	 * @param string $context Submission context.
+	 */
+	public static function is_monitoring( string $context ): bool {
+		$override = get_option( Contexts::option( 'simple_spam_shield_monitor_mode', $context ), '' );
+
+		if ( 'monitor' === $override ) {
+			return true;
+		}
+
+		if ( 'enforce' === $override ) {
+			return false;
+		}
+
+		return (bool) get_option( 'simple_spam_shield_monitor_mode', false );
+	}
+
+	/**
 	 * Log a blocked submission to the custom database table.
 	 *
 	 * @param string   $guard   Slug of the guard that blocked the submission.
@@ -229,8 +268,11 @@ final class Guard_Runner {
 	 * @param string[] $matched Every guard that failed, in weight order. The
 	 *                          first is $guard; the rest were evaluated for the
 	 *                          record after the outcome was already decided.
+	 * @param string   $outcome Database_Manager::OUTCOME_BLOCKED, or
+	 *                          OUTCOME_MONITORED when the submission was let
+	 *                          through under monitor mode.
 	 */
-	private static function log_block( string $guard, string $context, string $reason, array $data, array $matched = [] ): void {
+	private static function log_block( string $guard, string $context, string $reason, array $data, array $matched = [], string $outcome = Database_Manager::OUTCOME_BLOCKED ): void {
 		if ( ! (bool) get_option( 'simple_spam_shield_log_blocked', true ) ) {
 			return;
 		}
@@ -271,6 +313,7 @@ final class Guard_Runner {
 		Database_Manager::insert( [
 			'guard'          => $guard,
 			'guards_matched' => implode( ',', $matched ),
+			'outcome'        => $outcome,
 			'context'        => $context,
 			'reason'         => $reason,
 			'content'        => $logged_content,

@@ -25,6 +25,62 @@ final class Admin {
 		add_action( 'admin_init', [ __CLASS__, 'add_privacy_policy_content' ] );
 		add_action( 'admin_init', [ Database_Manager::class, 'create_table' ] );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_settings_assets' ] );
+		add_action( 'admin_notices', [ __CLASS__, 'monitor_mode_notice' ] );
+	}
+
+	/**
+	 * Say so, plainly, whenever monitor mode is letting spam through.
+	 *
+	 * Monitor mode blocks nothing by design, which makes forgetting it switched
+	 * on the worst failure this plugin has: protection silently off. So the
+	 * site-wide setting is announced on every admin screen, and per-form
+	 * monitoring on this plugin's own screens, naming the forms.
+	 */
+	public static function monitor_mode_notice(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$settings_url = admin_url( 'admin.php?page=onsite-spam-guard' );
+
+		if ( (bool) get_option( 'simple_spam_shield_monitor_mode', false ) ) {
+			printf(
+				'<div class="notice notice-warning"><p><strong>%1$s</strong> %2$s <a href="%3$s">%4$s</a></p></div>',
+				esc_html__( 'Onsite Spam Guard is in monitor mode.', 'onsite-spam-guard' ),
+				esc_html__( 'Submissions that would be blocked are being logged and let through. Nothing is being blocked.', 'onsite-spam-guard' ),
+				esc_url( $settings_url ),
+				esc_html__( 'Change this setting', 'onsite-spam-guard' )
+			);
+			return;
+		}
+
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $screen || ! str_contains( (string) $screen->id, 'onsite-spam-guard' ) ) {
+			return;
+		}
+
+		$monitored = [];
+		foreach ( Contexts::all() as $context => $definition ) {
+			if ( 'monitor' === get_option( Contexts::option( 'simple_spam_shield_monitor_mode', $context ), '' ) ) {
+				$monitored[] = $definition['label'];
+			}
+		}
+
+		if ( ! $monitored ) {
+			return;
+		}
+
+		printf(
+			'<div class="notice notice-info"><p><strong>%1$s</strong> %2$s</p></div>',
+			esc_html__( 'Some forms are in monitor mode:', 'onsite-spam-guard' ),
+			esc_html(
+				sprintf(
+					/* translators: %s: comma-separated list of form names. */
+					__( '%s. Submissions to these that would be blocked are being logged and let through.', 'onsite-spam-guard' ),
+					implode( ', ', $monitored )
+				)
+			)
+		);
 	}
 
 	/**
@@ -136,6 +192,7 @@ final class Admin {
 		// ---- General tab: General + Protection targets ----
 		add_settings_section( 'simple_spam_shield_general', __( 'General', 'onsite-spam-guard' ), '__return_null', $tabs['general']['page'] );
 		self::add_toggle( 'simple_spam_shield_enabled', __( 'Enable spam protection', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_general', true );
+		self::add_toggle( 'simple_spam_shield_monitor_mode', __( 'Monitor mode — log what would be blocked, but block nothing', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_general', false );
 		self::add_toggle( 'simple_spam_shield_hard_block', __( 'Reject blocked comments with an error instead of moving them to the spam queue', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_general', false );
 
 		add_settings_section( 'simple_spam_shield_targets', __( 'Protection targets', 'onsite-spam-guard' ), function () {
@@ -261,6 +318,8 @@ final class Admin {
 			$section = 'simple_spam_shield_context_' . $context;
 
 			add_settings_section( $section, $definition['label'], '__return_null', $contexts_page );
+
+			self::add_mode_override( $context, $contexts_page, $section );
 
 			self::add_number_override( 'simple_spam_shield_time_gate_seconds', $context, __( 'Minimum seconds before submit', 'onsite-spam-guard' ), $contexts_page, $section, 3, 1, 30 );
 			self::add_number_override( 'simple_spam_shield_link_limit_max', $context, __( 'Maximum links per submission', 'onsite-spam-guard' ), $contexts_page, $section, 3, 0, 50 );
@@ -522,6 +581,16 @@ final class Admin {
 			echo '</p>';
 		}
 
+		if ( $stats['week_monitored'] > 0 ) {
+			echo '<p class="description">';
+			printf(
+				/* translators: %d: submissions monitor mode let through in the last 7 days that would otherwise have been blocked. */
+				esc_html__( 'Would have blocked in the last 7 days, but let through by monitor mode: %d.', 'onsite-spam-guard' ),
+				absint( $stats['week_monitored'] )
+			);
+			echo '</p>';
+		}
+
 		echo '<form method="get">';
 		echo '<input type="hidden" name="page" value="onsite-spam-guard-spam-logs">';
 		$table->display();
@@ -625,6 +694,41 @@ final class Admin {
 					)
 				)
 			);
+		}, $page, $section );
+	}
+
+	/**
+	 * Register a per-form choice between the site-wide mode, enforcing, and
+	 * monitoring.
+	 *
+	 * Stored as '' (inherit), 'enforce' or 'monitor'. A per-form setting wins
+	 * in either direction, so one form can be trialled while the rest are
+	 * enforced — the usual way to roll out a new integration safely.
+	 */
+	private static function add_mode_override( string $context, string $page, string $section ): void {
+		$name = Contexts::option( 'simple_spam_shield_monitor_mode', $context );
+
+		register_setting( 'onsite-spam-guard', $name, [
+			'type'              => 'string',
+			'sanitize_callback' => static function ( $value ): string {
+				return in_array( $value, [ 'enforce', 'monitor' ], true ) ? $value : '';
+			},
+			'default'           => '',
+		] );
+
+		add_settings_field( $name, __( 'Mode', 'onsite-spam-guard' ), static function () use ( $name ): void {
+			$value   = (string) get_option( $name, '' );
+			$choices = [
+				''        => __( 'Use the site-wide setting', 'onsite-spam-guard' ),
+				'enforce' => __( 'Enforce — block submissions', 'onsite-spam-guard' ),
+				'monitor' => __( 'Monitor — log what would be blocked, block nothing', 'onsite-spam-guard' ),
+			];
+
+			printf( '<select name="%s">', esc_attr( $name ) );
+			foreach ( $choices as $key => $label ) {
+				printf( '<option value="%s"%s>%s</option>', esc_attr( $key ), selected( $value, $key, false ), esc_html( $label ) );
+			}
+			echo '</select>';
 		}, $page, $section );
 	}
 
