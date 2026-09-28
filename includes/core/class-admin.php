@@ -26,6 +26,7 @@ final class Admin {
 		add_action( 'admin_init', [ Database_Manager::class, 'create_table' ] );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_settings_assets' ] );
 		add_action( 'admin_notices', [ __CLASS__, 'monitor_mode_notice' ] );
+		add_filter( 'site_status_tests', [ Proxy_Diagnostics::class, 'register_site_health_test' ] );
 	}
 
 	/**
@@ -381,6 +382,15 @@ final class Admin {
 					esc_html__( 'Enable only if this site is behind a reverse proxy or load balancer (e.g. Cloudflare, Nginx), and only if the server accepts traffic from that proxy alone. The address is read from the entry your proxy added, which a visitor cannot forge — but a visitor who can reach the server directly, around the proxy, can still supply their own. When off, the direct connection IP is used.', 'onsite-spam-guard' )
 				);
 			},
+			$allowlist_page,
+			'simple_spam_shield_allowlist'
+		);
+
+		// What the server actually sees, beneath the setting that depends on it.
+		add_settings_field(
+			'simple_spam_shield_proxy_diagnostics',
+			__( 'What this server sees', 'onsite-spam-guard' ),
+			[ Proxy_Diagnostics::class, 'render_panel' ],
 			$allowlist_page,
 			'simple_spam_shield_allowlist'
 		);

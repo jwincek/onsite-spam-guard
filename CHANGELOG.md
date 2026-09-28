@@ -52,6 +52,18 @@ The user-facing changelog shipped to WordPress.org lives in the
   contexts fail open when the hidden fields are absent, since the BuddyPress
   REST endpoint and custom forms calling `register_new_user()` never render them.
 
+- Trusted-proxy diagnostics (#50). 1.5.1 documented that "Trust proxy headers"
+  is only safe when the server accepts traffic solely through the proxy; this
+  checks it. The Allowlist tab shows what the server sees for the current
+  request — connecting address, forwarded header, and the address in use —
+  with a verdict, and a Site Health test reports the same. On with no
+  forwarded header is critical when an allowlist is in use, since a visitor
+  can then supply an allowlisted address, and recommended otherwise. More
+  forwarded entries than configured hops points at the hop-count filter.
+  Diagnostics only; address resolution is unchanged, and now reads the hop
+  count through `Request::trusted_proxy_hops()`, shared with the diagnostics
+  so they always report on the address actually in use.
+
 ### Changed
 - Keyword matching treats underscore as a word separator. It counted as part of
   a word, so any underscore-joined name escaped a blocked keyword:

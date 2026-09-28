@@ -190,6 +190,26 @@ so nothing is recorded for a registration that was never accepted. The contexts
 fail open when the hidden fields are absent — the BuddyPress REST endpoint and
 custom forms calling `register_new_user()` never render them.
 
+### Proxy diagnostics
+
+"Trust proxy headers" is safe only when the server accepts traffic solely
+through the proxy — a request that reaches it directly can carry any
+`X-Forwarded-For` it likes. `Core\Proxy_Diagnostics` checks the current request
+against the setting and reports in two places: a **What this server sees**
+panel beneath the setting on the Allowlist tab, and a Site Health test.
+
+| Setting | Forwarded header | Verdict |
+| --- | --- | --- |
+| off | absent | good — reached directly |
+| off | present | recommended — a proxy is in front but unused, so every visitor shares one address |
+| on | absent | **critical** with an allowlist, recommended without — the server is reachable around the proxy, or there is none |
+| on | fewer entries than hops | recommended — falls back to the connecting address |
+| on | present | good, noting the hop filter when there are more entries than hops |
+
+One `assess()` feeds both, so the panel and Site Health never disagree, and
+the hop count comes from `Request::trusted_proxy_hops()`, the same helper
+`Request::ip()` uses. The request inspected is the administrator's own.
+
 ### Monitor mode
 
 Monitor mode evaluates every guard and logs the result but blocks nothing, so a
