@@ -70,7 +70,11 @@ When a submission is blocked (and logging is enabled), the plugin records the gu
 
 = I'm behind Cloudflare or a load balancer and the wrong IP is logged. =
 
-By default the plugin uses the direct connection IP, because forwarded headers can be spoofed to bypass the allowlist. If your site sits behind a trusted reverse proxy, enable **Trust proxy headers for IP detection** under **Spam Guard → Settings → Allowlist**.
+By default the plugin uses the direct connection IP, because forwarded headers can be forged. If your site sits behind a reverse proxy, enable **Trust proxy headers for IP detection** under **Spam Guard → Settings → Allowlist**.
+
+The visitor's address is then read from the entry your proxy added to the X-Forwarded-For header, which a visitor cannot forge. That relies on your server accepting traffic *only* from the proxy: if it can also be reached directly, a visitor who goes around the proxy can still supply an address of their choosing. With Cloudflare, that means restricting your server to Cloudflare's published address ranges.
+
+If your site sits behind **two** proxies — Cloudflare in front of a load balancer, for example — every visitor will appear to come from a Cloudflare address. A developer can correct that with the `simple_spam_shield_trusted_proxy_hops` filter, returning the number of proxies in front of the site.
 
 = A legitimate submission was blocked. What do I do? =
 

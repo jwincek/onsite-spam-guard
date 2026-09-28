@@ -307,7 +307,7 @@ final class Admin {
 					'<label><input type="checkbox" name="simple_spam_shield_trust_proxy" value="1" %1$s> %2$s</label><p class="description">%3$s</p>',
 					checked( get_option( 'simple_spam_shield_trust_proxy', false ), true, false ),
 					esc_html__( 'Use the X-Forwarded-For header to determine the visitor IP.', 'onsite-spam-guard' ),
-					esc_html__( 'Enable only if this site is behind a trusted reverse proxy or load balancer (e.g. Cloudflare, Nginx). When off, the direct connection IP is used. Turning this on without a trusted proxy lets visitors spoof their IP and bypass the allowlist.', 'onsite-spam-guard' )
+					esc_html__( 'Enable only if this site is behind a reverse proxy or load balancer (e.g. Cloudflare, Nginx), and only if the server accepts traffic from that proxy alone. The address is read from the entry your proxy added, which a visitor cannot forge — but a visitor who can reach the server directly, around the proxy, can still supply their own. When off, the direct connection IP is used.', 'onsite-spam-guard' )
 				);
 			},
 			$allowlist_page,
