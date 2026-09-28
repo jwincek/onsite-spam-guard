@@ -160,6 +160,36 @@ The form registers a `job_submission` context, so a site can raise the link
 limit and the minimum submit time for job listings without loosening either
 anywhere else.
 
+### Account registration
+
+Off by default. Covers three signup forms, each through a hook verified against
+its source:
+
+| Form | Validation | Render |
+| --- | --- | --- |
+| WordPress core | `registration_errors` | `register_form` |
+| WooCommerce My Account | `woocommerce_process_registration_errors` | `woocommerce_register_form` |
+| BuddyPress | `bp_core_validate_user_signup` | `bp_before_registration_submit_buttons` |
+
+**Not `woocommerce_registration_errors`.** That fires inside
+`wc_create_new_customer()`, which WooCommerce also calls for checkout account
+creation, post-purchase account creation, back-in-stock signups, and from the
+customer data store behind the REST API, admin and imports.
+`woocommerce_process_registration_errors` fires only for the My Account form,
+after WooCommerce has verified its own nonce.
+
+**BuddyPress refusals go under `user_name`.** Its signup screen copies only the
+`user_name` and `user_email` keys into its own error list and completes the
+signup when that list is empty; an error under any other key is neither shown
+nor enforced. The REST signup endpoint checks every message, so `user_name`
+works for both. `bp_before_registration_submit_buttons` fires inside the form in
+both the Legacy and Nouveau template packs.
+
+Hooked at priority 99, and a signup the form is already refusing is left alone,
+so nothing is recorded for a registration that was never accepted. The contexts
+fail open when the hidden fields are absent — the BuddyPress REST endpoint and
+custom forms calling `register_new_user()` never render them.
+
 ### Monitor mode
 
 Monitor mode evaluates every guard and logs the result but blocks nothing, so a

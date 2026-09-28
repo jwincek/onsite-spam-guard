@@ -205,6 +205,11 @@ final class Admin {
 
 		// Only offered when the plugin providing the form is present, so the
 		// list of targets describes this site rather than a catalogue.
+		// Off by default: a false positive here stops someone creating an
+		// account. Covers whichever of WordPress, WooCommerce and BuddyPress
+		// signup forms the site has; monitor mode is how to trial it.
+		self::add_toggle( 'simple_spam_shield_protect_registration', __( 'Account registration forms (WordPress, WooCommerce, BuddyPress)', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_targets', false );
+
 		// Off by default, unlike the other targets. Private messages are
 		// correspondence between people who already know each other, so the
 		// site owner should opt in rather than discover their users throttled.

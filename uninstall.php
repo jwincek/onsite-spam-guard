@@ -41,6 +41,7 @@ function simple_spam_shield_uninstall_site(): void {
 		'simple_spam_shield_protect_job_manager',
 		'simple_spam_shield_protect_cf7',
 		'simple_spam_shield_protect_bp_messages',
+		'simple_spam_shield_protect_registration',
 		'simple_spam_shield_honeypot_enabled',
 		'simple_spam_shield_time_gate_enabled',
 		'simple_spam_shield_time_gate_seconds',
