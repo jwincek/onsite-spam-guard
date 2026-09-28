@@ -254,23 +254,62 @@ if ( ! function_exists( 'sanitize_textarea_field' ) ) {
 
 // --- WP_Error --------------------------------------------------------------
 if ( ! class_exists( 'WP_Error' ) ) {
+	/**
+	 * Mirrors wp-includes/class-wp-error.php: a container that can hold several
+	 * errors, keyed by code. The earlier stub modelled a single error, so code
+	 * relying on has_errors() or add() — as the registration integration does,
+	 * against real WordPress — could not be tested against it.
+	 */
 	class WP_Error {
-		public $code;
-		public $message;
-		public $data;
+		public $errors     = [];
+		public $error_data = [];
 
 		public function __construct( $code = '', $message = '', $data = '' ) {
-			$this->code    = $code;
-			$this->message = $message;
-			$this->data    = $data;
+			if ( '' === $code || null === $code ) {
+				return;
+			}
+			$this->add( $code, $message, $data );
 		}
 
-		public function get_error_message() {
-			return $this->message;
+		public function add( $code, $message, $data = '' ) {
+			$this->errors[ $code ][] = $message;
+			if ( '' !== $data && null !== $data ) {
+				$this->error_data[ $code ] = $data;
+			}
+		}
+
+		public function has_errors() {
+			return ! empty( $this->errors );
+		}
+
+		public function get_error_codes() {
+			return array_keys( $this->errors );
 		}
 
 		public function get_error_code() {
-			return $this->code;
+			$codes = $this->get_error_codes();
+			return $codes[0] ?? '';
+		}
+
+		public function get_error_messages( $code = '' ) {
+			if ( '' === $code ) {
+				return $this->errors ? array_merge( ...array_values( $this->errors ) ) : [];
+			}
+			return $this->errors[ $code ] ?? [];
+		}
+
+		public function get_error_message( $code = '' ) {
+			if ( '' === $code ) {
+				$code = $this->get_error_code();
+			}
+			return $this->errors[ $code ][0] ?? '';
+		}
+
+		public function get_error_data( $code = '' ) {
+			if ( '' === $code ) {
+				$code = $this->get_error_code();
+			}
+			return $this->error_data[ $code ] ?? null;
 		}
 	}
 }

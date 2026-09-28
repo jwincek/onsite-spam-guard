@@ -44,6 +44,7 @@ Protection is built from a pipeline of independent **guards**. Each guard is a s
 * WP Job Manager job submissions (when WP Job Manager is active).
 * Contact Form 7 forms (when Contact Form 7 is active).
 * BuddyPress private messages (when BuddyPress is active; off by default).
+* Account registration forms — WordPress, WooCommerce My Account and BuddyPress signup (off by default).
 
 == Installation ==
 
@@ -107,6 +108,14 @@ Job listings run longer than comments and legitimately carry more links, so the 
 No — it complements it. Onsite Spam Guard's guards run *before* WordPress's own comment checks, and those built-ins still run underneath: the duplicate-comment check, the comment flood throttle, the **Disallowed Comment Keys** blocklist, and the "hold a comment with this many links" setting (all under **Settings → Discussion**). Its Keyword, Link limit, and Duplicate guards overlap those, so you can rely on either or both. What it adds on top is the honeypot, timing, signature, and behavioral checks core has no equivalent for, one settings screen with logging, and protection for WooCommerce reviews and Jetpack contact forms — not just comments.
 
 You can also go the other way and put WordPress's list to work everywhere: enable **Also apply WordPress's Disallowed Comment Keys** on the Guards tab and the plugin runs every protected submission through core's own blocklist — so the list you already maintain under Settings → Discussion starts covering reviews, Jetpack forms, and any form added through the plugin's API, not only comments.
+
+= Can it stop fake account registrations? =
+
+Yes. Turn on **Account registration forms** under Protection targets on the General tab. It covers the WordPress registration form, the WooCommerce **My Account** registration form, and BuddyPress signup — whichever your site has.
+
+It is **off by default**, because a mistake here stops a real person creating an account, which is worse than a rejected comment. The safest way to switch it on is to set that form to **Monitor** on the Per-form tab first, watch the spam log for a few days, and enforce it once you are happy with what it would catch.
+
+WooCommerce **checkout** is deliberately left alone. Accounts created while placing an order, after purchase, or through the WooCommerce REST API are never screened, so a customer is never turned away at the point of paying.
 
 = Can I try a change before it starts blocking anything? =
 

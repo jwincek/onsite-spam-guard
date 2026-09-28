@@ -89,6 +89,11 @@ final class KeywordBlockTest extends TestCase {
 			'Latin word inside a word'      => [ 'cialis', 'ask a specialist', false ],
 			'Cyrillic word inside a word'   => [ 'казино', 'казиноигры', false ],
 			'accented word inside a word'   => [ 'café', 'les cafés', false ],
+			// Underscore separates words in usernames and email addresses.
+			'underscore-joined username'    => [ 'casino', 'casino_bonus_77', true ],
+			'underscore in an email'        => [ 'casino', 'promo_casino@example.com', true ],
+			'hyphen-joined username'        => [ 'casino', 'casino-bonus-77', true ],
+			'genuinely one word'            => [ 'casino', 'casinobonus77', false ],
 		];
 	}
 

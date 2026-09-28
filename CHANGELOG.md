@@ -28,7 +28,37 @@ The user-facing changelog shipped to WordPress.org lives in the
   nothing by design, which makes forgetting it switched on the worst failure
   this plugin has.
 
+- Account registration protection (#49), off by default, covering WordPress
+  core (`registration_errors`), WooCommerce's My Account form
+  (`woocommerce_process_registration_errors`) and BuddyPress signup
+  (`bp_core_validate_user_signup`), each with its own context for per-form
+  thresholds and monitoring. The username is screened as content, alongside
+  the email address.
+
+  WooCommerce is hooked through `woocommerce_process_registration_errors`, not
+  `woocommerce_registration_errors`. The latter fires inside
+  `wc_create_new_customer()`, which is also used for account creation at
+  checkout, after purchase, for back-in-stock signups, and by the customer data
+  store behind the REST API, admin and imports — hooking it would have put spam
+  guards in front of paying customers and administrators.
+
+  BuddyPress refusals are added under `user_name`. Its signup screen copies only
+  the `user_name` and `user_email` keys and completes the signup when that copy
+  is empty, so a refusal under any other key would be ignored and the account
+  created anyway.
+
+  A signup the host form is already refusing is not screened, so the duplicate
+  cache and the log never record a registration that was never accepted. These
+  contexts fail open when the hidden fields are absent, since the BuddyPress
+  REST endpoint and custom forms calling `register_new_user()` never render them.
+
 ### Changed
+- Keyword matching treats underscore as a word separator. It counted as part of
+  a word, so any underscore-joined name escaped a blocked keyword:
+  "casino_bonus_77" and "promo_casino@example.com" never matched "casino".
+  Usernames and email addresses use it as they use hyphens and dots, and the
+  email is screened in every form. Letters and digits still join words, so
+  "casinobonus77" still does not match — the Scunthorpe protection is intact.
 - `simple_spam_shield_blocked` does not fire for a submission let through by
   monitor mode. It is documented as firing on a block, and a listener acting on
   it would otherwise act on accepted traffic. `Guard_Runner::is_monitoring()`
