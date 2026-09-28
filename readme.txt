@@ -4,7 +4,7 @@ Tags: spam, antispam, comments, honeypot, woocommerce
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,11 @@ When a submission is blocked (and logging is enabled), the plugin records the gu
 
 = I'm behind Cloudflare or a load balancer and the wrong IP is logged. =
 
-By default the plugin uses the direct connection IP, because forwarded headers can be spoofed to bypass the allowlist. If your site sits behind a trusted reverse proxy, enable **Trust proxy headers for IP detection** under **Spam Guard → Settings → Allowlist**.
+By default the plugin uses the direct connection IP, because forwarded headers can be forged. If your site sits behind a reverse proxy, enable **Trust proxy headers for IP detection** under **Spam Guard → Settings → Allowlist**.
+
+The visitor's address is then read from the entry your proxy added to the X-Forwarded-For header, which a visitor cannot forge. That relies on your server accepting traffic *only* from the proxy: if it can also be reached directly, a visitor who goes around the proxy can still supply an address of their choosing. With Cloudflare, that means restricting your server to Cloudflare's published address ranges.
+
+If your site sits behind **two** proxies — Cloudflare in front of a load balancer, for example — every visitor will appear to come from a Cloudflare address. A developer can correct that with the `simple_spam_shield_trusted_proxy_hops` filter, returning the number of proxies in front of the site.
 
 = A legitimate submission was blocked. What do I do? =
 
@@ -121,6 +125,12 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 5. The Spam Logs viewer — every guard that matched, filters by guard and context, a user-agent column, and per-row and bulk delete actions.
 
 == Changelog ==
+
+= 1.5.1 =
+* Fixed: with **Trust proxy headers** enabled, the visitor's address is now read from the entry your proxy added, which a visitor cannot set. Previously it could be taken from a value supplied by the visitor, which could affect the allowlist, the rate limit and duplicate detection. **Updating is recommended for every site using this setting.** The setting's description and the FAQ now also explain what it relies on: your server accepting traffic only from the proxy.
+* Fixed: blocked keywords now match in every script. A single-word keyword written in Cyrillic, Greek, Chinese, Japanese or another non-Latin script never matched before, and upper- and lower-case versions of non-Latin text were treated as different. If you block words in a language other than English, they will start working with this update.
+* Fixed: "Clear all logs" could leave a blank, half-drawn admin page on some servers instead of returning to the log with a confirmation. The logs were still cleared.
+* Fixed: two different comments could occasionally be mistaken for duplicates of each other when their text differed only in where the author's name ended and the message began.
 
 = 1.5.0 =
 * Contact Form 7 forms are now protected. Every form is covered the moment the plugin is active — there is no tag to add to each form and no per-form setup, so forms you build later are protected too. A blocked submission is marked as spam, so the visitor sees the spam message you configured for that form, and the reason is recorded in Contact Form 7's own spam log.
@@ -185,6 +195,9 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 * Developed by Jerome Wincek, with engineering assistance from Anthropic's Claude.
 
 == Upgrade Notice ==
+
+= 1.5.1 =
+Recommended for every site that has "Trust proxy headers" turned on. Also makes blocked keywords work in non-Latin scripts, and fixes "Clear all logs" on some servers.
 
 = 1.5.0 =
 Adds protection for Contact Form 7, WP Job Manager and BuddyPress private messages. Also fixes link counting: a linked web address whose text is the address itself was counted twice, which could reject ordinary submissions containing four links. Nothing needs reconfiguring.

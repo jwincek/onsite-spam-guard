@@ -71,4 +71,27 @@ final class DuplicateTest extends TestCase {
 		$_SERVER['REMOTE_ADDR'] = '203.0.113.9';
 		$this->assertTrue( $this->guard()->check( $data, 'comment' ) );
 	}
+
+	/**
+	 * Text that crosses a field boundary must not produce the same fingerprint.
+	 * With the fields concatenated directly, these two different comments shared
+	 * a key, and the second was refused as a duplicate of the first.
+	 */
+	public function test_text_moving_between_fields_is_not_a_duplicate(): void {
+		$first = [ 'content' => 'Great post, Sam', 'author' => '', 'email' => '' ];
+		$this->assertTrue( $this->guard()->check( $first, 'comment' ) );
+		$this->guard()->commit( $first, 'comment' );
+
+		$second = [ 'content' => 'Great post, ', 'author' => 'Sam', 'email' => '' ];
+		$this->assertTrue( $this->guard()->check( $second, 'comment' ), 'a different comment was treated as a duplicate' );
+	}
+
+	/** Invalid UTF-8 must not collapse different submissions onto one key. */
+	public function test_invalid_utf8_submissions_keep_distinct_fingerprints(): void {
+		$first = [ 'content' => "one \xC3\x28", 'author' => 'A', 'email' => '' ];
+		$this->guard()->commit( $first, 'comment' );
+
+		$second = [ 'content' => "two \xC3\x28", 'author' => 'A', 'email' => '' ];
+		$this->assertTrue( $this->guard()->check( $second, 'comment' ) );
+	}
 }
