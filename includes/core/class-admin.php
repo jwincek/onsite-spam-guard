@@ -105,7 +105,7 @@ final class Admin {
 			[ __CLASS__, 'render_settings_page' ]
 		);
 
-		add_submenu_page(
+		$logs_hook = add_submenu_page(
 			'onsite-spam-guard',
 			__( 'Spam Logs', 'onsite-spam-guard' ),
 			__( 'Spam Logs', 'onsite-spam-guard' ),
@@ -113,6 +113,13 @@ final class Admin {
 			'onsite-spam-guard-spam-logs',
 			[ __CLASS__, 'render_logs_page' ]
 		);
+
+		// Actions that redirect must run before any output. The render
+		// callback runs after wp-admin/admin-header.php has already printed
+		// the admin chrome, so a redirect from there is sent too late.
+		if ( $logs_hook ) {
+			add_action( "load-{$logs_hook}", [ __CLASS__, 'handle_logs_actions' ] );
+		}
 	}
 
 	// ------------------------------------------------------------------
@@ -426,21 +433,45 @@ final class Admin {
 	}
 
 	/**
+	 * Handle Spam Logs actions that end in a redirect.
+	 *
+	 * Runs on `load-{$page_hook}`, before any output. It used to run inside the
+	 * render callback, after the admin header had printed; the redirect then
+	 * worked only where something happened to buffer the whole page. On a
+	 * typical host the 4 KB output buffer had already flushed, so the redirect
+	 * failed with "headers already sent" and `exit` left a truncated page —
+	 * with the logs deleted and no confirmation shown.
+	 */
+	public static function handle_logs_actions(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		// The nonce is specific to this action, so verifying it first also
+		// establishes that "clear all" is what was requested.
+		$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
+
+		if ( ! wp_verify_nonce( $nonce, 'simple_spam_shield_clear_all_logs' ) ) {
+			return;
+		}
+
+		$action = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
+
+		if ( 'clear_all' !== $action ) {
+			return;
+		}
+
+		Database_Manager::delete_all();
+		wp_safe_redirect( admin_url( 'admin.php?page=onsite-spam-guard-spam-logs&cleared=1' ) );
+		exit;
+	}
+
+	/**
 	 * Render the Spam Logs page with WP_List_Table.
 	 */
 	public static function render_logs_page(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
-		}
-
-		// Handle "Clear all" action.
-		if ( isset( $_GET['action'] ) && 'clear_all' === sanitize_text_field( wp_unslash( $_GET['action'] ) ) ) {
-			$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
-			if ( wp_verify_nonce( $nonce, 'simple_spam_shield_clear_all_logs' ) ) {
-				Database_Manager::delete_all();
-				wp_safe_redirect( admin_url( 'admin.php?page=onsite-spam-guard-spam-logs&cleared=1' ) );
-				exit;
-			}
 		}
 
 		// Load the list table class.
@@ -451,8 +482,10 @@ final class Admin {
 		echo '<div class="wrap">';
 		echo '<h1 class="wp-heading-inline">' . esc_html__( 'Spam Logs', 'onsite-spam-guard' ) . '</h1>';
 
-		// Show success notices.
-		if ( isset( $_GET['cleared'] ) ) {
+		// Show success notices. `cleared` only chooses whether to display a
+		// confirmation after handle_logs_actions() redirects; it changes nothing,
+		// so it carries no nonce — the same pattern as core's `?updated=1`.
+		if ( isset( $_GET['cleared'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only flag set by our own redirect.
 			echo '<div class="notice notice-success is-dismissible"><p>' .
 				esc_html__( 'All spam logs cleared.', 'onsite-spam-guard' ) . '</p></div>';
 		}
