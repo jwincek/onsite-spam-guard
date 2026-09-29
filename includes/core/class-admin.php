@@ -206,24 +206,27 @@ final class Admin {
 
 		// Only offered when the plugin providing the form is present, so the
 		// list of targets describes this site rather than a catalogue.
-		// Off by default: a false positive here stops someone creating an
-		// account. Covers whichever of WordPress, WooCommerce and BuddyPress
-		// signup forms the site has; monitor mode is how to trial it.
-		self::add_toggle( 'simple_spam_shield_protect_registration', __( 'Account registration forms (WordPress, WooCommerce, BuddyPress)', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_targets', false );
-
-		// Off by default, unlike the other targets. Private messages are
-		// correspondence between people who already know each other, so the
-		// site owner should opt in rather than discover their users throttled.
-		if ( function_exists( 'bp_is_active' ) && bp_is_active( 'messages' ) ) {
-			self::add_toggle( 'simple_spam_shield_protect_bp_messages', __( 'BuddyPress private messages', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_targets', false );
-		}
-
 		if ( defined( 'WPCF7_VERSION' ) ) {
 			self::add_toggle( 'simple_spam_shield_protect_cf7', __( 'Contact Form 7 forms', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_targets', true );
 		}
 
 		if ( defined( 'JOB_MANAGER_VERSION' ) ) {
 			self::add_toggle( 'simple_spam_shield_protect_job_manager', __( 'WP Job Manager job submissions', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_targets', true );
+		}
+
+		// The remaining targets are off by default, so they are listed after
+		// the forms protected as soon as the plugin is active.
+
+		// A false positive here stops someone creating an account. Covers
+		// whichever of WordPress, WooCommerce and BuddyPress signup forms the
+		// site has; monitor mode is how to trial it.
+		self::add_toggle( 'simple_spam_shield_protect_registration', __( 'Account registration forms (WordPress, WooCommerce, BuddyPress)', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_targets', false );
+
+		// Private messages are correspondence between people who already know
+		// each other, so the site owner should opt in rather than discover
+		// their users throttled.
+		if ( function_exists( 'bp_is_active' ) && bp_is_active( 'messages' ) ) {
+			self::add_toggle( 'simple_spam_shield_protect_bp_messages', __( 'BuddyPress private messages', 'onsite-spam-guard' ), $tabs['general']['page'], 'simple_spam_shield_targets', false );
 		}
 
 		// ---- Guards tab ----
@@ -736,10 +739,12 @@ final class Admin {
 			$choices = [
 				''        => __( 'Use the site-wide setting', 'onsite-spam-guard' ),
 				'enforce' => __( 'Enforce — block submissions', 'onsite-spam-guard' ),
-				'monitor' => __( 'Monitor — log what would be blocked, block nothing', 'onsite-spam-guard' ),
+				'monitor' => __( 'Monitor — log only, block nothing', 'onsite-spam-guard' ),
 			];
 
-			printf( '<select name="%s">', esc_attr( $name ) );
+			// Sized to its longest option, a select leaves the chevron pressed
+			// against the text; a minimum width gives it room.
+			printf( '<select name="%s" style="min-width:20em">', esc_attr( $name ) );
 			foreach ( $choices as $key => $label ) {
 				printf( '<option value="%s"%s>%s</option>', esc_attr( $key ), selected( $value, $key, false ), esc_html( $label ) );
 			}

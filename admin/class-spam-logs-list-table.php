@@ -131,7 +131,7 @@ final class Spam_Logs_List_Table extends \WP_List_Table {
 			// A monitored row was let through; say so where the verdict is read,
 			// so it is never mistaken for a block.
 			'reason' => Database_Manager::OUTCOME_MONITORED === ( $item->outcome ?? '' )
-				? '<strong>' . esc_html__( 'Would have blocked', 'onsite-spam-guard' ) . '</strong> — ' . esc_html( $item->reason )
+				? '<strong>' . esc_html__( 'Would have blocked:', 'onsite-spam-guard' ) . '</strong> ' . esc_html( $item->reason )
 				: esc_html( $item->reason ),
 			default => '',
 		};

@@ -119,6 +119,16 @@ It is **off by default**, because a mistake here stops a real person creating an
 
 WooCommerce **checkout** is deliberately left alone. Accounts created while placing an order, after purchase, or through the WooCommerce REST API are never screened, so a customer is never turned away at the point of paying.
 
+= Could this lock me out of my site? =
+
+No. Onsite Spam Guard never touches logging in: it adds nothing to the login form and does not check login attempts at all.
+
+A refused registration, a blocked comment or a rejected form submission is not a failed login, so none of them can count towards a limit on failed login attempts that you might have from another plugin. You can also always add accounts yourself under **Users → Add New**, which is never screened, and neither is account creation at WooCommerce checkout or by administrators.
+
+The one thing worth knowing concerns the optional **rate limit**, which is off by default. It counts submissions per visitor address. If your site sits behind a proxy or CDN that the plugin is not set up for, every visitor can appear to come from the same address — so with the rate limit on, one busy minute could refuse everyone's submissions to your protected forms until that minute passes. It does not affect logging in. **What this server sees**, beneath *Trust proxy headers* on the Allowlist tab, tells you whether your site is in that situation.
+
+If you have been locked out of logging in by another plugin before, a shared address is a common cause there too: every failed attempt, from anyone, counts against the one address everybody appears to have. Adding your own IP address to that plugin's allow list is the usual safeguard.
+
 = Can I try a change before it starts blocking anything? =
 
 Yes. Turn on **Monitor mode** on the General tab and the plugin keeps checking every submission and recording what it *would* have blocked, but lets everything through. The spam log labels those entries **Would have blocked**, so after a few days you can see exactly what a new setting would have caught — including anything it would have caught by mistake — before you rely on it.
@@ -137,11 +147,12 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 
 == Screenshots ==
 
-1. The tabbed settings page — the Guards tab, with individual guard toggles and the thresholds that apply to every form.
-2. The Per-form tab — override any threshold for one form, so a contact form can be stricter than a comment thread. Blank fields use the global value.
-3. The Allowlist tab — allowed IPs, CIDR ranges, and emails, plus the trusted-proxy option.
-4. The Logging tab — log retention and the option to keep or delete data when the plugin is removed.
-5. The Spam Logs viewer — every guard that matched, filters by guard and context, a user-agent column, and per-row and bulk delete actions.
+1. The General tab — switch protection on, trial changes in monitor mode, and choose the forms to protect: comments, WooCommerce reviews, Jetpack, Contact Form 7 and WP Job Manager, plus account registration and BuddyPress messages if you want them.
+2. The Guards tab — individual guard toggles and the thresholds that apply to every form.
+3. The Per-form tab — override any threshold for one form, or run a single form in monitor mode while the rest stay protected.
+4. The Allowlist tab — allowed IPs, CIDR ranges and emails, the trusted-proxy option, and a check that it matches how your server is reached.
+5. The Logging tab — log retention and the option to keep or delete data when the plugin is removed.
+6. The Spam Logs viewer — every guard that matched, what monitor mode would have blocked, filters by guard, form and outcome, and per-row and bulk delete.
 
 == Changelog ==
 

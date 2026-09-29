@@ -48,22 +48,39 @@ const LOGS_URL     = `${ SITE }/wp-admin/admin.php?page=onsite-spam-guard-spam-l
 
 /** The published order. Keep in step with readme.txt `== Screenshots ==`. */
 const SHOTS = [
-	{ n: 1, url: SETTINGS_URL, tab: 'guards',    name: 'Guards tab' },
-	// Every active integration adds a section here, so the tab grows without
-	// bound as more forms are protected. Show the first few whole sections
-	// rather than a 6000px image the listing page shrinks to mush.
+	// The General tab lists every form the plugin protects on this site, and
+	// carries monitor mode — the best single picture of what it covers.
+	{ n: 1, url: SETTINGS_URL, tab: 'general',   name: 'General tab' },
+	{ n: 2, url: SETTINGS_URL, tab: 'guards',    name: 'Guards tab' },
 	// Every active integration adds a section here, so the tab grows without
 	// bound. Show the intro plus the two sections that illustrate the caption —
 	// a comment thread beside a contact form — rather than a 6000px image the
 	// listing page shrinks to mush.
 	{
-		n: 2, url: SETTINGS_URL, tab: 'contexts', name: 'Per-form tab',
+		n: 3, url: SETTINGS_URL, tab: 'contexts', name: 'Per-form tab',
 		sections: [ 'WordPress comments', 'Contact Form 7 forms' ],
 	},
-	{ n: 3, url: SETTINGS_URL, tab: 'allowlist', name: 'Allowlist tab' },
-	{ n: 4, url: SETTINGS_URL, tab: 'logging',   name: 'Logging tab' },
-	{ n: 5, url: LOGS_URL,     tab: null,        name: 'Spam Logs viewer' },
+	{ n: 4, url: SETTINGS_URL, tab: 'allowlist', name: 'Allowlist tab' },
+	{ n: 5, url: SETTINGS_URL, tab: 'logging',   name: 'Logging tab' },
+	{ n: 6, url: LOGS_URL,     tab: null,        name: 'Spam Logs viewer' },
 ];
+
+/**
+ * Settings applied for the capture and restored afterwards, so the shots show
+ * features in real use rather than describing them. The Per-form shot shows the
+ * contact form set to Monitor — the way a new form is rolled out safely.
+ */
+const FIXTURE_OPTIONS = {
+	simple_spam_shield_monitor_mode__contact_form_7: 'monitor',
+	// A populated allowlist shows every entry format it accepts, in
+	// documentation-only ranges (RFC 5737, RFC 3849) and a reserved domain.
+	simple_spam_shield_allowlist: '203.0.113.24\n198.51.100.0/24\n2001:db8::/32\n@example.org',
+	// Local runs a proxy in front of every site, so this is the correctly
+	// configured state here, and the diagnostics panel says so. Left off, the
+	// panel accurately warns about an unused proxy — true, but it reads as a
+	// fault to someone browsing the listing.
+	simple_spam_shield_trust_proxy: '1',
+};
 
 /**
  * Run PHP through wp-cli and return only what it deliberately printed.
@@ -141,6 +158,9 @@ function seedLogs() {
 			[ "time_gate",  "time_gate",           "woo_review",   "Submission completed too quickly.", "Amazing product buy now", "198.51.100.32", "python-requests/2.31.0" ],
 			[ "duplicate",  "duplicate",           "comment",      "Duplicate submission detected — please wait before resubmitting.", "Thanks for the great post!", "198.51.100.5", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15" ],
 			[ "honeypot",   "honeypot",            "comment",      "Submission rejected.", "SEO services, guaranteed first page ranking", "203.0.113.201", "Mozilla/5.0 (compatible; Bot/1.0)" ],
+			[ "honeypot",   "honeypot",            "registration", "Submission rejected.", "casino_bonus_77", "203.0.113.160", "python-requests/2.31.0" ],
+			// Monitor mode: logged and let through, shown as "Would have blocked".
+			[ "keyword_block", "keyword_block",    "contact_form_7", "Submission rejected — contains blocked content.", "Limited offer: guaranteed crypto returns, reply today", "198.51.100.140", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36", "monitored" ],
 		];
 		$ids = [];
 		$i = 0;
@@ -154,6 +174,7 @@ function seedLogs() {
 				"content"        => $r[4],
 				"ip_address"     => $r[5],
 				"user_agent"     => $r[6],
+				"outcome"        => $r[7] ?? "blocked",
 			] );
 			$ids[] = (int) $wpdb->insert_id;
 		}
@@ -178,12 +199,57 @@ function removeSeededLogs( ids ) {
 	` );
 }
 
+/**
+ * Apply FIXTURE_OPTIONS and return the previous values, so they can be put
+ * back exactly — including removing an option that did not exist before.
+ * Base64 carries the JSON into PHP so no value can break the quoting.
+ */
+function applyFixtures() {
+	const payload = Buffer.from( JSON.stringify( FIXTURE_OPTIONS ) ).toString( 'base64' );
+	const out     = wp( `
+		$saved = [];
+		foreach ( json_decode( base64_decode( '${ payload }' ), true ) as $name => $value ) {
+			$saved[ $name ] = get_option( $name, null );
+			update_option( $name, $value );
+		}
+		echo wp_json_encode( $saved );
+	` );
+
+	return JSON.parse( out );
+}
+
+function restoreFixtures( saved ) {
+	if ( ! saved ) {
+		return;
+	}
+	const payload = Buffer.from( JSON.stringify( saved ) ).toString( 'base64' );
+	wp( `
+		foreach ( json_decode( base64_decode( '${ payload }' ), true ) as $name => $value ) {
+			if ( null === $value ) {
+				delete_option( $name );
+			} else {
+				update_option( $name, $value );
+			}
+		}
+		echo "ok";
+	` );
+}
+
 async function main() {
 	mkdirSync( OUT_DIR, { recursive: true } );
 
 	const cookies = authCookies();
 	const seeded  = seedLogs();
 	console.log( `seeded ${ seeded.length } example log rows` );
+
+	let savedFixtures = null;
+	try {
+		savedFixtures = applyFixtures();
+	} catch ( err ) {
+		removeSeededLogs( seeded );
+		throw err;
+	}
+	console.log( `applied ${ Object.keys( FIXTURE_OPTIONS ).length } fixture setting(s)` );
 
 	const browser = await chromium.launch();
 	const context = await browser.newContext( {
@@ -219,8 +285,10 @@ async function main() {
 				// Published shots frame the content area only — no admin bar, no
 				// sidebar, no notices. The admin bar in particular can carry
 				// debug output (Query Monitor's timings) that must never ship.
+				// The footer sits in #wpbody-content's bottom padding, so a short
+				// page's shot ended by slicing through it mid-line.
 				await page.addStyleTag( {
-					content: `#wpadminbar, .update-nag, #screen-meta-links,
+					content: `#wpadminbar, #wpfooter, .update-nag, #screen-meta-links,
 					          .notice:not(.inline), .updated:not(.inline), .error:not(.inline)
 					              { display: none !important; }
 					          html.wp-toolbar { padding-top: 0 !important; }`,
@@ -335,6 +403,8 @@ async function main() {
 		await browser.close();
 		removeSeededLogs( seeded );
 		console.log( 'seeded log rows removed' );
+		restoreFixtures( savedFixtures );
+		console.log( 'fixture settings restored' );
 	}
 }
 
