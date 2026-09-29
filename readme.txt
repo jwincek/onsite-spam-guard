@@ -4,7 +4,7 @@ Tags: spam, antispam, comments, honeypot, woocommerce
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.6.0
+Stable tag: 1.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -157,12 +157,21 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 
 1. The General tab — switch protection on, trial changes in monitor mode, and choose the forms to protect: comments, WooCommerce reviews, Jetpack, Contact Form 7 and WP Job Manager, plus account registration and BuddyPress messages if you want them.
 2. The Guards tab — individual guard toggles and the thresholds that apply to every form.
-3. The Per-form tab — override any threshold for one form, or run a single form in monitor mode while the rest stay protected.
+3. The Per-form tab — override any threshold for one form, see the starting values a form brings with it, or run a single form in monitor mode and see what enforcing it would catch.
 4. The Allowlist tab — allowed IPs, CIDR ranges and emails, the trusted-proxy option, and a check that it matches how your server is reached.
 5. The Logging tab — log retention and the option to keep or delete data when the plugin is removed.
 6. The Spam Logs viewer — every guard that matched, what monitor mode would have blocked, filters by guard, form and outcome, and per-row and bulk delete.
 
 == Changelog ==
+
+= 1.7.0 =
+* Monitored forms now come with a review on the **Per-form** tab: how long the form has been monitored, how many submissions would have been blocked and by which checks, a link to those entries in the spam log, and an **Enforce this form** link that switches it on when you are ready.
+* Changed: WP Job Manager job listings now start with a limit of 10 links instead of 3. An ordinary listing linking to an about page, a benefits page, a team page and where to apply was being rejected. If you have changed the site-wide link limit, your setting still applies to job listings.
+* Each blank field on the **Per-form** tab now says what it inherits: the site-wide value, or a starting value the form brings with it.
+* On WordPress 6.9 and later, tools that use WordPress's Abilities API — REST clients, MCP connectors and AI features — can read a summary of the last 7 days and a list of recent blocks. Only for administrators, and with no personal data: no IP addresses, browser details or submitted text.
+* A **Settings** link in the plugin's row on the Plugins screen.
+* For developers: a plugin that registers its form through the `simple_spam_shield_contexts` filter can give it its own starting thresholds.
+* Fixed: the "submissions blocked" count at the top of the settings page included submissions that monitor mode let through.
 
 = 1.6.0 =
 * Monitor mode: try the plugin, or a change to its settings, without blocking anyone. Every check still runs and anything it would have blocked is logged as "Would have blocked", but the submission goes through. Turn it on for the whole site on the General tab, or for one form on the Per-form tab while the rest stay protected. While it is on for the whole site, a notice on every admin screen says so, so it cannot be forgotten.
@@ -242,6 +251,9 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 * Developed by Jerome Wincek, with engineering assistance from Anthropic's Claude.
 
 == Upgrade Notice ==
+
+= 1.7.0 =
+Adds a review of monitored forms with a one-click Enforce, and read-only access to spam stats for WordPress 6.9+ tools, with no personal data. WP Job Manager listings now allow 10 links instead of 3. Nothing needs reconfiguring.
 
 = 1.6.0 =
 Adds monitor mode, for trying changes without blocking anyone, and optional protection for account registration forms. Upgrades the log table; existing entries are kept and nothing needs reconfiguring.

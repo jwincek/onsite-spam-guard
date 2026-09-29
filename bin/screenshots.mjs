@@ -53,12 +53,14 @@ const SHOTS = [
 	{ n: 1, url: SETTINGS_URL, tab: 'general',   name: 'General tab' },
 	{ n: 2, url: SETTINGS_URL, tab: 'guards',    name: 'Guards tab' },
 	// Every active integration adds a section here, so the tab grows without
-	// bound. Show the intro plus the two sections that illustrate the caption —
-	// a comment thread beside a contact form — rather than a 6000px image the
-	// listing page shrinks to mush.
+	// bound. Show the intro plus the two sections that illustrate the caption
+	// rather than a 6000px image the listing page shrinks to mush: job
+	// listings with their own starting link limit, and a contact form in
+	// monitor mode with its review. Needs WP Job Manager and Contact Form 7
+	// active on the site generating the shots.
 	{
 		n: 3, url: SETTINGS_URL, tab: 'contexts', name: 'Per-form tab',
-		sections: [ 'WordPress comments', 'Contact Form 7 forms' ],
+		sections: [ 'Job submissions (WP Job Manager)', 'Contact Form 7 forms' ],
 	},
 	{ n: 4, url: SETTINGS_URL, tab: 'allowlist', name: 'Allowlist tab' },
 	{ n: 5, url: SETTINGS_URL, tab: 'logging',   name: 'Logging tab' },
@@ -72,6 +74,12 @@ const SHOTS = [
  */
 const FIXTURE_OPTIONS = {
 	simple_spam_shield_monitor_mode__contact_form_7: 'monitor',
+	// Setting the mode starts its clock now, so the review above the form
+	// would count only rows logged from this second: none of the seeded ones,
+	// which are hours old. Five days in, it shows what a site owner deciding
+	// whether to enforce actually sees. Must follow the mode, which it
+	// overrides; applied in order.
+	simple_spam_shield_monitor_since__contact_form_7: Math.floor( Date.now() / 1000 ) - 5 * 86400,
 	// A populated allowlist shows every entry format it accepts, in
 	// documentation-only ranges (RFC 5737, RFC 3849) and a reserved domain.
 	simple_spam_shield_allowlist: '203.0.113.24\n198.51.100.0/24\n2001:db8::/32\n@example.org',
@@ -161,6 +169,7 @@ function seedLogs() {
 			[ "honeypot",   "honeypot",            "registration", "Submission rejected.", "casino_bonus_77", "203.0.113.160", "python-requests/2.31.0" ],
 			// Monitor mode: logged and let through, shown as "Would have blocked".
 			[ "keyword_block", "keyword_block",    "contact_form_7", "Submission rejected — contains blocked content.", "Limited offer: guaranteed crypto returns, reply today", "198.51.100.140", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36", "monitored" ],
+			[ "time_gate",  "time_gate",           "contact_form_7", "Submission rejected — please slow down.", "hello", "198.51.100.141", "python-requests/2.31.0", "monitored" ],
 		];
 		$ids = [];
 		$i = 0;
@@ -196,6 +205,25 @@ function removeSeededLogs( ids ) {
 		$ids = array_map( "intval", [ ${ ids.join( ',' ) } ] );
 		$in = implode( ",", $ids );
 		echo (int) $wpdb->query( "DELETE FROM {$t} WHERE id IN ({$in})" );
+		// The Spam Logs shot cached the 7-day summary with these rows in it;
+		// left, the site reports blocks that never happened for 15 minutes.
+		\\Simple_Spam_Shield\\Core\\Database_Manager::flush_stats();
+	` );
+}
+
+/**
+ * A fingerprint of everything the run touches: the plugin's options (names,
+ * values, autoload), its transients, and the log row count. Compared before
+ * and after, it turns "restored afterwards" from an intention into a check.
+ */
+function siteState() {
+	return wp( `
+		global $wpdb;
+		echo md5( wp_json_encode( [
+			$wpdb->get_results( "SELECT option_name, option_value, autoload FROM {$wpdb->options} WHERE option_name LIKE 'simple\\\\_spam\\\\_shield\\\\_%' ORDER BY option_name", ARRAY_A ),
+			$wpdb->get_col( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE '\\\\_transient\\\\_%simple\\\\_spam\\\\_shield%' ORDER BY option_name" ),
+			$wpdb->get_var( "SELECT COUNT(*) FROM " . \\Simple_Spam_Shield\\Core\\Database_Manager::table_name() ),
+		] ) );
 	` );
 }
 
@@ -206,10 +234,17 @@ function removeSeededLogs( ids ) {
  */
 function applyFixtures() {
 	const payload = Buffer.from( JSON.stringify( FIXTURE_OPTIONS ) ).toString( 'base64' );
+	// Every previous value is read before any is written. Writing one can
+	// create another through an option hook — setting a monitor mode starts
+	// its clock — and reading as it went recorded that just-created value as
+	// the one to restore, leaving it behind.
 	const out     = wp( `
-		$saved = [];
-		foreach ( json_decode( base64_decode( '${ payload }' ), true ) as $name => $value ) {
+		$fixtures = json_decode( base64_decode( '${ payload }' ), true );
+		$saved    = [];
+		foreach ( $fixtures as $name => $value ) {
 			$saved[ $name ] = get_option( $name, null );
+		}
+		foreach ( $fixtures as $name => $value ) {
 			update_option( $name, $value );
 		}
 		echo wp_json_encode( $saved );
@@ -238,6 +273,7 @@ function restoreFixtures( saved ) {
 async function main() {
 	mkdirSync( OUT_DIR, { recursive: true } );
 
+	const before  = siteState();
 	const cookies = authCookies();
 	const seeded  = seedLogs();
 	console.log( `seeded ${ seeded.length } example log rows` );
@@ -406,6 +442,11 @@ async function main() {
 		restoreFixtures( savedFixtures );
 		console.log( 'fixture settings restored' );
 	}
+
+	if ( siteState() !== before ) {
+		throw new Error( 'The site was not left as it was found: plugin options, transients or log rows differ. Inspect them before running again.' );
+	}
+	console.log( 'site state verified unchanged' );
 }
 
 main().catch( ( err ) => {
