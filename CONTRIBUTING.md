@@ -67,7 +67,7 @@ source. Only `msgid` lines are compared, because `POT-Creation-Date` changes on
 every run. Regenerate with:
 
 ```bash
-wp i18n make-pot . languages/onsite-spam-guard.pot --slug=onsite-spam-guard
+wp i18n make-pot . languages/onsite-spam-guard.pot --slug=onsite-spam-guard --exclude=build
 ```
 
 ### Plugin Check
@@ -260,7 +260,7 @@ target that is never edited by hand.
 2. **Regenerate the translation template** so its header carries the new
    version:
    ```bash
-   wp i18n make-pot . languages/onsite-spam-guard.pot --slug=onsite-spam-guard
+   wp i18n make-pot . languages/onsite-spam-guard.pot --slug=onsite-spam-guard --exclude=build
    ```
 3. **Check consistency** (CI runs this on every push, and the release workflow
    runs it against the tag):

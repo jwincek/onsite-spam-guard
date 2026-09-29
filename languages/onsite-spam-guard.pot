@@ -9,14 +9,13 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-29T20:28:08+00:00\n"
+"POT-Creation-Date: 2026-09-29T20:45:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: onsite-spam-guard\n"
 
 #. Plugin Name of the plugin
 #: onsite-spam-guard.php
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:72
 #: includes/integrations/class-abilities-api.php:72
 msgid "Onsite Spam Guard"
 msgstr ""
@@ -32,815 +31,645 @@ msgid "Jerome Wincek"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:42
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:42
 msgid "Date / Time"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:43
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:43
 msgid "Guard"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:44
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:44
 msgid "Context"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:45
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:45
 msgid "Reason"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:46
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:46
 msgid "Content"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:47
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:47
 msgid "IP Address"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:48
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:48
 msgid "User Agent"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:69
 #: admin/class-spam-logs-list-table.php:109
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:69
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:109
 msgid "Delete"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:134
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:134
 msgid "Would have blocked:"
 msgstr ""
 
 #. translators: prefix for the additional guards that also matched a blocked submission.
 #: admin/class-spam-logs-list-table.php:165
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:165
 msgid "also:"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:216
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:216
 msgid "Filter by guard"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:218
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:218
 msgid "All guards"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:229
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:229
 msgid "Filter by context"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:231
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:231
 msgid "All contexts"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:242
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:242
 msgid "Filter by outcome"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:245
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:245
 msgid "All outcomes"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:246
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:246
 msgid "Blocked"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:247
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:247
 msgid "Would have blocked"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:258
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:258
 msgid "Filter"
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:267
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:267
 msgid "No blocked submissions recorded yet."
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:324
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:324
 msgid "You do not have permission to delete these entries."
 msgstr ""
 
 #: admin/class-spam-logs-list-table.php:329
-#: build/onsite-spam-guard/admin/class-spam-logs-list-table.php:329
 msgid "Nonce verification failed."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:49
 #: includes/core/class-admin.php:49
+#: includes/core/class-admin.php:180
+#: includes/core/class-admin.php:181
+msgid "Settings"
+msgstr ""
+
+#: includes/core/class-admin.php:72
 msgid "Onsite Spam Guard is in monitor mode."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:50
-#: includes/core/class-admin.php:50
+#: includes/core/class-admin.php:73
 msgid "Submissions that would be blocked are being logged and let through. Nothing is being blocked."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:52
-#: includes/core/class-admin.php:52
+#: includes/core/class-admin.php:75
 msgid "Change this setting"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:75
-#: includes/core/class-admin.php:75
+#: includes/core/class-admin.php:98
 msgid "Some forms are in monitor mode:"
 msgstr ""
 
 #. translators: %s: comma-separated list of form names.
-#: build/onsite-spam-guard/includes/core/class-admin.php:79
-#: includes/core/class-admin.php:79
+#: includes/core/class-admin.php:102
 #, php-format
 msgid "%s. Submissions to these that would be blocked are being logged and let through."
 msgstr ""
 
 #. translators: %s: number of days entries are retained, or "indefinitely".
-#: build/onsite-spam-guard/includes/core/class-admin.php:126
-#: includes/core/class-admin.php:126
+#: includes/core/class-admin.php:149
 #, php-format
 msgid "Onsite Spam Guard blocks spam submissions on comment, review, and contact forms. When a submission is blocked, the plugin records the visitor IP address, browser user-agent string, and a short excerpt of the submitted content in a log on this site, to help the site owner review false positives and tune spam protection. These entries are stored for %s and are not shared with any third party."
 msgstr ""
 
 #. translators: %d: number of days.
-#: build/onsite-spam-guard/includes/core/class-admin.php:129
-#: includes/core/class-admin.php:129
+#: includes/core/class-admin.php:152
 #, php-format
 msgid "%d day"
 msgid_plural "%d days"
 msgstr[0] ""
 msgstr[1] ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:130
-#: includes/core/class-admin.php:130
+#: includes/core/class-admin.php:153
 msgid "as long as the plugin is active"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:146
-#: build/onsite-spam-guard/includes/core/class-admin.php:147
-#: includes/core/class-admin.php:146
-#: includes/core/class-admin.php:147
+#: includes/core/class-admin.php:169
+#: includes/core/class-admin.php:170
 msgid "Spam Guard"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:157
-#: build/onsite-spam-guard/includes/core/class-admin.php:158
-#: includes/core/class-admin.php:157
-#: includes/core/class-admin.php:158
-msgid "Settings"
-msgstr ""
-
-#: build/onsite-spam-guard/includes/core/class-admin.php:166
-#: build/onsite-spam-guard/includes/core/class-admin.php:167
-#: build/onsite-spam-guard/includes/core/class-admin.php:559
-#: includes/core/class-admin.php:166
-#: includes/core/class-admin.php:167
-#: includes/core/class-admin.php:559
+#: includes/core/class-admin.php:189
+#: includes/core/class-admin.php:190
+#: includes/core/class-admin.php:582
 msgid "Spam Logs"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:193
-#: build/onsite-spam-guard/includes/core/class-admin.php:419
-#: includes/core/class-admin.php:193
-#: includes/core/class-admin.php:419
+#: includes/core/class-admin.php:216
+#: includes/core/class-admin.php:442
 msgid "General"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:194
-#: includes/core/class-admin.php:194
+#: includes/core/class-admin.php:217
 msgid "Enable spam protection"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:195
-#: includes/core/class-admin.php:195
+#: includes/core/class-admin.php:218
 msgid "Monitor mode — log what would be blocked, but block nothing"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:196
-#: includes/core/class-admin.php:196
+#: includes/core/class-admin.php:219
 msgid "Reject blocked comments with an error instead of moving them to the spam queue"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:198
-#: includes/core/class-admin.php:198
+#: includes/core/class-admin.php:221
 msgid "Protection targets"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:199
-#: includes/core/class-admin.php:199
+#: includes/core/class-admin.php:222
 msgid "Choose which form types to protect."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:202
-#: build/onsite-spam-guard/includes/core/class-contexts.php:32
-#: includes/core/class-admin.php:202
+#: includes/core/class-admin.php:225
 #: includes/core/class-contexts.php:32
 msgid "WordPress comments"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:203
-#: build/onsite-spam-guard/includes/core/class-contexts.php:33
-#: includes/core/class-admin.php:203
+#: includes/core/class-admin.php:226
 #: includes/core/class-contexts.php:33
 msgid "WooCommerce product reviews"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:204
-#: includes/core/class-admin.php:204
+#: includes/core/class-admin.php:227
 msgid "Jetpack contact form blocks"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:209
-#: build/onsite-spam-guard/includes/integrations/class-contact-form-7.php:73
-#: includes/core/class-admin.php:209
+#: includes/core/class-admin.php:232
 #: includes/integrations/class-contact-form-7.php:73
 msgid "Contact Form 7 forms"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:213
-#: includes/core/class-admin.php:213
+#: includes/core/class-admin.php:236
 msgid "WP Job Manager job submissions"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:222
-#: includes/core/class-admin.php:222
+#: includes/core/class-admin.php:245
 msgid "Account registration forms (WordPress, WooCommerce, BuddyPress)"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:228
-#: build/onsite-spam-guard/includes/integrations/class-buddypress-messages.php:69
-#: includes/core/class-admin.php:228
+#: includes/core/class-admin.php:251
 #: includes/integrations/class-buddypress-messages.php:69
 msgid "BuddyPress private messages"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:233
-#: includes/core/class-admin.php:233
+#: includes/core/class-admin.php:256
 msgid "Spam guards"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:234
-#: includes/core/class-admin.php:234
+#: includes/core/class-admin.php:257
 msgid "Enable or disable individual spam checks."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:250
-#: build/onsite-spam-guard/includes/core/class-admin.php:332
-#: includes/core/class-admin.php:250
-#: includes/core/class-admin.php:332
+#: includes/core/class-admin.php:273
+#: includes/core/class-admin.php:355
 msgid "Minimum seconds before submit"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:250
-#: build/onsite-spam-guard/includes/core/class-admin.php:257
-#: includes/core/class-admin.php:250
-#: includes/core/class-admin.php:257
+#: includes/core/class-admin.php:273
+#: includes/core/class-admin.php:280
 msgid "seconds"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:251
-#: build/onsite-spam-guard/includes/core/class-admin.php:333
-#: includes/core/class-admin.php:251
-#: includes/core/class-admin.php:333
+#: includes/core/class-admin.php:274
+#: includes/core/class-admin.php:356
 msgid "Maximum links per submission"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:252
-#: build/onsite-spam-guard/includes/core/class-admin.php:334
-#: includes/core/class-admin.php:252
-#: includes/core/class-admin.php:334
+#: includes/core/class-admin.php:275
+#: includes/core/class-admin.php:357
 msgid "Duplicate detection window"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:252
-#: includes/core/class-admin.php:252
+#: includes/core/class-admin.php:275
 msgid "seconds — how long an accepted submission is remembered"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:256
-#: build/onsite-spam-guard/includes/core/class-admin.php:335
-#: includes/core/class-admin.php:256
-#: includes/core/class-admin.php:335
+#: includes/core/class-admin.php:279
+#: includes/core/class-admin.php:358
 msgid "Rate limit: max submissions"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:256
-#: includes/core/class-admin.php:256
+#: includes/core/class-admin.php:279
 msgid "per sender, per window (0 = no limit)"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:257
-#: build/onsite-spam-guard/includes/core/class-admin.php:336
-#: includes/core/class-admin.php:257
-#: includes/core/class-admin.php:336
+#: includes/core/class-admin.php:280
+#: includes/core/class-admin.php:359
 msgid "Rate limit: window length"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:270
-#: build/onsite-spam-guard/includes/core/class-admin.php:337
-#: includes/core/class-admin.php:270
-#: includes/core/class-admin.php:337
+#: includes/core/class-admin.php:293
+#: includes/core/class-admin.php:360
 msgid "Behavioral suspicion threshold"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:277
-#: includes/core/class-admin.php:277
+#: includes/core/class-admin.php:300
 msgid "Score between 0.0 (lenient) and 1.0 (strict). Submissions scoring at or above this threshold are blocked. Default 0.6."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:293
-#: includes/core/class-admin.php:293
+#: includes/core/class-admin.php:316
 msgid "Blocked keywords"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:300
-#: includes/core/class-admin.php:300
+#: includes/core/class-admin.php:323
 msgid "One keyword or phrase per line. Case-insensitive."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:307
-#: includes/core/class-admin.php:307
+#: includes/core/class-admin.php:330
 msgid "Also apply WordPress's Disallowed Comment Keys (Settings → Discussion) to every protected form"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:317
-#: includes/core/class-admin.php:317
+#: includes/core/class-admin.php:340
 msgid "Per-form thresholds"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:319
-#: includes/core/class-admin.php:319
+#: includes/core/class-admin.php:342
 msgid "Guard thresholds on the Guards tab apply to every form. Where one form needs different values — a contact form is more suspicious of links than a comment thread, and a long application form needs a longer minimum fill time than a comment box — override them here. Leave a field blank to use the global value."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:320
-#: includes/core/class-admin.php:320
+#: includes/core/class-admin.php:343
 msgid "Forms added by other plugins appear here once they register themselves. A form that has not is still protected; it uses the global thresholds."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:342
-#: build/onsite-spam-guard/includes/core/class-admin.php:431
-#: includes/core/class-admin.php:342
-#: includes/core/class-admin.php:431
+#: includes/core/class-admin.php:365
+#: includes/core/class-admin.php:454
 msgid "Allowlist"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:343
-#: includes/core/class-admin.php:343
+#: includes/core/class-admin.php:366
 msgid "Submissions from allowlisted IPs or emails bypass all guards."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:354
-#: includes/core/class-admin.php:354
+#: includes/core/class-admin.php:377
 msgid "Allowed IPs and emails"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:361
-#: includes/core/class-admin.php:361
+#: includes/core/class-admin.php:384
 msgid "One entry per line. Supports: exact IPs (192.168.1.1), CIDR ranges (10.0.0.0/8), exact emails (user@example.com), or email domains (@trusted.org)."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:378
-#: includes/core/class-admin.php:378
+#: includes/core/class-admin.php:401
 msgid "Trust proxy headers for IP detection"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:383
-#: includes/core/class-admin.php:383
+#: includes/core/class-admin.php:406
 msgid "Use the X-Forwarded-For header to determine the visitor IP."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:384
-#: includes/core/class-admin.php:384
+#: includes/core/class-admin.php:407
 msgid "Enable only if this site is behind a reverse proxy or load balancer (e.g. Cloudflare, Nginx), and only if the server accepts traffic from that proxy alone. The address is read from the entry your proxy added, which a visitor cannot forge — but a visitor who can reach the server directly, around the proxy, can still supply their own. When off, the direct connection IP is used."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:394
-#: includes/core/class-admin.php:394
+#: includes/core/class-admin.php:417
 msgid "What this server sees"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:402
-#: build/onsite-spam-guard/includes/core/class-admin.php:435
-#: includes/core/class-admin.php:402
-#: includes/core/class-admin.php:435
+#: includes/core/class-admin.php:425
+#: includes/core/class-admin.php:458
 msgid "Logging"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:403
-#: includes/core/class-admin.php:403
+#: includes/core/class-admin.php:426
 msgid "Log blocked submissions to database"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:404
-#: includes/core/class-admin.php:404
+#: includes/core/class-admin.php:427
 msgid "Delete logs older than"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:404
-#: includes/core/class-admin.php:404
+#: includes/core/class-admin.php:427
 msgid "days (0 = keep forever)"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:405
-#: includes/core/class-admin.php:405
+#: includes/core/class-admin.php:428
 msgid "Delete all plugin data (spam logs and settings) when this plugin is deleted"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:423
-#: includes/core/class-admin.php:423
+#: includes/core/class-admin.php:446
 msgid "Guards"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:427
-#: includes/core/class-admin.php:427
+#: includes/core/class-admin.php:450
 msgid "Per-form"
 msgstr ""
 
 #. translators: 1: number of blocked submissions, 2: link to logs page
-#: build/onsite-spam-guard/includes/core/class-admin.php:462
-#: includes/core/class-admin.php:462
+#: includes/core/class-admin.php:485
 #, php-format
 msgid "%1$d submissions blocked. %2$s"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:465
-#: includes/core/class-admin.php:465
+#: includes/core/class-admin.php:488
 msgid "View spam logs →"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:566
-#: includes/core/class-admin.php:566
+#: includes/core/class-admin.php:589
 msgid "All spam logs cleared."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:576
-#: includes/core/class-admin.php:576
+#: includes/core/class-admin.php:599
 msgid "Delete all log entries?"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:577
-#: includes/core/class-admin.php:577
+#: includes/core/class-admin.php:600
 msgid "Clear all logs"
 msgstr ""
 
 #. translators: %d: number of submissions blocked in the last 7 days.
-#: build/onsite-spam-guard/includes/core/class-admin.php:586
-#: includes/core/class-admin.php:586
+#: includes/core/class-admin.php:609
 #, php-format
 msgid "Blocked in the last 7 days: %d."
 msgstr ""
 
 #. translators: 1: guard name, 2: number of blocks by that guard.
-#: build/onsite-spam-guard/includes/core/class-admin.php:593
-#: includes/core/class-admin.php:593
+#: includes/core/class-admin.php:616
 #, php-format
 msgid "Most active guard: %1$s (%2$d)."
 msgstr ""
 
 #. translators: %d: submissions monitor mode let through in the last 7 days that would otherwise have been blocked.
-#: build/onsite-spam-guard/includes/core/class-admin.php:605
-#: includes/core/class-admin.php:605
+#: includes/core/class-admin.php:628
 #, php-format
 msgid "Would have blocked in the last 7 days, but let through by monitor mode: %d."
 msgstr ""
 
 #. translators: %s: the global value this form inherits when the field is blank.
-#: build/onsite-spam-guard/includes/core/class-admin.php:709
-#: build/onsite-spam-guard/includes/core/class-admin.php:786
-#: includes/core/class-admin.php:709
-#: includes/core/class-admin.php:786
+#: includes/core/class-admin.php:732
+#: includes/core/class-admin.php:809
 #, php-format
 msgid "blank = use the global value (%s)"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:736
-#: includes/core/class-admin.php:736
+#: includes/core/class-admin.php:759
 msgid "Mode"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:739
-#: includes/core/class-admin.php:739
+#: includes/core/class-admin.php:762
 msgid "Use the site-wide setting"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:740
-#: includes/core/class-admin.php:740
+#: includes/core/class-admin.php:763
 msgid "Enforce — block submissions"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-admin.php:741
-#: includes/core/class-admin.php:741
+#: includes/core/class-admin.php:764
 msgid "Monitor — log only, block nothing"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-assets.php:91
 #: includes/core/class-assets.php:91
 msgid "Website"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-contexts.php:34
 #: includes/core/class-contexts.php:34
 msgid "Jetpack contact forms"
 msgstr ""
 
 #. translators: 1: guard slug, 2: class name, 3: interface name.
-#: build/onsite-spam-guard/includes/core/class-guard-runner.php:46
 #: includes/core/class-guard-runner.php:46
 #, php-format
 msgid "Guard \"%1$s\" was skipped: %2$s does not implement %3$s."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:66
 #: includes/core/class-proxy-diagnostics.php:66
 msgid "Visitor addresses come from the direct connection"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:67
 #: includes/core/class-proxy-diagnostics.php:67
 msgid "Trust proxy headers is off, and this request arrived with no forwarded header, so the site does not appear to be behind a proxy. That is the safe configuration for a site reached directly."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:73
 #: includes/core/class-proxy-diagnostics.php:73
 msgid "This site may be behind a proxy that Onsite Spam Guard is not using"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:74
 #: includes/core/class-proxy-diagnostics.php:74
 msgid "This request arrived with a forwarded header, which usually means a proxy or load balancer sits in front of the site. With Trust proxy headers off, every visitor appears to come from the proxy, so rate limits and duplicate detection treat them all as one sender. If the proxy is yours and the server accepts traffic only through it, turn Trust proxy headers on."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:84
 #: includes/core/class-proxy-diagnostics.php:84
 msgid "Trust proxy headers is on, but this request did not come through a proxy"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:85
 #: includes/core/class-proxy-diagnostics.php:85
 msgid "This request reached the server with no forwarded header. Either the site is not behind a proxy, or the server can be reached around it. In both cases a visitor can supply their own address, which the plugin would believe. Turn Trust proxy headers off unless every request passes through your proxy, and if it should, restrict the server to accept traffic only from the proxy."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:92
 #: includes/core/class-proxy-diagnostics.php:92
 msgid "The forwarded header is shorter than the configured number of proxies"
 msgstr ""
 
 #. translators: 1: number of entries in the forwarded header, 2: configured number of trusted proxies.
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:95
 #: includes/core/class-proxy-diagnostics.php:95
 #, php-format
 msgid "The forwarded header has %1$d entries, but the site is configured for %2$d trusted proxies, so the plugin falls back to the direct connection address. Check the simple_spam_shield_trusted_proxy_hops filter."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:102
 #: includes/core/class-proxy-diagnostics.php:102
 msgid "Trust proxy headers is on and this request came through a proxy. The visitor address is read from the entry your proxy added, which a visitor cannot forge — provided the server accepts traffic only through that proxy."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:107
 #: includes/core/class-proxy-diagnostics.php:107
 msgid "This request passed through more than one address. If the site sits behind two proxies — Cloudflare in front of a load balancer, for example — the address in use is the outer proxy, not the visitor; a developer can correct that with the simple_spam_shield_trusted_proxy_hops filter."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:112
 #: includes/core/class-proxy-diagnostics.php:112
 msgid "Visitor addresses are read from your proxy"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:129
 #: includes/core/class-proxy-diagnostics.php:129
 msgid "Security"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:136
 #: includes/core/class-proxy-diagnostics.php:136
 msgid "Review the Allowlist settings"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:156
 #: includes/core/class-proxy-diagnostics.php:156
 msgid "Onsite Spam Guard proxy configuration"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:176
 #: includes/core/class-proxy-diagnostics.php:176
 msgid "Connecting address"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:176
 #: includes/core/class-proxy-diagnostics.php:176
 msgid "(none)"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:177
 #: includes/core/class-proxy-diagnostics.php:177
 msgid "Forwarded header"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:177
 #: includes/core/class-proxy-diagnostics.php:177
 msgid "(not present)"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/core/class-proxy-diagnostics.php:178
 #: includes/core/class-proxy-diagnostics.php:178
 msgid "Address used for this request"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/guards/class-behavioral.php:44
 #: includes/guards/class-behavioral.php:44
 msgid "Submission rejected — suspicious activity detected."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/guards/class-duplicate.php:21
 #: includes/guards/class-duplicate.php:21
 msgid "Duplicate submission detected — please wait before resubmitting."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/guards/class-honeypot.php:74
 #: includes/guards/class-honeypot.php:74
 msgid "Submission rejected."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/guards/class-keyword-block.php:36
-#: build/onsite-spam-guard/includes/guards/class-keyword-block.php:49
 #: includes/guards/class-keyword-block.php:36
 #: includes/guards/class-keyword-block.php:49
 msgid "Submission rejected — contains blocked content."
 msgstr ""
 
 #. translators: %d: maximum allowed links
-#: build/onsite-spam-guard/includes/guards/class-link-limit.php:49
 #: includes/guards/class-link-limit.php:49
 #, php-format
 msgid "Submission rejected — too many links (max %d)."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/guards/class-nonce.php:35
-#: build/onsite-spam-guard/includes/guards/class-nonce.php:41
 #: includes/guards/class-nonce.php:35
 #: includes/guards/class-nonce.php:41
 msgid "Security check failed — please refresh the page and try again."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/guards/class-rate-limit.php:45
 #: includes/guards/class-rate-limit.php:45
 msgid "Too many submissions — please wait a moment and try again."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/guards/class-time-gate.php:26
 #: includes/guards/class-time-gate.php:26
 msgid "Submission rejected — please enable JavaScript."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/guards/class-time-gate.php:37
 #: includes/guards/class-time-gate.php:37
 msgid "Submission rejected — please refresh the page and try again."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/guards/class-time-gate.php:50
 #: includes/guards/class-time-gate.php:50
 msgid "Submission rejected — please slow down."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:73
 #: includes/integrations/class-abilities-api.php:73
 msgid "What the spam protection has refused, and why."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:98
 #: includes/integrations/class-abilities-api.php:98
 msgid "Spam protection summary"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:99
 #: includes/integrations/class-abilities-api.php:99
 msgid "Summarizes the last 7 days of spam protection: how many submissions were refused, how many monitor mode let through that would otherwise have been refused, and which check refused the most. Refreshed at most every 15 minutes."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:111
 #: includes/integrations/class-abilities-api.php:111
 msgid "Recent spam blocks"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:112
 #: includes/integrations/class-abilities-api.php:112
 msgid "Lists the most recent submissions the spam protection refused, or would have refused under monitor mode, newest first: when, on which form, which checks objected, and the reason given. Contains no IP addresses, user agents or submitted text."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:221
 #: includes/integrations/class-abilities-api.php:221
 msgid "Length of the period summarized, in days."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:226
 #: includes/integrations/class-abilities-api.php:226
 msgid "Submissions refused in the period."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:231
 #: includes/integrations/class-abilities-api.php:231
 msgid "Submissions monitor mode let through that would otherwise have been refused."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:235
 #: includes/integrations/class-abilities-api.php:235
 msgid "Slug of the check that refused the most submissions, such as \"honeypot\" or \"time_gate\". Empty when nothing was refused."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:240
 #: includes/integrations/class-abilities-api.php:240
 msgid "How many submissions that check refused."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:262
 #: includes/integrations/class-abilities-api.php:262
 msgid "How many entries to return, newest first."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:267
 #: includes/integrations/class-abilities-api.php:267
 msgid "Only entries with this outcome. Omit for both."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:287
 #: includes/integrations/class-abilities-api.php:287
 msgid "Log entries, newest first."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:294
 #: includes/integrations/class-abilities-api.php:294
 msgid "When the submission was refused, or let through under monitor mode (ISO 8601, UTC)."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:299
 #: includes/integrations/class-abilities-api.php:299
 msgid "\"blocked\" if the submission was refused; \"monitored\" if monitor mode let it through."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:303
 #: includes/integrations/class-abilities-api.php:303
 msgid "The form it was submitted to, such as \"comment\", \"woo_review\" or \"cf7\"."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:307
 #: includes/integrations/class-abilities-api.php:307
 msgid "Slug of the check whose objection was reported."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:312
 #: includes/integrations/class-abilities-api.php:312
 msgid "Slugs of every check that objected."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:316
 #: includes/integrations/class-abilities-api.php:316
 msgid "The message the check gave. Built-in checks give a fixed message; a check added by another plugin writes its own."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-abilities-api.php:326
 #: includes/integrations/class-abilities-api.php:326
 msgid "How many entries match in all, of which up to \"limit\" are returned."
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-comments.php:61
 #: includes/integrations/class-comments.php:61
 msgid "Comment Blocked"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-job-manager.php:81
 #: includes/integrations/class-job-manager.php:81
 msgid "Job submissions (WP Job Manager)"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-registration.php:86
 #: includes/integrations/class-registration.php:86
 msgid "Account registration (WordPress)"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-registration.php:89
 #: includes/integrations/class-registration.php:89
 msgid "Account registration (WooCommerce)"
 msgstr ""
 
-#: build/onsite-spam-guard/includes/integrations/class-registration.php:93
 #: includes/integrations/class-registration.php:93
 msgid "Account registration (BuddyPress)"
 msgstr ""
