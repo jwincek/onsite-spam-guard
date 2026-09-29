@@ -99,8 +99,10 @@ if ( ! function_exists( 'current_time' ) ) {
 }
 
 /**
- * Minimal $wpdb, enough for Database_Manager::insert(). Rows are collected in a
- * global so a test can assert what would have been written without a database.
+ * Minimal $wpdb. insert() collects rows in a global so a test can assert what
+ * would have been written without a database. prepare() records each query
+ * with its arguments, and the readers return whatever a test put in
+ * `simple_spam_shield_test_results` / `simple_spam_shield_test_var`.
  */
 if ( ! class_exists( 'Simple_Spam_Shield_Test_WPDB' ) ) {
 	class Simple_Spam_Shield_Test_WPDB {
@@ -114,10 +116,25 @@ if ( ! class_exists( 'Simple_Spam_Shield_Test_WPDB' ) ) {
 
 			return 1;
 		}
+
+		public function prepare( $query, ...$args ) {
+			$GLOBALS['simple_spam_shield_test_queries'][] = [ 'query' => $query, 'args' => $args ];
+
+			return $query;
+		}
+
+		public function get_results( $query = null, $output = null ) {
+			return $GLOBALS['simple_spam_shield_test_results'] ?? [];
+		}
+
+		public function get_var( $query = null ) {
+			return $GLOBALS['simple_spam_shield_test_var'] ?? null;
+		}
 	}
 }
 
 $GLOBALS['simple_spam_shield_test_log_rows'] = [];
+$GLOBALS['simple_spam_shield_test_queries']  = [];
 $GLOBALS['wpdb']                             = new Simple_Spam_Shield_Test_WPDB();
 
 if ( ! function_exists( 'user_can' ) ) {

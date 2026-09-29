@@ -3,8 +3,9 @@
 # Smoke-test a built copy of the plugin inside a real WordPress install.
 #
 # PHPUnit runs against stubs, so it cannot show the plugin working on any
-# particular WordPress. This does: CI runs it on the declared minimum
-# (`Requires at least`), which is otherwise a promise nothing checks.
+# particular WordPress. This does. CI runs it at both ends of the range the
+# plugin claims: the declared minimum (`Requires at least`, on the minimum
+# PHP) and the newest version tested (`Tested up to`).
 #
 # Stages, each asserted by tests/smoke/checks.php:
 #   1. Upgrade from the previous release by replacing its files, as an update
@@ -14,9 +15,11 @@
 #   4. Admin: settings, menu, settings page, spam log page, Site Health test.
 #   5. Guard pipeline: a genuine comment passes, honeypot spam is blocked,
 #      monitor mode lets it through and logs it.
-#   6. Every integration initialises with its host plugin absent.
-#   7. Uninstall.
-#   8. The debug log holds no error from this plugin (see scan_log).
+#   6. Abilities: registered, admin-only and free of personal data on
+#      WordPress 6.9+; absent and harmless below it.
+#   7. Every integration initialises with its host plugin absent.
+#   8. Uninstall.
+#   9. The debug log holds no error from this plugin (see scan_log).
 #
 # Usage:
 #   tests/smoke/run.sh <wordpress-dir> <built-plugin-dir>
@@ -109,17 +112,22 @@ wpcli plugin activate "${SLUG}" --quiet
 checks activation
 
 stage "4. Admin screens"
-checks admin --context=admin
+# WP_ADMIN must be defined before WordPress loads, so is_admin() is true on
+# plugins_loaded; checks.php sets up the rest of the admin request.
+checks admin --exec="define( 'WP_ADMIN', true );"
 
 stage "5. Guard pipeline"
 checks guards
 
-stage "6. Integrations without their host plugins"
+stage "6. Abilities"
+checks abilities
+
+stage "7. Integrations without their host plugins"
 checks integrations
 
-stage "7. Uninstall"
+stage "8. Uninstall"
 wpcli plugin uninstall "${SLUG}" --deactivate --quiet
 checks uninstalled
 
-stage "8. PHP errors"
+stage "9. PHP errors"
 scan_log

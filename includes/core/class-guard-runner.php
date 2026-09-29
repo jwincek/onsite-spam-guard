@@ -2,10 +2,11 @@
 /**
  * Guard Runner — executes the spam-check pipeline.
  *
- * This is the "abilities layer" equivalent from the Petstablished Sync
- * architecture: thin, testable operations with clear inputs and outputs.
- * Each guard is a class implementing Guard_Interface. The runner loads
- * them from config, sorts by weight, and runs them in order.
+ * Guards are thin, testable operations with clear inputs and outputs. Each
+ * is a class implementing Guard_Interface. The runner loads them from
+ * config, sorts by weight, and runs them in order. (Not to be confused with
+ * the WordPress Abilities API, which Integrations\Abilities_API uses to
+ * expose the log.)
  *
  * @package Simple_Spam_Shield
  */

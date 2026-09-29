@@ -100,14 +100,22 @@ switch ( $mode ) {
 		break;
 
 	/*
-	 * Run with --context=admin: is_admin() is true, so Admin::init() ran on
-	 * plugins_loaded, and admin_init has fired.
+	 * run.sh defines WP_ADMIN before WordPress loads, so is_admin() was true
+	 * on plugins_loaded and Admin::init() ran. The rest of an admin request is
+	 * set up here. Not WP-CLI's --context=admin: on WordPress 7.x its
+	 * bootstrap raises warnings in wp-admin/includes/menu.php with no plugin
+	 * active at all, which the log scan cannot tell from the plugin's own.
 	 */
 	case 'admin':
 		global $wp_registered_settings;
 
-		$check( 1 === did_action( 'admin_init' ), 'admin_init fired' );
-		$check( isset( $wp_registered_settings['simple_spam_shield_monitor_mode'] ), 'settings are registered' );
+		$check( is_admin() && false !== has_action( 'admin_init', [ Admin::class, 'register_settings' ] ), 'Admin::init() ran on plugins_loaded' );
+
+		require_once ABSPATH . 'wp-admin/includes/admin.php';
+		$admins = get_users( [ 'role' => 'administrator', 'number' => 1, 'fields' => 'ID' ] );
+		wp_set_current_user( (int) ( $admins[0] ?? 0 ) );
+		do_action( 'admin_init' );
+		$check( isset( $wp_registered_settings['simple_spam_shield_monitor_mode'] ), 'settings register on admin_init' );
 
 		do_action( 'admin_menu' );
 		$check( '' !== (string) menu_page_url( 'onsite-spam-guard', false ), 'the admin menu is registered' );
@@ -183,11 +191,51 @@ switch ( $mode ) {
 		];
 		$check( ! in_array( true, $hosts, true ), 'no host plugin is active (' . implode( ', ', array_keys( $hosts ) ) . ')' );
 
-		foreach ( [ 'Comments', 'WooCommerce', 'Jetpack_Forms', 'Job_Manager', 'Contact_Form_7', 'BuddyPress_Messages', 'Registration' ] as $integration ) {
+		foreach ( [ 'Comments', 'WooCommerce', 'Jetpack_Forms', 'Job_Manager', 'Contact_Form_7', 'BuddyPress_Messages', 'Registration', 'Abilities_API' ] as $integration ) {
 			call_user_func( [ "Simple_Spam_Shield\\Integrations\\{$integration}", 'init' ] );
 			$check( true, "{$integration}::init() runs without its host" );
 		}
 		$check( false !== has_filter( 'preprocess_comment' ), 'comment protection is hooked' );
+		break;
+
+	/*
+	 * The abilities exist from WordPress 6.9. Below that, registration must
+	 * do nothing and break nothing; from 6.9, both abilities must register,
+	 * refuse visitors, pass core's own output validation, and carry none of
+	 * the personal data the log holds. Runs after 'guards', so the log has
+	 * a blocked and a monitored entry from the smoke visitor.
+	 */
+	case 'abilities':
+		if ( ! function_exists( 'wp_get_ability' ) ) {
+			$check( true, 'no Abilities API in WordPress ' . get_bloginfo( 'version' ) . ': nothing registered, nothing failed' );
+			break;
+		}
+
+		$names = [ 'onsite-spam-guard/stats', 'onsite-spam-guard/recent-blocks' ];
+		foreach ( $names as $name ) {
+			$check( null !== wp_get_ability( $name ), "{$name} is registered" );
+		}
+
+		wp_set_current_user( 0 );
+		$check( is_wp_error( wp_get_ability( $names[0] )->execute() ), 'a visitor is refused' );
+
+		$admins = get_users( [ 'role' => 'administrator', 'number' => 1, 'fields' => 'ID' ] );
+		wp_set_current_user( (int) ( $admins[0] ?? 0 ) );
+
+		// The summary is cached for 15 minutes and logging does not clear it.
+		// The spam log page cached it in 'admin', before anything was logged.
+		Database_Manager::flush_stats();
+		$stats = wp_get_ability( $names[0] )->execute();
+		$check( is_array( $stats ) && 1 === $stats['blocked'] && 1 === $stats['monitored'], 'stats passes core output validation and counts the log' );
+
+		$recent = wp_get_ability( $names[1] )->execute( [ 'limit' => 5 ] );
+		$check( is_array( $recent ) && 2 === count( $recent['entries'] ), 'recent-blocks passes core output validation and lists the log' );
+
+		$flat = (string) wp_json_encode( $recent );
+		$check( ! str_contains( $flat, '192.0.2.10' ) && ! str_contains( $flat, 'smoke@example.com' ) && ! str_contains( $flat, 'second section' ), 'and carries no IP address, email or submitted text' );
+
+		$run = rest_do_request( new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/onsite-spam-guard/stats/run' ) );
+		$check( 200 === $run->get_status(), 'stats runs over REST' );
 		break;
 
 	case 'uninstalled':

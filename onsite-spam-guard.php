@@ -90,7 +90,7 @@ function simple_spam_shield_init(): void {
 	// 1. Config loader.
 	\Simple_Spam_Shield\Core\Config::init( SIMPLE_SPAM_SHIELD_DIR . 'config/' );
 
-	// 2. Guard pipeline (the "abilities" layer).
+	// 2. Guard pipeline — the checks every protected form runs through.
 	\Simple_Spam_Shield\Core\Guard_Runner::init();
 
 	// 3. Integration hooks — thin consumers that delegate to the guard pipeline.
@@ -102,21 +102,25 @@ function simple_spam_shield_init(): void {
 	\Simple_Spam_Shield\Integrations\BuddyPress_Messages::init();
 	\Simple_Spam_Shield\Integrations\Registration::init();
 
-	// 4. Front-end assets (honeypot field + JS timer).
+	// 4. Read-only abilities over the spam log, for REST, MCP and AI clients.
+	// WordPress 6.9+ only; registers nothing on older versions.
+	\Simple_Spam_Shield\Integrations\Abilities_API::init();
+
+	// 5. Front-end assets (honeypot field + JS timer).
 	add_action( 'wp_enqueue_scripts', [ \Simple_Spam_Shield\Core\Assets::class, 'enqueue' ] );
 
-	// 5. Admin settings (admin only).
+	// 6. Admin settings (admin only).
 	if ( is_admin() ) {
 		\Simple_Spam_Shield\Core\Admin::init();
 	}
 
-	// 6. Self-heal the retention cron for installs that predate it
+	// 7. Self-heal the retention cron for installs that predate it
 	// (the activation hook only fires on (re)activation).
 	if ( ! wp_next_scheduled( 'simple_spam_shield_purge_logs' ) ) {
 		wp_schedule_event( time(), 'daily', 'simple_spam_shield_purge_logs' );
 	}
 
-	// 7. Bring the log table up to the current schema. An update never fires
+	// 8. Bring the log table up to the current schema. An update never fires
 	// the activation hook, and an automatic one runs from WP-Cron, where
 	// admin_init does not fire either — so an upgrade tied to admin_init left
 	// an auto-updated site unable to log anything until someone opened

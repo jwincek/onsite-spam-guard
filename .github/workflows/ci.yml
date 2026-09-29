@@ -118,17 +118,34 @@ jobs:
           # only on errors so real regressions still block.
           ignore-warnings: true
 
-  # `Requires at least` is a promise to every site that installs the plugin,
-  # and nothing above tests it: PHPUnit runs against stubs, and Plugin Check
-  # needs WordPress 6.3. This installs the declared minimum on the minimum PHP
-  # and smoke-tests the built package in it — upgrade, activation, admin
-  # screens, the guard pipeline and uninstall. See tests/smoke/run.sh.
-  wp-floor:
-    name: WordPress floor (6.2, PHP 8.2)
+  # `Requires at least` and `Tested up to` are promises to every site that
+  # installs the plugin, and nothing above tests either on a real WordPress:
+  # PHPUnit runs against stubs, and Plugin Check needs WordPress 6.3. This
+  # installs each end of the claimed range and smoke-tests the built package
+  # in it — upgrade, activation, admin screens, the guard pipeline, the
+  # abilities (6.9+) and uninstall. See tests/smoke/run.sh.
+  wp-smoke:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The declared minimum, on the minimum PHP. 6.2.13 is the newest
+          # 6.2 point release, which still receives security fixes.
+          - name: WordPress floor (6.2, PHP 8.2)
+            wp: '6.2.13'
+            php: '8.2'
+            claim: Requires at least
+          # The newest version the readme claims, on the newest PHP the unit
+          # tests run on. Above 6.9, so the abilities are registered here.
+          - name: WordPress ceiling (7.1, PHP 8.4)
+            wp: '7.1.2'
+            php: '8.4'
+            claim: Tested up to
     env:
-      # The newest 6.2 point release, which still receives security fixes.
-      WP_VERSION: '6.2.13'
+      WP_VERSION: ${{ matrix.wp }}
+      CLAIM: ${{ matrix.claim }}
       WP_DIR: /tmp/wordpress
     services:
       mysql:
@@ -144,35 +161,37 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # Fail rather than quietly test a version the plugin no longer claims
-      # as its minimum, if the header moves and WP_VERSION does not.
-      - name: Check WP_VERSION is the declared minimum
+      # Fail rather than quietly test a version the plugin no longer claims,
+      # if the header or readme moves and the matrix does not.
+      - name: Check WP_VERSION matches `${{ matrix.claim }}`
         run: |
-          required="$( sed -nE 's/^[[:space:]]*\*[[:space:]]*Requires at least:[[:space:]]*([0-9.]+).*/\1/p' onsite-spam-guard.php )"
-          if [ "${WP_VERSION%.*}" != "${required}" ]; then
-            echo "::error::WP_VERSION ${WP_VERSION} is not the declared minimum (Requires at least: ${required})"
+          claimed="$( sed -nE "s/^[[:space:]*]*${CLAIM}:[[:space:]]*([0-9.]+).*/\1/p" onsite-spam-guard.php readme.txt | head -1 )"
+          if [ "${WP_VERSION%.*}" != "${claimed}" ]; then
+            echo "::error::WP_VERSION ${WP_VERSION} does not match ${CLAIM}: ${claimed}"
             exit 1
           fi
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: ${{ matrix.php }}
           coverage: none
           tools: wp-cli
+          # Extracting a WordPress 7.x archive exceeds a 128M limit.
+          ini-values: memory_limit=512M
 
       - name: Build distribution copy
         run: bin/build-dist.sh build
 
-      - name: Install WordPress ${{ env.WP_VERSION }}
+      - name: Install WordPress ${{ matrix.wp }}
         run: |
           wp core download --version="${WP_VERSION}" --path="${WP_DIR}"
           wp config create --path="${WP_DIR}" --dbname=wordpress --dbuser=root --dbpass=root --dbhost=127.0.0.1:3306 --skip-check
           wp config set WP_DEBUG true --raw --path="${WP_DIR}"
           wp config set WP_DEBUG_DISPLAY false --raw --path="${WP_DIR}"
           wp config set WP_DEBUG_LOG "${WP_DIR}/wp-content/debug.log" --path="${WP_DIR}"
-          wp core install --path="${WP_DIR}" --url=http://localhost --title=Floor \
-            --admin_user=admin --admin_password=floor-admin --admin_email=admin@example.com --skip-email
+          wp core install --path="${WP_DIR}" --url=http://localhost --title=Smoke \
+            --admin_user=admin --admin_password=smoke-admin --admin_email=admin@example.com --skip-email
 
       - name: Smoke test
         run: tests/smoke/run.sh "${WP_DIR}" build/onsite-spam-guard
