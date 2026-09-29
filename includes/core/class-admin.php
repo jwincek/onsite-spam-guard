@@ -26,6 +26,29 @@ final class Admin {
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_settings_assets' ] );
 		add_action( 'admin_notices', [ __CLASS__, 'monitor_mode_notice' ] );
 		add_filter( 'site_status_tests', [ Proxy_Diagnostics::class, 'register_site_health_test' ] );
+		add_filter( 'plugin_action_links_' . plugin_basename( SIMPLE_SPAM_SHIELD_FILE ), [ __CLASS__, 'add_action_links' ] );
+	}
+
+	/**
+	 * Put a Settings link first in the plugin's row on the Plugins screen, so
+	 * the settings are one click away straight after activation.
+	 *
+	 * @param mixed $links Action links. An array, unless another plugin's
+	 *                     filter returned something else; that is passed on.
+	 * @return mixed
+	 */
+	public static function add_action_links( mixed $links ): mixed {
+		if ( ! is_array( $links ) || ! current_user_can( 'manage_options' ) ) {
+			return $links;
+		}
+
+		return [
+			'settings' => sprintf(
+				'<a href="%s">%s</a>',
+				esc_url( admin_url( 'admin.php?page=onsite-spam-guard' ) ),
+				esc_html__( 'Settings', 'onsite-spam-guard' )
+			),
+		] + $links;
 	}
 
 	/**

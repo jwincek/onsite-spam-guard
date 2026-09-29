@@ -120,6 +120,9 @@ switch ( $mode ) {
 		do_action( 'admin_menu' );
 		$check( '' !== (string) menu_page_url( 'onsite-spam-guard', false ), 'the admin menu is registered' );
 
+		$row = apply_filters( 'plugin_action_links_' . plugin_basename( SIMPLE_SPAM_SHIELD_FILE ), [ 'deactivate' => '' ] );
+		$check( is_array( $row ) && 'settings' === array_key_first( $row ) && str_contains( $row['settings'], 'page=onsite-spam-guard' ), 'the Plugins screen row links to Settings first' );
+
 		// Set up the request as wp-admin/admin.php does for a plugin page, so
 		// core functions the page calls see what a real page load gives them.
 		// A CLI request has no host, no page and no screen.

@@ -11,6 +11,8 @@ The user-facing changelog shipped to WordPress.org lives in the
 ## [Unreleased]
 
 ### Added
+- A **Settings** link in the plugin's row on the Plugins screen (#58), first
+  in the row and shown only to users who can change the settings.
 - Read-only abilities (#9) for WordPress 6.9+'s Abilities API:
   `onsite-spam-guard/stats` (the cached 7-day summary) and
   `onsite-spam-guard/recent-blocks` (recent log entries, `limit` 1–100 and an
@@ -47,6 +49,15 @@ The user-facing changelog shipped to WordPress.org lives in the
   1.6.0 fix reverted, and on a warning, deprecation or `_doing_it_wrong()`
   raised from plugin code. A step fails the job if `WP_VERSION` stops matching
   the header's `Requires at least`.
+
+### Fixed
+- The translation template regenerated for #9 listed every source reference
+  twice, once under `build/`: it was generated while a packaged copy of the
+  plugin sat there, and `make-pot` does not skip it. The strings were right, so
+  `bin/check-pot.sh`, which compares only strings, passed it. Never released.
+  The template is regenerated, `check-pot.sh` now excludes `build/` and fails
+  on a template that references it, and the documented command in
+  CONTRIBUTING.md passes `--exclude=build`.
 
 ## [1.6.0] - 2026-09-28
 

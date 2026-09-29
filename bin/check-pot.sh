@@ -30,9 +30,23 @@ else
 	exit 1
 fi
 
+# bin/build-dist.sh writes a packaged copy of the plugin to build/, and
+# make-pot does not skip it. A template generated while it exists lists every
+# source reference twice — once under build/ — with the strings unchanged, so
+# the msgid comparison below cannot see it. One was committed during 1.7.0's
+# development, though never released.
+RECIPE="wp i18n make-pot . $POT --slug=$SLUG --exclude=build"
+
 if [ ! -f "$POT" ]; then
 	echo "FAIL  $POT is missing. Generate it with:"
-	echo "      wp i18n make-pot . $POT --slug=$SLUG"
+	echo "      $RECIPE"
+	exit 1
+fi
+
+if grep -qE '^#: (.* )?build/' "$POT"; then
+	echo "FAIL  $POT references files under build/, the packaged copy of the plugin."
+	echo "      Regenerate with:"
+	echo "      $RECIPE"
 	exit 1
 fi
 
@@ -40,7 +54,7 @@ TMP="$( mktemp "${TMPDIR:-/tmp}/osg-pot.XXXXXX" )" || exit 1
 trap 'rm -f "$TMP"' EXIT
 
 # make-pot runs as static analysis; it does not need a WordPress install.
-if ! $WP i18n make-pot . "$TMP" --slug="$SLUG" >/dev/null 2>&1; then
+if ! $WP i18n make-pot . "$TMP" --slug="$SLUG" --exclude=build >/dev/null 2>&1; then
 	echo "FAIL  could not regenerate the template for comparison"
 	exit 1
 fi
@@ -59,5 +73,5 @@ echo "  Strings in the template no longer found in the source:"
 comm -13 <( grep '^msgid ' "$TMP" | sort -u ) <( grep '^msgid ' "$POT" | sort -u ) | sed 's/^/    - /'
 echo
 echo "  Regenerate with:"
-echo "    wp i18n make-pot . $POT --slug=$SLUG"
+echo "    $RECIPE"
 exit 1
