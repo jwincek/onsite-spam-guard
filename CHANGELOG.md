@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 The user-facing changelog shipped to WordPress.org lives in the
 `== Changelog ==` section of `readme.txt`; keep the two in sync.
 
+## [Unreleased]
+
+### Added
+- CI tests the declared minimum (#62). `Requires at least: 6.2` was never
+  exercised: PHPUnit runs against stubs, and Plugin Check needs WordPress 6.3.
+  A new job installs WordPress 6.2.13 on PHP 8.2 and runs
+  `tests/smoke/run.sh` against the built package: an upgrade from 1.5.1 by
+  replacing its files with no reactivation and no `admin_init` (the path the
+  1.6.0 schema fix repaired), uninstall, fresh activation, rendering the admin
+  screens, the guard pipeline including monitor mode, every integration with
+  its host plugin absent, and a second uninstall. It fails on any error the
+  plugin writes to the debug log, and on WordPress's "called incorrectly" and
+  "deprecated since" notices; PHP deprecations raised inside core are reported
+  and excused, since 6.2's PHP 8.2 support was beta. Verified to fail with the
+  1.6.0 fix reverted, and on a warning, deprecation or `_doing_it_wrong()`
+  raised from plugin code. A step fails the job if `WP_VERSION` stops matching
+  the header's `Requires at least`.
+
 ## [1.6.0] - 2026-09-28
 
 ### Added

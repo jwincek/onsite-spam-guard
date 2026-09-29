@@ -117,3 +117,62 @@ jobs:
           # custom log table; those are warnings, not errors. Fail the job
           # only on errors so real regressions still block.
           ignore-warnings: true
+
+  # `Requires at least` is a promise to every site that installs the plugin,
+  # and nothing above tests it: PHPUnit runs against stubs, and Plugin Check
+  # needs WordPress 6.3. This installs the declared minimum on the minimum PHP
+  # and smoke-tests the built package in it — upgrade, activation, admin
+  # screens, the guard pipeline and uninstall. See tests/smoke/run.sh.
+  wp-floor:
+    name: WordPress floor (6.2, PHP 8.2)
+    runs-on: ubuntu-latest
+    env:
+      # The newest 6.2 point release, which still receives security fixes.
+      WP_VERSION: '6.2.13'
+      WP_DIR: /tmp/wordpress
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v7
+
+      # Fail rather than quietly test a version the plugin no longer claims
+      # as its minimum, if the header moves and WP_VERSION does not.
+      - name: Check WP_VERSION is the declared minimum
+        run: |
+          required="$( sed -nE 's/^[[:space:]]*\*[[:space:]]*Requires at least:[[:space:]]*([0-9.]+).*/\1/p' onsite-spam-guard.php )"
+          if [ "${WP_VERSION%.*}" != "${required}" ]; then
+            echo "::error::WP_VERSION ${WP_VERSION} is not the declared minimum (Requires at least: ${required})"
+            exit 1
+          fi
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: wp-cli
+
+      - name: Build distribution copy
+        run: bin/build-dist.sh build
+
+      - name: Install WordPress ${{ env.WP_VERSION }}
+        run: |
+          wp core download --version="${WP_VERSION}" --path="${WP_DIR}"
+          wp config create --path="${WP_DIR}" --dbname=wordpress --dbuser=root --dbpass=root --dbhost=127.0.0.1:3306 --skip-check
+          wp config set WP_DEBUG true --raw --path="${WP_DIR}"
+          wp config set WP_DEBUG_DISPLAY false --raw --path="${WP_DIR}"
+          wp config set WP_DEBUG_LOG "${WP_DIR}/wp-content/debug.log" --path="${WP_DIR}"
+          wp core install --path="${WP_DIR}" --url=http://localhost --title=Floor \
+            --admin_user=admin --admin_password=floor-admin --admin_email=admin@example.com --skip-email
+
+      - name: Smoke test
+        run: tests/smoke/run.sh "${WP_DIR}" build/onsite-spam-guard
