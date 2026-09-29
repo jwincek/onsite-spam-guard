@@ -237,6 +237,26 @@ through. Use `Guard_Runner::is_monitoring( $context )` if you need to know.
 Because monitor mode blocks nothing, the plugin announces it on every admin
 screen while it is on site-wide, and lists monitored forms on its own screens.
 
+**Reviewing a monitored form.** The question monitor mode leaves the site owner
+with is *what would enforcing this catch?* On the Per-form tab, each form that
+is being monitored — by its own override or by the site-wide setting — opens
+with the answer: how long it has been monitored, how many submissions would
+have been blocked broken down by guard, a **View them** link to the Spam Logs
+filtered to that form and to "Would have blocked", and an **Enforce this form**
+link (a nonce-protected `admin-post.php` action) that sets its override to
+Enforce. See `Core\Monitor_Review`.
+
+The start of each spell of monitoring is recorded when the mode changes, in
+`simple_spam_shield_monitor_since` (site-wide) and
+`simple_spam_shield_monitor_since__<context>`, by `added_option` /
+`updated_option` hooks — so a change from WP-CLI or code is timed too. It is
+not inferred from the earliest monitored log row: a form monitored for a week
+without seeing spam has no rows, and the honest report is "a week, nothing
+would have been blocked", not nothing at all. Monitoring begun before 1.7.0 has
+no recorded start; the review says so and counts everything still in the log.
+With logging off nothing monitored is recorded, and the review says that too
+rather than reporting zero.
+
 ### Allowlist
 
 Submissions from allowlisted IPs or emails bypass all guards entirely. The allowlist supports exact IPs, CIDR ranges (e.g. `10.0.0.0/8`), exact email addresses, and email domain patterns (e.g. `@trusted.org`). IP detection uses the direct connection IP (`REMOTE_ADDR`) by default; the spoofable `X-Forwarded-For` header is honored only when the **Trust proxy headers** option is enabled (for sites behind a trusted reverse proxy), so a visitor cannot forge a header to spoof an allowlisted IP.

@@ -273,6 +273,46 @@ final class Database_Manager {
 	}
 
 	/**
+	 * Count one form's monitored submissions by the guard whose objection was
+	 * reported — what enforcing that form would have caught.
+	 *
+	 * @param string   $context Form context.
+	 * @param int|null $since   Only rows logged at or after this Unix time;
+	 *                          null for every row still in the log.
+	 * @return array<string, int> Guard slug => count, highest first.
+	 */
+	public static function monitored_by_guard( string $context, ?int $since = null ): array {
+		global $wpdb;
+
+		$table  = self::table_name();
+		$where  = 'context = %s AND outcome = %s';
+		$params = [ $context, self::OUTCOME_MONITORED ];
+
+		if ( null !== $since ) {
+			$where   .= ' AND blocked_at >= %s';
+			$params[] = gmdate( 'Y-m-d H:i:s', $since );
+		}
+
+		// $table is the plugin's own prefixed table and $where is built from
+		// literals above; every value is a placeholder.
+		// phpcs:disable WordPress.DB.PreparedSQL, WordPress.DB.PreparedSQLPlaceholders, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT guard, COUNT(id) AS hits FROM {$table} WHERE {$where} GROUP BY guard ORDER BY hits DESC, guard ASC",
+				...$params
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL, WordPress.DB.PreparedSQLPlaceholders, PluginCheck.Security.DirectDB.UnescapedDBParameter
+
+		$counts = [];
+		foreach ( (array) $rows as $row ) {
+			$counts[ (string) $row->guard ] = (int) $row->hits;
+		}
+
+		return $counts;
+	}
+
+	/**
 	 * Invalidate the cached stats (after a manual clear or purge).
 	 */
 	public static function flush_stats(): void {

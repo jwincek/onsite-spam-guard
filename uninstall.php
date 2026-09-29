@@ -34,6 +34,7 @@ function simple_spam_shield_uninstall_site(): void {
 	$options = [
 		'simple_spam_shield_enabled',
 		'simple_spam_shield_monitor_mode',
+		'simple_spam_shield_monitor_since',
 		'simple_spam_shield_hard_block',
 		'simple_spam_shield_protect_comments',
 		'simple_spam_shield_protect_woo_reviews',

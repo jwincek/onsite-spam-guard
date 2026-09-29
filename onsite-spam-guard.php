@@ -92,6 +92,8 @@ function simple_spam_shield_init(): void {
 
 	// 2. Guard pipeline — the checks every protected form runs through.
 	\Simple_Spam_Shield\Core\Guard_Runner::init();
+	// Times each spell of monitor mode, and serves its review's "Enforce" link.
+	\Simple_Spam_Shield\Core\Monitor_Review::init();
 
 	// 3. Integration hooks — thin consumers that delegate to the guard pipeline.
 	\Simple_Spam_Shield\Integrations\Comments::init();

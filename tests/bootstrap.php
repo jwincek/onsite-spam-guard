@@ -33,6 +33,38 @@ if ( ! function_exists( 'update_option' ) ) {
 		return true;
 	}
 }
+if ( ! function_exists( 'delete_option' ) ) {
+	function delete_option( $key ) {
+		$existed = array_key_exists( $key, $GLOBALS['simple_spam_shield_test_options'] );
+		unset( $GLOBALS['simple_spam_shield_test_options'][ $key ] );
+		return $existed;
+	}
+}
+if ( ! function_exists( '_n' ) ) {
+	function _n( $single, $plural, $number, $domain = 'default' ) {
+		return 1 === (int) $number ? $single : $plural;
+	}
+}
+if ( ! function_exists( 'number_format_i18n' ) ) {
+	function number_format_i18n( $number, $decimals = 0 ) {
+		return number_format( (float) $number, $decimals );
+	}
+}
+if ( ! function_exists( 'wp_date' ) ) {
+	function wp_date( $format, $timestamp = null ) {
+		return gmdate( $format, $timestamp ?? time() );
+	}
+}
+if ( ! function_exists( 'human_time_diff' ) ) {
+	function human_time_diff( $from, $to = 0 ) {
+		return max( 1, (int) round( ( ( $to ?: time() ) - $from ) / 86400 ) ) . ' days';
+	}
+}
+if ( ! function_exists( 'wp_nonce_url' ) ) {
+	function wp_nonce_url( $url, $action = -1 ) {
+		return $url . ( str_contains( $url, '?' ) ? '&' : '?' ) . '_wpnonce=nonce-' . $action;
+	}
+}
 if ( ! function_exists( 'add_option' ) ) {
 	function add_option( $key, $value = '', $deprecated = '', $autoload = 'yes' ) {
 		$GLOBALS['simple_spam_shield_test_options'][ $key ] = $value;

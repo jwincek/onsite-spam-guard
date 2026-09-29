@@ -11,6 +11,18 @@ The user-facing changelog shipped to WordPress.org lives in the
 ## [Unreleased]
 
 ### Added
+- A review of each monitored form on the Per-form tab (#57): how long it has
+  been monitored, how many submissions would have been blocked and by which
+  guards, **View them** (the Spam Logs filtered to that form and to "Would have
+  blocked") and **Enforce this form**, a nonce-protected `admin-post.php`
+  action that sets its override to Enforce. Covers forms monitored by their own
+  override or by the site-wide setting. When monitoring began is recorded as
+  the mode changes (`simple_spam_shield_monitor_since`, and `__<context>` per
+  form), by option hooks that also catch changes from WP-CLI, rather than
+  inferred from the earliest monitored row — which would report nothing for a
+  quiet week. Monitoring begun before 1.7.0 has no recorded start, and the
+  review says so; with logging off it says nothing is being recorded rather
+  than reporting zero.
 - A **Settings** link in the plugin's row on the Plugins screen (#58), first
   in the row and shown only to users who can change the settings.
 - Read-only abilities (#9) for WordPress 6.9+'s Abilities API:
@@ -51,6 +63,9 @@ The user-facing changelog shipped to WordPress.org lives in the
   the header's `Requires at least`.
 
 ### Fixed
+- The settings page banner counted submissions monitor mode let through as
+  blocked: "N submissions blocked" counted every log row. It now counts
+  blocked rows only. Since 1.6.0.
 - The translation template regenerated for #9 listed every source reference
   twice, once under `build/`: it was generated while a packaged copy of the
   plugin sat there, and `make-pot` does not skip it. The strings were right, so

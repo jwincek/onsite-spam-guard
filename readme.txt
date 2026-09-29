@@ -141,6 +141,8 @@ Yes. Turn on **Monitor mode** on the General tab and the plugin keeps checking e
 
 You can also monitor a single form while the rest stay protected: on the **Per-form** tab, set that form's mode to **Monitor**. This is the safest way to switch on protection for a new form.
 
+When you are ready to decide, the **Per-form** tab sums it up beside each monitored form: how long it has been monitored, how many submissions would have been blocked and by which checks, a link to those entries in the spam log, and an **Enforce this form** link that switches it on.
+
 While monitor mode is on for the whole site, a notice on every admin screen reminds you that nothing is being blocked.
 
 = Does it work with caching plugins? =
