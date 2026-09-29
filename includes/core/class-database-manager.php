@@ -35,7 +35,9 @@ final class Database_Manager {
 
 	/**
 	 * Create or update the spam logs table.
-	 * Called on plugin activation and on admin_init to handle upgrades.
+	 * Called on plugin activation and on every request from plugins_loaded, so
+	 * a schema change is applied before anything is logged, however the
+	 * plugin was updated.
 	 */
 	public static function create_table(): void {
 		// Skip if the table is already at the current version.

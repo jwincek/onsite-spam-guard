@@ -4,7 +4,7 @@ Tags: spam, antispam, comments, honeypot, woocommerce
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.5.1
+Stable tag: 1.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -156,6 +156,15 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 
 == Changelog ==
 
+= 1.6.0 =
+* Monitor mode: try the plugin, or a change to its settings, without blocking anyone. Every check still runs and anything it would have blocked is logged as "Would have blocked", but the submission goes through. Turn it on for the whole site on the General tab, or for one form on the Per-form tab while the rest stay protected. While it is on for the whole site, a notice on every admin screen says so, so it cannot be forgotten.
+* Account registration forms can now be protected, **off by default**: WordPress's own registration form, WooCommerce's My Account registration, and BuddyPress signup. Accounts created at WooCommerce checkout, and accounts you add yourself under **Users → Add New**, are never screened. Monitor mode is a good way to trial it first.
+* The Allowlist tab now shows what your server sees — the connecting address, any forwarded header, and the address the plugin will use — and whether **Trust proxy headers** is set correctly for how your site is reached. Site Health reports the same.
+* The spam log records whether each submission was blocked or only would have been, and the 7-day summary counts the two separately. The log table is upgraded; existing entries are kept.
+* Changed: blocked keywords now match words joined by underscores, as in usernames and email addresses, so "casino" matches "casino_bonus_77". Words run together, such as "casinobonus", still do not match.
+* Changed, for developers: the `simple_spam_shield_blocked` action no longer fires for a submission let through by monitor mode.
+* Fixed: after an automatic update that changed the log table, logging stopped until someone opened the WordPress admin. Spam was still blocked, but not recorded. The table is now upgraded on the first request of any kind.
+
 = 1.5.1 =
 * Fixed: with **Trust proxy headers** enabled, the visitor's address is now read from the entry your proxy added, which a visitor cannot set. Previously it could be taken from a value supplied by the visitor, which could affect the allowlist, the rate limit and duplicate detection. **Updating is recommended for every site using this setting.** The setting's description and the FAQ now also explain what it relies on: your server accepting traffic only from the proxy.
 * Fixed: blocked keywords now match in every script. A single-word keyword written in Cyrillic, Greek, Chinese, Japanese or another non-Latin script never matched before, and upper- and lower-case versions of non-Latin text were treated as different. If you block words in a language other than English, they will start working with this update.
@@ -225,6 +234,9 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 * Developed by Jerome Wincek, with engineering assistance from Anthropic's Claude.
 
 == Upgrade Notice ==
+
+= 1.6.0 =
+Adds monitor mode, for trying changes without blocking anyone, and optional protection for account registration forms. Upgrades the log table; existing entries are kept and nothing needs reconfiguring.
 
 = 1.5.1 =
 Recommended for every site that has "Trust proxy headers" turned on. Also makes blocked keywords work in non-Latin scripts, and fixes "Clear all logs" on some servers.

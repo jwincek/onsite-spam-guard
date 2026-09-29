@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Onsite Spam Guard
  * Description: Config-driven spam prevention for Comments, WooCommerce Reviews, and Jetpack Contact Form blocks — no external services required.
- * Version:     1.5.1
+ * Version:     1.6.0
  * Requires at least: 6.2
  * Requires PHP: 8.2
  * Author:      Jerome Wincek
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( 'SIMPLE_SPAM_SHIELD_VERSION', '1.5.1' );
+define( 'SIMPLE_SPAM_SHIELD_VERSION', '1.6.0' );
 define( 'SIMPLE_SPAM_SHIELD_FILE', __FILE__ );
 define( 'SIMPLE_SPAM_SHIELD_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SIMPLE_SPAM_SHIELD_URL', plugin_dir_url( __FILE__ ) );
@@ -115,5 +115,12 @@ function simple_spam_shield_init(): void {
 	if ( ! wp_next_scheduled( 'simple_spam_shield_purge_logs' ) ) {
 		wp_schedule_event( time(), 'daily', 'simple_spam_shield_purge_logs' );
 	}
+
+	// 7. Bring the log table up to the current schema. An update never fires
+	// the activation hook, and an automatic one runs from WP-Cron, where
+	// admin_init does not fire either — so an upgrade tied to admin_init left
+	// an auto-updated site unable to log anything until someone opened
+	// wp-admin. Once the table is current this is one cached option read.
+	\Simple_Spam_Shield\Core\Database_Manager::create_table();
 }
 add_action( 'plugins_loaded', 'simple_spam_shield_init' );
