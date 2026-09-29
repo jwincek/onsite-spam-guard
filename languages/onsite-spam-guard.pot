@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-29T21:03:28+00:00\n"
+"POT-Creation-Date: 2026-09-29T21:15:27+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: onsite-spam-guard\n"
@@ -203,12 +203,12 @@ msgid "Choose which form types to protect."
 msgstr ""
 
 #: includes/core/class-admin.php:225
-#: includes/core/class-contexts.php:32
+#: includes/core/class-contexts.php:51
 msgid "WordPress comments"
 msgstr ""
 
 #: includes/core/class-admin.php:226
-#: includes/core/class-contexts.php:33
+#: includes/core/class-contexts.php:52
 msgid "WooCommerce product reviews"
 msgstr ""
 
@@ -306,7 +306,7 @@ msgid "Per-form thresholds"
 msgstr ""
 
 #: includes/core/class-admin.php:342
-msgid "Guard thresholds on the Guards tab apply to every form. Where one form needs different values — a contact form is more suspicious of links than a comment thread, and a long application form needs a longer minimum fill time than a comment box — override them here. Leave a field blank to use the global value."
+msgid "Guard thresholds on the Guards tab apply to every form. Where one form needs different values — a contact form is more suspicious of links than a comment thread, and a long application form needs a longer minimum fill time than a comment box — override them here. Leave a field blank to inherit; each field says what that means for its form."
 msgstr ""
 
 #: includes/core/class-admin.php:343
@@ -421,34 +421,39 @@ msgstr ""
 msgid "Would have blocked in the last 7 days, but let through by monitor mode: %d."
 msgstr ""
 
-#. translators: %s: the global value this form inherits when the field is blank.
-#: includes/core/class-admin.php:758
-#: includes/core/class-admin.php:835
-#, php-format
-msgid "blank = use the global value (%s)"
-msgstr ""
-
-#: includes/core/class-admin.php:785
+#: includes/core/class-admin.php:778
 msgid "Mode"
 msgstr ""
 
-#: includes/core/class-admin.php:788
+#: includes/core/class-admin.php:781
 msgid "Use the site-wide setting"
 msgstr ""
 
-#: includes/core/class-admin.php:789
+#: includes/core/class-admin.php:782
 msgid "Enforce — block submissions"
 msgstr ""
 
-#: includes/core/class-admin.php:790
+#: includes/core/class-admin.php:783
 msgid "Monitor — log only, block nothing"
+msgstr ""
+
+#. translators: %s: the value this form inherits when the field is blank.
+#: includes/core/class-admin.php:844
+#, php-format
+msgid "blank = use the default for this form (%s)"
+msgstr ""
+
+#. translators: %s: the global value this form inherits when the field is blank.
+#: includes/core/class-admin.php:849
+#, php-format
+msgid "blank = use the global value (%s)"
 msgstr ""
 
 #: includes/core/class-assets.php:91
 msgid "Website"
 msgstr ""
 
-#: includes/core/class-contexts.php:34
+#: includes/core/class-contexts.php:53
 msgid "Jetpack contact forms"
 msgstr ""
 

@@ -96,17 +96,58 @@ final class JobManagerIntegrationTest extends TestCase {
 		);
 	}
 
+	/**
+	 * Register the context as init() does when WP Job Manager is active, so
+	 * its threshold defaults apply as they would on a real site.
+	 */
+	private function registerContext(): void {
+		add_filter( 'simple_spam_shield_contexts', [ Job_Manager::class, 'register_context' ] );
+	}
+
+	/** A description linking to $count distinct pages. */
+	private function withLinks( int $count ): array {
+		$values = $this->legitimateValues();
+		$links  = [];
+		for ( $i = 1; $i <= $count; $i++ ) {
+			$links[] = "https://example.com/page-{$i}";
+		}
+		$values['job']['job_description'] = 'About the role: ' . implode( ' ', $links );
+		return $values;
+	}
+
 	/** Links the poster wrote into the description still count. */
 	public function test_links_in_the_description_still_count(): void {
 		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_link_limit_enabled'] = true;
 		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_link_limit_max']     = 3;
 		$_POST['simple_spam_shield_form_loaded']                                             = $this->token();
+		$this->registerContext();
 
-		$values                            = $this->legitimateValues();
-		$values['job']['job_description'] = 'Earn money fast http://a.example http://b.example '
-			. 'http://c.example http://d.example';
+		$this->assertInstanceOf( WP_Error::class, Job_Manager::validate( true, [], $this->withLinks( 11 ) ) );
+	}
 
-		$this->assertInstanceOf( WP_Error::class, Job_Manager::validate( true, [], $values ) );
+	/**
+	 * The case #45 was filed for: an ordinary listing linking to an about
+	 * page, a benefits page, a team page and where to apply. The global is
+	 * 3 because activation stores the shipped default, not because the site
+	 * chose it, so the job listing's own default of 10 applies.
+	 */
+	public function test_four_links_pass_at_the_job_listing_default(): void {
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_link_limit_enabled'] = true;
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_link_limit_max']     = 3;
+		$_POST['simple_spam_shield_form_loaded']                                             = $this->token();
+		$this->registerContext();
+
+		$this->assertTrue( Job_Manager::validate( true, [], $this->withLinks( 4 ) ) );
+	}
+
+	/** A global the site changed from the default wins over the listing's default. */
+	public function test_a_link_limit_the_site_chose_still_applies(): void {
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_link_limit_enabled'] = true;
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_link_limit_max']     = 2;
+		$_POST['simple_spam_shield_form_loaded']                                             = $this->token();
+		$this->registerContext();
+
+		$this->assertInstanceOf( WP_Error::class, Job_Manager::validate( true, [], $this->withLinks( 3 ) ) );
 	}
 
 	public function test_the_job_title_is_checked_as_content(): void {
@@ -156,6 +197,7 @@ final class JobManagerIntegrationTest extends TestCase {
 
 		$this->assertArrayHasKey( 'job_submission', $contexts );
 		$this->assertArrayHasKey( 'label', $contexts['job_submission'] );
+		$this->assertSame( [ 'simple_spam_shield_link_limit_max' => 10 ], $contexts['job_submission']['defaults'] );
 	}
 
 	public function test_the_submission_form_is_added_to_the_script_selectors(): void {

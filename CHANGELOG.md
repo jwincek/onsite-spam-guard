@@ -11,6 +11,22 @@ The user-facing changelog shipped to WordPress.org lives in the
 ## [Unreleased]
 
 ### Added
+- Contexts can carry threshold `defaults` (#45) through the
+  `simple_spam_shield_contexts` filter, so an integration ships starting values
+  that suit its form instead of inheriting ones tuned for comments. Only the
+  six per-form thresholds are accepted (`Contexts::THRESHOLDS`), clamped to the
+  settings page's bounds; monitor mode, guard toggles and anything else are
+  dropped, so a registration cannot default its form's protection off. A
+  per-form override still wins, and so does a global the site changed from the
+  shipped default. The issue proposed placing the context default *below* the
+  global; that would never have applied, because activation stores every
+  default and saving the settings page stores every field, so the global
+  exists on practically every site. A global still equal to the shipped default
+  is therefore treated as unchosen. `Contexts::inherited()` resolves this for
+  both the guards and the Per-form tab, whose blank fields now say whether they
+  inherit the global value or the form's own default. The bounds, previously
+  literals in the settings code, live in `Contexts::THRESHOLDS`, and a test
+  fails if its defaults drift from `config/guards.json`.
 - A review of each monitored form on the Per-form tab (#57): how long it has
   been monitored, how many submissions would have been blocked and by which
   guards, **View them** (the Spam Logs filtered to that form and to "Would have
@@ -61,6 +77,13 @@ The user-facing changelog shipped to WordPress.org lives in the
   1.6.0 fix reverted, and on a warning, deprecation or `_doing_it_wrong()`
   raised from plugin code. A step fails the job if `WP_VERSION` stops matching
   the header's `Requires at least`.
+
+### Changed
+- WP Job Manager job submissions start with a link limit of 10 instead of the
+  comment-sized 3 (#45). An ordinary listing linking to an about page, a
+  benefits page, a team page and where to apply has four and was rejected. A
+  site that has changed the global link limit keeps its own value for job
+  listings too.
 
 ### Fixed
 - The settings page banner counted submissions monitor mode let through as

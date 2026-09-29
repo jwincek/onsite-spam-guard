@@ -399,12 +399,42 @@ registers is still fully protected** — it just uses the global thresholds, wit
 nowhere to override them.
 
 Overridable thresholds: minimum submit time, maximum links, duplicate window,
-rate-limit maximum, rate-limit window, and behavioral threshold. Each resolves
-in this order:
+rate-limit maximum, rate-limit window, and behavioral threshold — the keys of
+`Contexts::THRESHOLDS`, which also holds their bounds.
+
+#### Giving your form its own starting values
+
+A default tuned for comments is often wrong for another form: the link limit of
+3 rejects an ordinary job listing with four links. A registration can carry
+`defaults` for any of the thresholds above:
+
+```php
+$contexts['commission_form'] = [
+    'label'    => 'Commission requests',
+    'defaults' => [ 'simple_spam_shield_link_limit_max' => 10 ],
+];
+```
+
+Values are clamped to the settings page's bounds. Keys that are not thresholds
+are dropped — including `simple_spam_shield_monitor_mode` and the guard
+toggles, so a registration cannot switch its own form's protection off. The
+built-in WP Job Manager integration uses this for a link limit of 10.
+
+Each threshold then resolves in this order:
 
 1. the per-form override, if the site set one
-2. the global setting on the Guards tab
-3. the default in `config/guards.json`
+2. the global setting on the Guards tab, if the site changed it from the default
+3. the form's own default, if its registration supplies one
+4. the global setting, then the default in `config/guards.json`
+
+Step 2 is judged by value. Activation stores every default and saving the
+settings page stores every field, so the global option exists on practically
+every site whether anyone chose it or not; one still equal to the shipped
+default counts as unchosen. A site that deliberately keeps exactly the default
+cannot be told apart from one that never looked, and its form gets the form's
+default — a per-form override is how to insist. `Contexts::inherited()`
+implements steps 2–4, and the Per-form tab uses it to label each blank field
+with what it inherits and from where.
 
 A blank override field means inherit, so a site can override one threshold for a
 form without restating the rest.

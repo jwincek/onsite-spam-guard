@@ -330,16 +330,16 @@ final class Admin {
 		self::add_toggle( 'simple_spam_shield_use_wp_disallowed_keys', __( 'Also apply WordPress\'s Disallowed Comment Keys (Settings → Discussion) to every protected form', 'onsite-spam-guard' ), $guards_page, 'simple_spam_shield_guards', false );
 
 		// ---- Per-form tab ----
-		// One section per registered context. Thresholds stay global; these
-		// only override them, so every field is blank by default and shows the
-		// global value it would otherwise inherit.
+		// One section per registered context. Every field is blank by default
+		// and shows what it would otherwise inherit: the global value, or the
+		// form's own default where its registration supplies one.
 		$contexts_page = $tabs['contexts']['page'];
 
 		add_settings_section(
 			'simple_spam_shield_contexts_intro',
 			__( 'Per-form thresholds', 'onsite-spam-guard' ),
 			function (): void {
-				echo '<p>' . esc_html__( 'Guard thresholds on the Guards tab apply to every form. Where one form needs different values — a contact form is more suspicious of links than a comment thread, and a long application form needs a longer minimum fill time than a comment box — override them here. Leave a field blank to use the global value.', 'onsite-spam-guard' ) . '</p>';
+				echo '<p>' . esc_html__( 'Guard thresholds on the Guards tab apply to every form. Where one form needs different values — a contact form is more suspicious of links than a comment thread, and a long application form needs a longer minimum fill time than a comment box — override them here. Leave a field blank to inherit; each field says what that means for its form.', 'onsite-spam-guard' ) . '</p>';
 				echo '<p class="description">' . esc_html__( 'Forms added by other plugins appear here once they register themselves. A form that has not is still protected; it uses the global thresholds.', 'onsite-spam-guard' ) . '</p>';
 			},
 			$contexts_page
@@ -360,12 +360,12 @@ final class Admin {
 
 			self::add_mode_override( $context, $contexts_page, $section );
 
-			self::add_number_override( 'simple_spam_shield_time_gate_seconds', $context, __( 'Minimum seconds before submit', 'onsite-spam-guard' ), $contexts_page, $section, 3, 1, 30 );
-			self::add_number_override( 'simple_spam_shield_link_limit_max', $context, __( 'Maximum links per submission', 'onsite-spam-guard' ), $contexts_page, $section, 3, 0, 50 );
-			self::add_number_override( 'simple_spam_shield_duplicate_window_seconds', $context, __( 'Duplicate detection window', 'onsite-spam-guard' ), $contexts_page, $section, 60, 1, 86400 );
-			self::add_number_override( 'simple_spam_shield_rate_limit_max', $context, __( 'Rate limit: max submissions', 'onsite-spam-guard' ), $contexts_page, $section, 10, 0, 1000 );
-			self::add_number_override( 'simple_spam_shield_rate_limit_window_seconds', $context, __( 'Rate limit: window length', 'onsite-spam-guard' ), $contexts_page, $section, 60, 1, 86400 );
-			self::add_float_override( 'simple_spam_shield_behavioral_threshold', $context, __( 'Behavioral suspicion threshold', 'onsite-spam-guard' ), $contexts_page, $section, 0.6 );
+			self::add_number_override( 'simple_spam_shield_time_gate_seconds', $context, __( 'Minimum seconds before submit', 'onsite-spam-guard' ), $contexts_page, $section );
+			self::add_number_override( 'simple_spam_shield_link_limit_max', $context, __( 'Maximum links per submission', 'onsite-spam-guard' ), $contexts_page, $section );
+			self::add_number_override( 'simple_spam_shield_duplicate_window_seconds', $context, __( 'Duplicate detection window', 'onsite-spam-guard' ), $contexts_page, $section );
+			self::add_number_override( 'simple_spam_shield_rate_limit_max', $context, __( 'Rate limit: max submissions', 'onsite-spam-guard' ), $contexts_page, $section );
+			self::add_number_override( 'simple_spam_shield_rate_limit_window_seconds', $context, __( 'Rate limit: window length', 'onsite-spam-guard' ), $contexts_page, $section );
+			self::add_float_override( 'simple_spam_shield_behavioral_threshold', $context, __( 'Behavioral suspicion threshold', 'onsite-spam-guard' ), $contexts_page, $section );
 		}
 
 		// ---- Allowlist tab ----
@@ -727,8 +727,10 @@ final class Admin {
 	 * value rather than an absence. The stored value is a string for that
 	 * reason — '' for inherit, the number otherwise.
 	 */
-	private static function add_number_override( string $option, string $context, string $label, string $page, string $section, int $global_default, int $min, int $max ): void {
+	private static function add_number_override( string $option, string $context, string $label, string $page, string $section ): void {
 		$name = Contexts::option( $option, $context );
+		$min  = (int) Contexts::THRESHOLDS[ $option ]['min'];
+		$max  = (int) Contexts::THRESHOLDS[ $option ]['max'];
 
 		register_setting( 'onsite-spam-guard', $name, [
 			'type'              => 'string',
@@ -742,23 +744,14 @@ final class Admin {
 			'default'           => '',
 		] );
 
-		add_settings_field( $name, $label, static function () use ( $name, $option, $global_default, $min, $max ): void {
-			$value  = (string) get_option( $name, '' );
-			$global = get_option( $option, $global_default );
-
+		add_settings_field( $name, $label, static function () use ( $name, $option, $context, $min, $max ): void {
 			printf(
 				'<input type="number" name="%1$s" value="%2$s" min="%3$d" max="%4$d" step="1" class="small-text"> <span class="description">%5$s</span>',
 				esc_attr( $name ),
-				esc_attr( $value ),
+				esc_attr( (string) get_option( $name, '' ) ),
 				absint( $min ),
 				absint( $max ),
-				esc_html(
-					sprintf(
-						/* translators: %s: the global value this form inherits when the field is blank. */
-						__( 'blank = use the global value (%s)', 'onsite-spam-guard' ),
-						(string) $global
-					)
-				)
+				esc_html( self::inherited_description( $option, $context ) )
 			);
 		}, $page, $section );
 	}
@@ -806,37 +799,55 @@ final class Admin {
 	 * Separate from add_number_override() only because the behavioral threshold
 	 * is a 0.0-1.0 score rather than a whole number.
 	 */
-	private static function add_float_override( string $option, string $context, string $label, string $page, string $section, float $global_default ): void {
+	private static function add_float_override( string $option, string $context, string $label, string $page, string $section ): void {
 		$name = Contexts::option( $option, $context );
+		$min  = (float) Contexts::THRESHOLDS[ $option ]['min'];
+		$max  = (float) Contexts::THRESHOLDS[ $option ]['max'];
 
 		register_setting( 'onsite-spam-guard', $name, [
 			'type'              => 'string',
-			'sanitize_callback' => static function ( $value ): string {
+			'sanitize_callback' => static function ( $value ) use ( $min, $max ): string {
 				if ( '' === $value || null === $value ) {
 					return '';
 				}
 
-				return (string) max( 0.0, min( 1.0, (float) $value ) );
+				return (string) max( $min, min( $max, (float) $value ) );
 			},
 			'default'           => '',
 		] );
 
-		add_settings_field( $name, $label, static function () use ( $name, $option, $global_default ): void {
-			$value  = (string) get_option( $name, '' );
-			$global = get_option( $option, $global_default );
-
+		add_settings_field( $name, $label, static function () use ( $name, $option, $context, $min, $max ): void {
 			printf(
-				'<input type="number" name="%1$s" value="%2$s" min="0.0" max="1.0" step="0.1" class="small-text"> <span class="description">%3$s</span>',
+				'<input type="number" name="%1$s" value="%2$s" min="%3$s" max="%4$s" step="0.1" class="small-text"> <span class="description">%5$s</span>',
 				esc_attr( $name ),
-				esc_attr( $value ),
-				esc_html(
-					sprintf(
-						/* translators: %s: the global value this form inherits when the field is blank. */
-						__( 'blank = use the global value (%s)', 'onsite-spam-guard' ),
-						(string) $global
-					)
-				)
+				esc_attr( (string) get_option( $name, '' ) ),
+				esc_attr( (string) $min ),
+				esc_attr( (string) $max ),
+				esc_html( self::inherited_description( $option, $context ) )
 			);
 		}, $page, $section );
+	}
+
+	/**
+	 * What a blank Per-form field means for this form: the value it inherits,
+	 * and whether that is the site-wide setting or the default its
+	 * registration supplies. Resolved by Contexts::inherited(), the same
+	 * function the guards use, so the page cannot describe one value while a
+	 * different one is enforced.
+	 */
+	private static function inherited_description( string $option, string $context ): string {
+		$inherited = Contexts::inherited( $option, $context, Contexts::THRESHOLDS[ $option ]['default'] );
+
+		return 'context' === $inherited['source']
+			? sprintf(
+				/* translators: %s: the value this form inherits when the field is blank. */
+				__( 'blank = use the default for this form (%s)', 'onsite-spam-guard' ),
+				(string) $inherited['value']
+			)
+			: sprintf(
+				/* translators: %s: the global value this form inherits when the field is blank. */
+				__( 'blank = use the global value (%s)', 'onsite-spam-guard' ),
+				(string) $inherited['value']
+			);
 	}
 }

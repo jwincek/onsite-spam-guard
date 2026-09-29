@@ -78,7 +78,13 @@ final class Job_Manager {
 	 */
 	public static function register_context( array $contexts ): array {
 		$contexts[ self::CONTEXT ] = [
-			'label' => __( 'Job submissions (WP Job Manager)', 'onsite-spam-guard' ),
+			'label'    => __( 'Job submissions (WP Job Manager)', 'onsite-spam-guard' ),
+			// A limit of 3 suits a comment. An ordinary job description links
+			// to an about page, a benefits page, a team page and where to
+			// apply, and was rejected at 3 — found stress-testing 1.5.0 (#45).
+			'defaults' => [
+				'simple_spam_shield_link_limit_max' => 10,
+			],
 		];
 
 		return $contexts;
