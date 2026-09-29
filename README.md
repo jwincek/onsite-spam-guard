@@ -9,24 +9,26 @@ This plugin follows a **config-driven, layered architecture**, pioneered by [She
 ```
 config/                  → JSON definitions (guard rules, default settings)
 includes/core/           → Infrastructure (Config loader, Guard Runner, Database Manager, Assets, Admin)
-includes/guards/         → Individual spam checks (analogous to "abilities")
-includes/integrations/   → Thin hooks into WP Comments, WooCommerce, Jetpack
+includes/guards/         → Individual spam checks
+includes/integrations/   → Thin hooks into the forms it protects, and the Abilities API
 admin/                   → WP_List_Table for the spam logs admin page
 assets/css/              → Honeypot field styling
 assets/js/               → Front-end guard injection + behavioral signals
 uninstall.php            → Clean deletion of all plugin data
 ```
 
-**Guards** are the equivalent of the reference plugin's **abilities** — thin, testable operations with clear inputs/outputs. Each guard implements `Guard_Interface` and is registered from `config/guards.json`. The `Guard_Runner` loads them, sorts by weight, and runs them as a pipeline. The first failure short-circuits and blocks the submission.
+**Guards** are thin, testable operations with clear inputs/outputs. Each guard implements `Guard_Interface` and is registered from `config/guards.json`. The `Guard_Runner` loads them, sorts by weight, and runs them as a pipeline. Every enabled guard is evaluated, so the log records all that matched; the highest-weight failure is the verdict and blocks the submission.
 
-**Integrations** are thin consumers that hook into WordPress, WooCommerce, and Jetpack lifecycle events, normalize the incoming data into a common format, and delegate all spam-checking to the shared guard pipeline.
+**Integrations** are thin consumers that hook into the lifecycle events of the forms they protect, normalize the incoming data into a common format, and delegate all spam-checking to the shared guard pipeline.
 
 ## Requirements
 
 - WordPress 6.2+
 - PHP 8.2+
-- Optional: WooCommerce (for review protection)
+- Optional: WooCommerce (for review and account-registration protection)
 - Optional: Jetpack (for contact form protection)
+- Optional: Contact Form 7, WP Job Manager, BuddyPress (for their forms and messages)
+- Optional: WordPress 6.9+ (for the read-only abilities)
 
 ## Installation
 
@@ -254,6 +256,39 @@ submissions; this applies it more broadly, and without the Akismet dependency Je
 ### Logging
 
 Blocked submissions are logged to a custom database table (`wp_simple_spam_shield_spam_logs`) with guard name, context, reason, content excerpt, IP, and user agent. The **Spam Guard → Spam Logs** admin page provides a paginated, sortable `WP_List_Table` that can be filtered by guard and by context, shows a user-agent column, and offers individual and bulk delete. A cached 7-day summary ("blocked / most active guard") sits above the list. Logging can be disabled from the settings page, and a configurable retention window (default 30 days) prunes old rows daily via WP-Cron.
+
+### Abilities (WordPress 6.9+)
+
+The log is readable through WordPress's Abilities API as two read-only
+abilities in the `onsite-spam-guard` category:
+
+| Ability | Input | Output |
+| --- | --- | --- |
+| `onsite-spam-guard/stats` | none | `{ days, blocked, monitored, top_guard, top_guard_blocked }` — the cached 7-day summary |
+| `onsite-spam-guard/recent-blocks` | `{ limit?: 1–100 (default 20), outcome?: "blocked" \| "monitored" }` | `{ entries: [ { logged_at, outcome, context, guard, guards_matched[], reason } ], total }`, newest first |
+
+Both require `manage_options`, the capability the Spam Logs screen needs, and
+are annotated `readonly`, `idempotent` and not `destructive`. Both set
+`show_in_rest`, so core serves them at
+`/wp-abilities/v1/abilities/onsite-spam-guard/{stats,recent-blocks}/run`
+(`GET`, since they are read-only; input goes in the `input` query parameter).
+The flag is set explicitly because the `public` flag that seeds it arrived in
+7.1.
+
+**No personal data.** An entry carries when, where, which checks objected and
+why — never the IP address, user agent or content excerpt the log also holds.
+An ability's output goes wherever its caller sends it, which for the AI Client
+means the site's AI provider. `Abilities_API::entry()` *selects* fields rather
+than removing them, so a column added to the log later is not exposed by
+default. `reason` is the refusing guard's message: fixed text for the built-in
+guards, but whatever a third-party guard wrote for its own.
+
+Registration is optional, not a requirement: the callbacks hang off
+`wp_abilities_api_categories_init` and `wp_abilities_api_init`, which only 6.9+
+fires, and each also checks for the function it calls, so `Requires at least`
+stays at 6.2. CI tests both sides of that line (see `tests/smoke/`). Core
+validates each result against the ability's output schema, so an entry that
+drifts from the declared shape fails loudly rather than returning stale data.
 
 ### Settings
 

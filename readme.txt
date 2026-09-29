@@ -69,6 +69,12 @@ No. All protection is invisible. The honeypot field is hidden, and the timing an
 
 When a submission is blocked (and logging is enabled), the plugin records the guard that blocked it, the form context, the reason, a short excerpt of the content, the visitor IP address, and the browser user-agent. Entries older than the retention window (default 30 days, configurable; set to 0 to keep them indefinitely) are pruned automatically. The plugin also registers suggested privacy-policy text you can add to your site's policy.
 
+= Can AI assistants and other tools read the spam log? =
+
+On WordPress 6.9 and later, the plugin offers two read-only "abilities" through WordPress's Abilities API: a summary of the last 7 days, and a list of recent blocks. Tools that use the API — REST clients, MCP connectors, and AI features built on WordPress's AI Client — can read them, but only when acting for someone who can manage the site's settings: the same people who can open the Spam Logs screen.
+
+They leave out personal data. There are no IP addresses, no browser user-agents and none of the submitted text: only when a submission was blocked, on which form, which checks objected, and why. The plugin sends nothing anywhere itself; the abilities answer only when something on your site asks. On earlier versions of WordPress they are not registered and nothing changes.
+
 = I'm behind Cloudflare or a load balancer and the wrong IP is logged. =
 
 By default the plugin uses the direct connection IP, because forwarded headers can be forged. If your site sits behind a reverse proxy, enable **Trust proxy headers for IP detection** under **Spam Guard → Settings → Allowlist**.

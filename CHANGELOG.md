@@ -11,6 +11,28 @@ The user-facing changelog shipped to WordPress.org lives in the
 ## [Unreleased]
 
 ### Added
+- Read-only abilities (#9) for WordPress 6.9+'s Abilities API:
+  `onsite-spam-guard/stats` (the cached 7-day summary) and
+  `onsite-spam-guard/recent-blocks` (recent log entries, `limit` 1–100 and an
+  optional `outcome` filter). Both require `manage_options`, are annotated
+  read-only and idempotent, and set `show_in_rest` explicitly — 7.1's `public`
+  flag, which seeds it, is not in 6.9 or 7.0. **No personal data:** an entry
+  carries when, where, which checks objected and why, never the IP address,
+  user agent or content excerpt the log also holds, because an ability's output
+  goes wherever its caller sends it — the site's AI provider, for the AI
+  Client. Entries select fields rather than strip them, so a column added to
+  the log later is not exposed by default. Registration hangs off the
+  Abilities API's own init actions and checks for each function, so
+  `Requires at least` stays at 6.2.
+- The smoke test also runs at `Tested up to`: WordPress 7.1.2 on PHP 8.4,
+  alongside the 6.2 floor, with a step checking each against the claim it
+  represents. Its abilities stage asserts both sides of the 6.9 line: below it
+  nothing registers and nothing fails; above it both abilities register,
+  refuse visitors, pass core's output-schema validation and carry no personal
+  data. Verified to fail when an entry drifts from its declared shape. The
+  admin stage now sets up the admin request itself instead of using WP-CLI's
+  `--context=admin`, whose bootstrap raises warnings in core's
+  `wp-admin/includes/menu.php` on WordPress 7.x with no plugin active.
 - CI tests the declared minimum (#62). `Requires at least: 6.2` was never
   exercised: PHPUnit runs against stubs, and Plugin Check needs WordPress 6.3.
   A new job installs WordPress 6.2.13 on PHP 8.2 and runs

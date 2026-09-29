@@ -22,6 +22,7 @@ CI runs the same suite on PHP 8.2, 8.3, and 8.4 (`.github/workflows/ci.yml`).
 | `HoneypotTest`, `TimeGateTest`, `NonceTest`, `LinkLimitTest`, `KeywordBlockTest`, `DuplicateTest`, `BehavioralTest` | one file per guard — blocking and passing paths |
 | `DatabaseManagerTest` | the prepared filter-clause builder (`build_filter`) |
 | `CommentsIntegrationTest` | a comment driven through the real `Guard_Runner` pipeline and routed to the spam queue |
+| `AbilitiesApiTest` | the read-only abilities: log rows and stats mapped to the public output, no personal data, input clamping, the permission check |
 
 ## Smoke test on a real WordPress
 
@@ -29,11 +30,15 @@ The unit tests cannot show the plugin working on any particular WordPress, so
 `smoke/run.sh` installs the built package into a real one and checks it there:
 an upgrade from the previous release by replacing its files (no reactivation,
 no `admin_init`, as an automatic update runs), uninstall, fresh activation, the
-admin screens, the guard pipeline, every integration with its host plugin
-absent, and a debug log free of errors from the plugin. `smoke/checks.php`
-holds the assertions for each stage.
+admin screens, the guard pipeline, the abilities, every integration with its
+host plugin absent, and a debug log free of errors from the plugin.
+`smoke/checks.php` holds the assertions for each stage.
 
-CI's `wp-floor` job runs it on the declared minimum, WordPress 6.2 on PHP 8.2.
+CI's `wp-smoke` job runs it at both ends of the claimed range: the declared
+minimum (WordPress 6.2 on PHP 8.2), where the Abilities API does not exist and
+the stage asserts nothing registers or fails; and `Tested up to` (WordPress 7.1
+on PHP 8.4), where both abilities must register, refuse visitors, pass core's
+output-schema validation and carry no personal data.
 To run it yourself you need a throwaway WordPress with `WP_DEBUG` and
 `WP_DEBUG_LOG` on — **it uninstalls the plugin, dropping its table and
 options**:
