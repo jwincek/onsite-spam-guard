@@ -64,15 +64,19 @@ abstract class Abstract_Guard implements Guard_Interface {
 	 * Resolution order, first hit wins:
 	 *
 	 *   1. the context override, if the site set one
-	 *   2. the global setting
-	 *   3. the default from config/guards.json, then the literal passed in
+	 *   2. the global setting, if the site changed it from the default
+	 *   3. the context's own default, if its registration supplies one
+	 *   4. the global setting, then the default from config/guards.json
+	 *
+	 * Steps 2-4 are Contexts::inherited(), which the Per-form tab also uses
+	 * to show what a blank field means.
 	 *
 	 * An override stored as an empty string means "inherit", which is how the
 	 * settings screen represents a field left blank.
 	 *
 	 * @param string $option  Global option name.
 	 * @param string $context Submission context.
-	 * @param mixed  $default Fallback when neither is set.
+	 * @param mixed  $default The plugin's default, from config/guards.json.
 	 * @return mixed
 	 */
 	protected function threshold( string $option, string $context, mixed $default ): mixed {
@@ -82,7 +86,11 @@ abstract class Abstract_Guard implements Guard_Interface {
 			return $override;
 		}
 
-		return get_option( $option, $default );
+		if ( ! is_numeric( $default ) ) {
+			return get_option( $option, $default );
+		}
+
+		return \Simple_Spam_Shield\Core\Contexts::inherited( $option, $context, $default + 0 )['value'];
 	}
 
 	/**
