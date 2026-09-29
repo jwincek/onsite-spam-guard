@@ -23,7 +23,6 @@ final class Admin {
 		add_action( 'admin_menu', [ __CLASS__, 'add_menus' ] );
 		add_action( 'admin_init', [ __CLASS__, 'register_settings' ] );
 		add_action( 'admin_init', [ __CLASS__, 'add_privacy_policy_content' ] );
-		add_action( 'admin_init', [ Database_Manager::class, 'create_table' ] );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_settings_assets' ] );
 		add_action( 'admin_notices', [ __CLASS__, 'monitor_mode_notice' ] );
 		add_filter( 'site_status_tests', [ Proxy_Diagnostics::class, 'register_site_health_test' ] );

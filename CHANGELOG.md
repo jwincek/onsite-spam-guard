@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 The user-facing changelog shipped to WordPress.org lives in the
 `== Changelog ==` section of `readme.txt`; keep the two in sync.
 
-## [Unreleased]
+## [1.6.0] - 2026-09-28
 
 ### Added
 - Monitor mode (#48): evaluate every guard and log what would be blocked, but
@@ -76,6 +76,17 @@ The user-facing changelog shipped to WordPress.org lives in the
   it would otherwise act on accepted traffic. `Guard_Runner::is_monitoring()`
   is public for code that needs to know.
 
+### Fixed
+- Log-table upgrades ran only on `admin_init`. An update never fires the
+  activation hook, and an automatic update runs from WP-Cron, where
+  `admin_init` does not fire either — so after an automatic update that
+  changed the schema, every log insert failed with "Unknown column" until
+  someone opened wp-admin. Submissions were still blocked; their log rows were
+  lost. The schema check now runs on `plugins_loaded` for every request, which
+  once the table is current is one cached option read. The gap has existed
+  since the first migration, in 1.3.0; 1.6.0's `outcome` column would have hit
+  it on every auto-updated site.
+
 ## [1.5.1] - 2026-09-28
 
 ### Fixed
@@ -105,8 +116,6 @@ The user-facing changelog shipped to WordPress.org lives in the
   Each field is now length-prefixed.
 
 ## [1.5.0] - 2026-09-15
-
-## [Unreleased]
 
 ### Fixed
 - The link limit counted an autolinked URL twice. Rich-text editors produce
@@ -424,7 +433,11 @@ Initial release.
   their own forms: `simple_spam_shield_check()`,
   `simple_spam_shield_protect_selector()`, and `simple_spam_shield_field_markup()`.
 
-[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.5.1...v1.6.0
+[1.5.1]: https://github.com/jwincek/onsite-spam-guard/compare/v1.5.0...v1.5.1
+[1.5.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.4.0...v1.5.0
+[1.4.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/jwincek/onsite-spam-guard/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.1.3...v1.2.0
