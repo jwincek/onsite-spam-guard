@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 The user-facing changelog shipped to WordPress.org lives in the
 `== Changelog ==` section of `readme.txt`; keep the two in sync.
 
-## [Unreleased]
+## [1.7.0] - 2026-09-29
 
 ### Added
 - Contexts can carry threshold `defaults` (#45) through the
@@ -96,6 +96,15 @@ The user-facing changelog shipped to WordPress.org lives in the
   The template is regenerated, `check-pot.sh` now excludes `build/` and fails
   on a template that references it, and the documented command in
   CONTRIBUTING.md passes `--exclude=build`.
+- `bin/screenshots.mjs` did not leave the site as it found it. It recorded each
+  fixture's previous value just before writing it, so an option created by
+  another fixture's hook — setting a monitor mode starts its clock — was
+  recorded as the value to restore and left behind. And the Spam Logs shot
+  cached the 7-day summary with the seeded rows in it, so for 15 minutes the
+  site reported blocks that never happened. Previous values are now all read
+  before any is written, removing the seeded rows clears the cache, and the
+  script fingerprints the plugin's options, transients and log row count
+  before the run and fails if they differ afterwards. Dev tooling only.
 
 ## [1.6.0] - 2026-09-28
 
@@ -522,7 +531,8 @@ Initial release.
   their own forms: `simple_spam_shield_check()`,
   `simple_spam_shield_protect_selector()`, and `simple_spam_shield_field_markup()`.
 
-[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/jwincek/onsite-spam-guard/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.4.0...v1.5.0
