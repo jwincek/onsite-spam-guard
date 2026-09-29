@@ -348,7 +348,15 @@ final class Admin {
 		foreach ( Contexts::all() as $context => $definition ) {
 			$section = 'simple_spam_shield_context_' . $context;
 
-			add_settings_section( $section, $definition['label'], '__return_null', $contexts_page );
+			// A monitored form opens with what enforcing it would catch.
+			add_settings_section(
+				$section,
+				$definition['label'],
+				static function () use ( $context ): void {
+					Monitor_Review::render( $context );
+				},
+				$contexts_page
+			);
 
 			self::add_mode_override( $context, $contexts_page, $section );
 
@@ -476,8 +484,26 @@ final class Admin {
 		echo '<div class="wrap">';
 		echo '<h1>' . esc_html( get_admin_page_title() ) . '</h1>';
 
-		// Quick stats banner.
-		$count = Database_Manager::get_count();
+		// Confirmation from Monitor_Review::handle_enforce(), which verified
+		// its nonce before redirecting here; this only chooses what to display.
+		$enforced = isset( $_GET['enforced'] ) ? sanitize_key( wp_unslash( $_GET['enforced'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only flag set by our own redirect.
+		$contexts = Contexts::all();
+		if ( isset( $contexts[ $enforced ] ) ) {
+			printf(
+				'<div class="notice notice-success is-dismissible"><p>%s</p></div>',
+				esc_html(
+					sprintf(
+						/* translators: %s: form name, e.g. "Contact Form 7 forms". */
+						__( 'Now enforcing %s: submissions that fail a check are blocked.', 'onsite-spam-guard' ),
+						$contexts[ $enforced ]['label']
+					)
+				)
+			);
+		}
+
+		// Quick stats banner. Blocked only: a submission monitor mode let
+		// through was not blocked, whatever it would have been.
+		$count = Database_Manager::get_count( [ 'outcome' => Database_Manager::OUTCOME_BLOCKED ] );
 		if ( $count > 0 ) {
 			echo '<div class="notice notice-info"><p>';
 			printf(

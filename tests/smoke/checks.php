@@ -14,8 +14,10 @@
 
 use Simple_Spam_Shield\Core\Admin;
 use Simple_Spam_Shield\Core\Assets;
+use Simple_Spam_Shield\Core\Contexts;
 use Simple_Spam_Shield\Core\Database_Manager;
 use Simple_Spam_Shield\Core\Guard_Runner;
+use Simple_Spam_Shield\Core\Monitor_Review;
 use Simple_Spam_Shield\Core\Proxy_Diagnostics;
 use Simple_Spam_Shield\Guards\Honeypot;
 
@@ -174,9 +176,21 @@ switch ( $mode ) {
 		update_option( 'simple_spam_shield_monitor_mode', true );
 		$verdict = Guard_Runner::run( $submission( $token, 'https://spam.example/other' ), 'comment' );
 		$row     = $latest_row();
+		$review  = Monitor_Review::summary( 'comment' );
 		update_option( 'simple_spam_shield_monitor_mode', false );
 		$check( true === $verdict, 'in monitor mode the same spam is let through' );
 		$check( null !== $row && 'monitored' === $row['outcome'], 'and logged as monitored' );
+		$check( null !== $review['since'] && [ 'honeypot' => 1 ] === $review['by_guard'], 'the monitor review counts it, timed from when monitoring began' );
+		$check( false === get_option( Monitor_Review::SINCE ), 'turning monitor mode off clears its start time' );
+
+		// One form monitored on its own, then enforced from its review.
+		$mode  = Contexts::option( 'simple_spam_shield_monitor_mode', 'comment' );
+		$since = Contexts::option( Monitor_Review::SINCE, 'comment' );
+		update_option( $mode, 'monitor' );
+		$check( is_numeric( get_option( $since ) ), 'monitoring one form records when it began' );
+		Monitor_Review::enforce( 'comment' );
+		$check( 'enforce' === get_option( $mode ) && false === get_option( $since ), 'enforcing it from the review stores enforce and clears the start time' );
+		delete_option( $mode );
 		break;
 
 	/*
