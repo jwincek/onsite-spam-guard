@@ -15,14 +15,13 @@ CI runs the same suite on PHP 8.2, 8.3, and 8.4 (`.github/workflows/ci.yml`).
 
 ## Layout
 
-| File | Covers |
+| Area | Files |
 | --- | --- |
-| `TokenTest` | HMAC token signing round-trip and rejection of tampered/forged/empty tokens |
-| `RequestTest` | visitor-IP resolution and the trusted-proxy rule |
-| `HoneypotTest`, `TimeGateTest`, `NonceTest`, `LinkLimitTest`, `KeywordBlockTest`, `DuplicateTest`, `BehavioralTest` | one file per guard — blocking and passing paths |
-| `DatabaseManagerTest` | the prepared filter-clause builder (`build_filter`) |
-| `CommentsIntegrationTest` | a comment driven through the real `Guard_Runner` pipeline and routed to the spam queue |
-| `AbilitiesApiTest` | the read-only abilities: log rows and stats mapped to the public output, no personal data, input clamping, the permission check |
+| The pipeline | `EvaluateAllGuardsTest` — every enabled guard is evaluated, the highest-weight objection is the verdict, and `commit()` runs only on acceptance · `GuardRegistrationTest` — guards registered by other plugins through `simple_spam_shield_guards`, and malformed ones refused · `MonitorModeTest` — monitor mode site-wide and per form · `MonitorReviewTest` — the review of a monitored form and "Enforce this form" |
+| Guards, one file each | `HoneypotTest`, `HoneypotFieldNameTest` (the per-site field name), `TimeGateTest`, `NonceTest` (the signature guard), `LinkLimitTest`, `KeywordBlockTest`, `DuplicateTest`, `RateLimitTest`, `BehavioralTest` — blocking and passing paths · `ConfigurableWindowsTest` — the duplicate and rate-limit windows |
+| Per-form settings | `PerContextConfigTest` — the contexts registry and per-form overrides · `ContextDefaultsTest` — thresholds a context brings with it, and where they sit in the chain |
+| Integrations | `CommentsIntegrationTest` — a comment through the real pipeline to the spam queue · `JetpackFormsTest` · `ContactForm7IntegrationTest` · `JobManagerIntegrationTest` · `BuddyPressMessagesTest` · `RegistrationTest` (WordPress, WooCommerce and BuddyPress signup) · `AbilitiesApiTest` — the read-only abilities, including that no personal data leaves |
+| Core pieces | `TokenTest` — the signed form token · `RequestTest` — visitor-IP resolution behind trusted proxies · `ProxyDiagnosticsTest` · `AllowlistTest` · `DatabaseManagerTest` — the prepared filter-clause builder · `ApiTest` — the public functions in `includes/api.php` · `SettingsLinkTest` |
 
 ## Smoke test on a real WordPress
 
@@ -55,14 +54,25 @@ migration, so the upgrade stage exercises it.
 
 ## How the stubs work
 
-`bootstrap.php` keeps in-memory stores that tests read and write directly:
+`bootstrap.php` defines the WordPress functions the code touches, each guarded by
+`function_exists()`, backed by in-memory stores that tests read and write
+directly. Reset the ones a test uses in `setUp()`:
 
-- `$GLOBALS['simple_spam_shield_test_options']` — backs `get_option()` / `update_option()`.
-- `$GLOBALS['simple_spam_shield_test_transients']` — backs the transient functions.
-- `$GLOBALS['simple_spam_shield_test_caps']` — backs `current_user_can()`.
+| Global (`$GLOBALS['simple_spam_shield_test_…']`) | Backs |
+| --- | --- |
+| `options` | `get_option()`, `update_option()`, `add_option()`, `delete_option()` |
+| `transients`, `transient_expirations` | the transient functions; the expiration each `set_transient()` asked for |
+| `caps` | `current_user_can()` for the current user |
+| `user_caps`, `users`, `user_id` | `user_can()`, `get_userdata()`, `get_current_user_id()` |
+| `filters`, `actions` | `add_filter()` / `apply_filters()` and `add_action()` / `do_action()`: callbacks are recorded and run |
+| `doing_it_wrong` | each `_doing_it_wrong()` call, so a test can assert one was raised |
+| `log_rows` | rows passed to `$wpdb->insert()` |
+| `queries`, `results`, `var` | `$wpdb->prepare()` records each query with its arguments; `get_results()` and `get_var()` return whatever a test put in `results` and `var` |
 
-`wp_die()` is stubbed to **throw** (so the hard-block path can be asserted),
-and `WP_Error` is a minimal stand-in. Set state in `setUp()`, e.g.:
+`wp_die()` is stubbed to **throw** a `RuntimeException`, so the hard-block path
+can be asserted. `WP_Error` mirrors core's interface (`add()`, `has_errors()`,
+`get_error_codes()`, `get_error_messages()`, `get_error_data()` …), so code that
+builds on an existing error behaves as it does in WordPress. For example:
 
 ```php
 protected function setUp(): void {

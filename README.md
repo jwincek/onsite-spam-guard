@@ -1,6 +1,6 @@
 # Onsite Spam Guard
 
-Config-driven spam prevention for WordPress Comments, WooCommerce Product Reviews, and Jetpack Contact Form blocks — no external services, no API keys, no CAPTCHA.
+Config-driven spam prevention for WordPress comments, Contact Form 7, WooCommerce product reviews, Jetpack contact forms and WP Job Manager submissions, with optional protection for account registration and BuddyPress private messages — no external services, no API keys, no CAPTCHA.
 
 ## Architecture
 
@@ -42,25 +42,27 @@ uninstall.php            → Clean deletion of all plugin data
 | Guard | Weight | Default | Description |
 |---|---|---|---|
 | **Honeypot** | 100 | On | Hidden field that bots fill in but humans never see. The field name is derived from the site's signing secret, so it differs per install rather than being a fixed target a bot author can skip-list once |
-| **Duplicate detection** | 95 | On | Rejects identical submissions within a 60-second window using transient-based hashing |
+| **Duplicate detection** | 95 | On | Rejects identical submissions within a configurable window (default 60 seconds) using transient-based hashing |
 | **Time gate** | 90 | On | Rejects submissions completed faster than a human could type (configurable, default 3s), using a server-signed issue time |
 | **Rate limit** | 85 | Off | Throttles repeated submissions from the same sender within a rolling window; keyed on the logged-in user ID when present, the connection IP otherwise |
 | **Signature** | 80 | On | Requires a valid server-signed token (HMAC) proving the form was served by this site; does not expire, so it is cache-safe |
-| **Link limit** | 70 | On | Flags submissions containing too many URLs (configurable, default 3) |
+| **Link limit** | 70 | On | Flags submissions containing too many distinct URLs (configurable, default 3; a form can bring its own, such as 10 for WP Job Manager listings) |
 | **Keyword block** | 60 | On | Rejects submissions matching blocked keywords or phrases |
 | **Behavioral analysis** | 55 | Off | Scores mouse movements, clicks, and time-on-page to detect bot-like interaction patterns |
 
-Guards run in descending weight order. All can be toggled individually from the admin settings page. Definitions (weights, defaults, thresholds) live in `config/guards.json`.
+Every enabled guard evaluates every submission, in descending weight order. The highest-weight objection is the verdict, and every guard that objected is logged. All can be toggled individually from the admin settings page, and their thresholds overridden per form. Definitions (weights, defaults, thresholds) live in `config/guards.json`.
 
 ## How It Works
 
 ### Front-end injection
 
-`guard.js` automatically finds comment forms, WooCommerce review forms, Jetpack contact form blocks, and the WP Job Manager submission form on the page via CSS selectors. It injects hidden fields for the honeypot, the signed form token, and behavioral data into each form. A `MutationObserver` (debounced) catches dynamically-loaded forms (e.g. AJAX-loaded WooCommerce reviews). The token is an HMAC-signed `<issued_at>.<signature>` string minted server-side (`includes/core/class-token.php`); the time gate reads the signed issue time and the signature guard verifies authenticity. Behavioral data (mouse movement count, click count, time on page) is collected continuously and serialized into a JSON hidden field at submit time.
+`guard.js` automatically finds the protected forms on the page — comment forms, WooCommerce review forms, Jetpack contact forms, Contact Form 7 forms, the WP Job Manager submission form, and the account registration forms when that protection is on — via CSS selectors. Integrations add their selectors through the `simple_spam_shield_form_selectors` filter, which other plugins can use too. It injects hidden fields for the honeypot, the signed form token, and behavioral data into each form. A `MutationObserver` (debounced) catches dynamically-loaded forms (e.g. AJAX-loaded WooCommerce reviews). The token is an HMAC-signed `<issued_at>.<signature>` string minted server-side (`includes/core/class-token.php`); the time gate reads the signed issue time and the signature guard verifies authenticity. Behavioral data (mouse movement count, click count, time on page) is collected continuously and serialized into a JSON hidden field at submit time.
 
 ### Server-side pipeline
 
-When a form is submitted, the relevant integration class (Comments, WooCommerce, or Jetpack) normalizes the data and passes it to `Guard_Runner::run()`. The runner checks the allowlist first — if the submitter's IP or email matches, all guards are bypassed. Otherwise, each enabled guard runs in weight order until one fails or all pass.
+When a form is submitted, the relevant integration class normalizes the data and passes it to `Guard_Runner::run()`. The runner checks the allowlist first — if the submitter's IP or email matches, all guards are bypassed. Otherwise every enabled guard evaluates the submission, in weight order, and the highest-weight objection is the verdict; the log records every guard that objected, not only the first. Only when no guard objects does the runner call each guard's `commit()`, so a state-holding guard (duplicate detection) never records a submission that was refused.
+
+Under monitor mode — site-wide, or for one form — a submission that would have been refused is logged with `outcome = 'monitored'` and accepted instead (see [Monitor mode](#monitor-mode)).
 
 ### Two-phase Jetpack integration
 
@@ -275,7 +277,7 @@ submissions; this applies it more broadly, and without the Akismet dependency Je
 
 ### Logging
 
-Blocked submissions are logged to a custom database table (`wp_simple_spam_shield_spam_logs`) with guard name, context, reason, content excerpt, IP, and user agent. The **Spam Guard → Spam Logs** admin page provides a paginated, sortable `WP_List_Table` that can be filtered by guard and by context, shows a user-agent column, and offers individual and bulk delete. A cached 7-day summary ("blocked / most active guard") sits above the list. Logging can be disabled from the settings page, and a configurable retention window (default 30 days) prunes old rows daily via WP-Cron.
+Blocked submissions — and, under monitor mode, ones that would have been blocked — are logged to a custom database table (`wp_simple_spam_shield_spam_logs`) with the time, the deciding guard and every guard that matched, the outcome (`blocked` or `monitored`), context, reason, content excerpt, IP, and user agent. The **Spam Guard → Spam Logs** admin page provides a paginated, sortable `WP_List_Table` that can be filtered by guard, by context and by outcome, labels monitored rows "Would have blocked", shows a user-agent column, and offers individual and bulk delete. A cached 7-day summary above the list gives the blocked count and most active guard, and separately the count monitor mode let through. Logging can be disabled from the settings page, and a configurable retention window (default 30 days) prunes old rows daily via WP-Cron.
 
 ### Abilities (WordPress 6.9+)
 
@@ -312,7 +314,7 @@ drifts from the declared shape fails loudly rather than returning stale data.
 
 ### Settings
 
-Settings live under **Spam Guard → Settings**, organized into tabs — General, Guards, Allowlist, and Logging — rendered as a single form so one Save persists everything. It degrades gracefully: without JavaScript the tab bar is hidden and every section is shown.
+Settings live under **Spam Guard → Settings**, organized into tabs — General, Guards, Per-form, Allowlist, and Logging — rendered as a single form so one Save persists everything. It degrades gracefully: without JavaScript the tab bar is hidden and every section is shown.
 
 ### Clean uninstall
 
@@ -443,7 +445,7 @@ form without restating the rest.
 
 Register a class implementing `Guard_Interface` through the
 `simple_spam_shield_guards` filter, and it joins the pipeline as a first-class
-guard — sorted by weight, short-circuiting on failure, logged, and given its own
+guard — sorted by weight, evaluated on every submission, logged, and given its own
 on/off toggle on the Guards settings tab automatically.
 
 ```php
@@ -499,37 +501,46 @@ its entry.
 add_action( 'simple_spam_shield_blocked', function ( $guard, $context, $matched, $data ) {
     // $guard   — the guard that decided the block
     // $matched — every guard that matched, in weight order ($matched[0] === $guard)
-    // $context — 'comment', 'woo_review', 'jetpack_form', or your own label
+    // $context — 'comment', 'contact_form_7', 'job_submission', … or your own label
 }, 10, 4 );
 ```
 
 `$data` carries the submitted content, author name and email, so treat it as
 personal data.
 
+It fires only when a submission is actually refused — not for one monitor mode let
+through. Use `Guard_Runner::is_monitoring( $context )` if you need to know.
+
 ## Lineage
 
 The plugin's architecture draws from two sources:
 
-- **[ShelterKit Pets](https://github.com/jwincek/shelterkit-pets)** — The config-driven, layered structure: `config/` JSON definitions, `includes/core/` infrastructure, namespaced autoloader, activation/deactivation hooks, and the guard-as-ability pattern.
+- **[ShelterKit Pets](https://github.com/jwincek/shelterkit-pets)** — The config-driven, layered structure: `config/` JSON definitions, `includes/core/` infrastructure, namespaced autoloader, activation/deactivation hooks, and the pattern of thin, testable operations with clear inputs and outputs, which became the guards.
 
 - **Comment & Form Guard** — Five features were ported and adapted: duplicate submission detection (transient-based hashing), behavioral analysis (mouse/click/time scoring), the allowlist system (IP, CIDR, email, domain matching with proxy-aware IP detection), database-backed logging with `WP_List_Table`, and `uninstall.php` for clean plugin deletion.
 
 ### Improvements over both
 
-- **Guard pipeline with weighted priority and short-circuit** — Guards run as an ordered pipeline rather than being registered individually or checked with sequential if/else blocks.
+- **Guard pipeline with weighted priority** — Guards run as an ordered pipeline rather than being registered individually or checked with sequential if/else blocks. Every guard is evaluated so the log can say everything that was wrong with a submission, and the highest-weight objection decides.
 - **Normalized data layer** — Each integration normalizes its form data into a common format so guards never need to know about WP comment arrays, WooCommerce review data, or Jetpack field structures.
 - **Two-phase Jetpack processing** — Solves the field-stripping problem without `wp_die()` or undocumented hooks, keeping Jetpack in control of the UX.
 - **Server-signed form token** — A single HMAC-signed `<issued_at>.<signature>` token drives both the time gate (tamper-proof issue time) and the signature guard (proof the form came from this site). Because the HMAC does not expire, it is safe under full-page caching — where a WordPress nonce would go stale and block legitimate visitors.
 - **No jQuery dependency** — The front-end script uses vanilla JS with `MutationObserver` for dynamic form detection.
 - **PHP 8.2+ with strict types** — Union return types (including `true`), `str_starts_with`/`str_contains`, and `match` expressions throughout.
 
-## Linting
+## Development
 
 ```bash
 composer install
-composer lint        # Check
-composer lint:fix    # Auto-fix
+composer lint        # PHP_CodeSniffer (WordPress standard)
+composer lint:fix    # auto-fix what can be fixed
+composer analyse     # PHPStan
+composer test        # PHPUnit
 ```
+
+`CONTRIBUTING.md` covers the full set of checks CI runs — including the smoke
+test against real WordPress at both ends of the supported range — plus how to
+add a guard and how releases are cut.
 
 ## License
 
