@@ -8,13 +8,13 @@ Stable tag: 1.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Config-driven spam protection for comments, WooCommerce reviews, Jetpack forms, and WP Job Manager submissions — no external services or CAPTCHAs.
+Spam protection for comments, Contact Form 7, WooCommerce, Jetpack and WP Job Manager forms — no external services, API keys or CAPTCHAs.
 
 == Description ==
 
-Onsite Spam Guard blocks spam on the forms your visitors actually use — WordPress comments, WooCommerce product reviews, Jetpack contact form blocks, and WP Job Manager job submissions — without sending anything to a third-party service, requiring an API key, or putting a CAPTCHA in front of your users.
+Onsite Spam Guard blocks spam on the forms your visitors actually use — WordPress comments, Contact Form 7, WooCommerce product reviews, Jetpack contact forms and WP Job Manager job submissions, plus account registration and BuddyPress private messages if you want them — without sending anything to a third-party service, requiring an API key, or putting a CAPTCHA in front of your users.
 
-Protection is built from a pipeline of independent **guards**. Each guard is a small, focused check (a hidden honeypot field, a submit-speed gate, a keyword filter, and so on). Guards run in priority order, and the first one to fail blocks the submission. Every guard can be toggled and tuned from a single settings page, and every block can be logged for review.
+Protection is built from a pipeline of independent **guards**. Each guard is a small, focused check (a hidden honeypot field, a submit-speed gate, a keyword filter, and so on). Every enabled guard looks at every submission, and one objection is enough to block it; the log records every guard that objected, so you can see exactly why. Every guard can be toggled and tuned from a single settings page — for the whole site, or form by form — and every block can be logged for review.
 
 = Spam guards =
 
@@ -31,6 +31,8 @@ Protection is built from a pipeline of independent **guards**. Each guard is a s
 
 * **No external services.** Nothing leaves your site. No accounts, no API keys, no per-submission fees.
 * **No CAPTCHA.** Protection is invisible to legitimate visitors.
+* **Try before you enforce.** Monitor mode records what would have been blocked without blocking anything, for the whole site or a single form, and the Per-form tab sums up what enforcing a form would catch before you switch it on.
+* **Tuned per form.** A contact form can be stricter about links than a comment thread, and a form such as a job listing starts with limits that suit it.
 * **Allowlist.** Trusted IPs, CIDR ranges, email addresses, and email domains bypass every guard.
 * **Logging with retention.** Blocked submissions are recorded in a dedicated table with a paginated admin viewer, and old entries are pruned automatically on a schedule you control.
 * **Privacy-aware.** The plugin registers suggested privacy-policy text describing exactly what it records.
@@ -67,7 +69,7 @@ No. All protection is invisible. The honeypot field is hidden, and the timing an
 
 = What does it store, and for how long? =
 
-When a submission is blocked (and logging is enabled), the plugin records the guard that blocked it, the form context, the reason, a short excerpt of the content, the visitor IP address, and the browser user-agent. Entries older than the retention window (default 30 days, configurable; set to 0 to keep them indefinitely) are pruned automatically. The plugin also registers suggested privacy-policy text you can add to your site's policy.
+When a submission is blocked, or would have been under monitor mode (and logging is enabled), the plugin records when it happened, every guard that objected, the form, the reason, whether it was blocked or let through, a short excerpt of the content, the visitor IP address, and the browser user-agent. Entries older than the retention window (default 30 days, configurable; set to 0 to keep them indefinitely) are pruned automatically. The plugin also registers suggested privacy-policy text you can add to your site's policy.
 
 = Can AI assistants and other tools read the spam log? =
 

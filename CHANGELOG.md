@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 The user-facing changelog shipped to WordPress.org lives in the
 `== Changelog ==` section of `readme.txt`; keep the two in sync.
 
-## [1.7.0] - 2026-09-29
+## [1.7.0] - 2026-09-30
 
 ### Added
 - Contexts can carry threshold `defaults` (#45) through the

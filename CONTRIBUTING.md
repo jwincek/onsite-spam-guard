@@ -16,14 +16,16 @@ composer install
 ```
 
 This installs the development tooling only (PHP_CodeSniffer + WordPress
-Coding Standards, and PHPUnit). The plugin itself ships with **no runtime
+Coding Standards, PHPStan, and PHPUnit). The plugin itself ships with **no runtime
 dependencies**, so nothing under `vendor/` is included in the distributed
 package.
 
 ## Quality gates
 
-All three run in CI (`.github/workflows/ci.yml`) on every push and pull
-request, and should pass locally before you open a PR.
+All of these run in CI (`.github/workflows/ci.yml`) on every push and pull
+request, and should pass locally before you open a PR. CI also checks that the
+version is the same everywhere it is recorded (`composer check-versions`; see
+Releasing).
 
 ### Coding standards
 
@@ -39,6 +41,17 @@ deliberate modern style (short arrays, typed signatures); see the comments
 in `phpcs.xml.dist` for the rationale. Direct queries against the plugin's
 own custom log table are expected — keep them prepared and column-whitelisted.
 
+### Static analysis
+
+```bash
+composer analyse
+```
+
+PHPStan at level 5, with WordPress stubs, over `includes/`, `admin/`, the main
+plugin file and `uninstall.php`. A value that comes back from a filter is
+another plugin's code: annotate it `/** @var mixed */` and check it, rather
+than trusting a docblock that says it is an array.
+
 ### Unit tests
 
 ```bash
@@ -51,10 +64,33 @@ of WP functions the pure logic touches (options, transients, `WP_Error`,
 sanitizers) and reuses the plugin's own autoloader. Keep tests fast and
 dependency-free; if a unit needs heavy WordPress integration, prefer
 refactoring the pure logic out so it can be tested in isolation (as with
-`Token`, `Request`, and `Database_Manager::build_filter()`).
+`Token`, `Request`, and `Database_Manager::build_filter()`). What only a real
+WordPress can show is the smoke test's job, below. `tests/README.md` maps the
+test files and explains the stubs.
 
 Every guard has a corresponding `tests/<Guard>Test.php`. New guards must
 ship with tests.
+
+### Smoke test on real WordPress
+
+```bash
+composer build
+tests/smoke/run.sh /path/to/throwaway/wordpress build/onsite-spam-guard
+```
+
+Installs the built package into a real WordPress and checks, stage by stage: an
+upgrade from the previous release (files replaced, no reactivation, no
+`admin_init` — as an automatic update runs), uninstall, fresh activation, the
+admin screens, the guard pipeline, the abilities, every integration with its
+host plugin absent, and a debug log free of errors from the plugin. **It
+uninstalls the plugin, so use a WordPress you can throw away**, with `WP_DEBUG`
+and `WP_DEBUG_LOG` on.
+
+CI runs it at both ends of the range the plugin claims — WordPress 6.2 on PHP
+8.2 (`Requires at least`, `Requires PHP`) and WordPress 7.1 on PHP 8.4
+(`Tested up to`) — and a step fails if either stops matching the header or
+readme. When one of those moves, move the matrix in `ci.yml` with it.
+`tests/README.md` lists the variables the script takes.
 
 ### Translation template
 
@@ -72,37 +108,49 @@ wp i18n make-pot . languages/onsite-spam-guard.pot --slug=onsite-spam-guard --ex
 
 ### Plugin Check
 
-The WordPress.org review tool. Run it against a distribution copy (dev
-files excluded) so it sees only what ships:
+The WordPress.org review tool. Run it against the built package, so it sees only
+what ships (it needs the Plugin Check plugin active on a local WordPress):
 
 ```bash
-# Requires the Plugin Check plugin installed in a local WordPress site.
-rsync -a --exclude-from=<(grep -v '^#' .distignore) ./ /path/to/wp-content/plugins/onsite-spam-guard/
-wp plugin check onsite-spam-guard
+composer build
+wp plugin check "$PWD/build/onsite-spam-guard" --slug=onsite-spam-guard --ignore-warnings
 ```
 
+- **Pass an absolute path.** Given a relative one, it has exited successfully
+  without checking anything.
+- **Pass `--slug`.** Plugin Check expects the text domain to match the
+  directory name, which for a built copy elsewhere is not the plugin's.
+
 Only `WordPress.DB.DirectDatabaseQuery` warnings are expected (inherent to a
-custom-table plugin); there should be no errors.
+custom-table plugin); there should be no errors. CI runs the same check against
+WordPress 7.1, including its WordPress-function compatibility check, which
+fails on a call to a function newer than `Requires at least` unless a
+`function_exists()` guard in the same file protects it.
 
 ## Architecture
 
 ```
 config/                JSON definitions (guard rules, default settings)
-includes/core/         Infrastructure: Config, Guard_Runner, Database_Manager,
-                       Assets, Admin, Request, Token
-includes/guards/       One class per spam check (the "abilities" layer)
-includes/integrations/ Thin consumers hooking WP Comments, WooCommerce, Jetpack
+includes/api.php       Public functions other plugins call (simple_spam_shield_check() …)
+includes/core/         Infrastructure: Config, Guard_Runner, Database_Manager, Contexts,
+                       Monitor_Review, Proxy_Diagnostics, Request, Token, Assets, Admin
+includes/guards/       One class per spam check
+includes/integrations/ One thin consumer per protected form (comments, WooCommerce,
+                       Jetpack, Contact Form 7, WP Job Manager, BuddyPress messages,
+                       registration), plus the Abilities API
 admin/                 WP_List_Table for the spam log viewer
-assets/                Front-end honeypot CSS + guard JS
-tests/                 PHPUnit unit tests
+assets/                Front-end honeypot CSS and guard JS; settings-page CSS and JS
+tests/                 PHPUnit unit tests; tests/smoke/ runs against real WordPress
+bin/                   Build, consistency checks, screenshots (not shipped)
 ```
 
 Guards are independent checks that implement `Guard_Interface` (most extend
 `Abstract_Guard`). The `Guard_Runner` loads them from `config/guards.json`,
-sorts by weight (highest first), and runs them as a pipeline — the first
-failure short-circuits and blocks the submission. Integrations normalize
-their form data into a common shape and delegate all checking to the runner,
-so guards never need to know about comment arrays vs. Jetpack field data.
+sorts by weight (highest first), and runs them as a pipeline: every enabled
+guard evaluates the submission, and the highest-weight failure is the verdict.
+Integrations normalize their form data into a common shape and delegate all
+checking to the runner, so guards never need to know about comment arrays vs.
+Jetpack field data.
 
 ## Adding a new guard
 
@@ -155,7 +203,13 @@ so guards never need to know about comment arrays vs. Jetpack field data.
    `Guard_Runner::definitions()`. Add a numeric/text setting in
    `Admin::register_settings()` only if the guard needs a threshold.
 
-4. **Add tests** in `tests/My_GuardTest.php`, covering both the blocking and
+   If sites should be able to set that threshold **per form**, read it through
+   `$this->threshold()` and add it to `Contexts::THRESHOLDS` with its bounds and
+   default (the default must match `config/guards.json`; `ContextDefaultsTest`
+   fails if they drift). That makes it available on the Per-form tab and as a
+   context default.
+
+4. **Add tests** in `tests/MyGuardTest.php`, covering both the blocking and
    passing paths plus the Jetpack-context behavior if the guard depends on
    JS-injected fields.
 
@@ -186,8 +240,15 @@ shipped plugin is PHP only, and `.distignore` keeps `bin/`, `package.json` and
 `node_modules` out of the package.
 
 It logs in by minting an auth cookie through wp-cli, so it never needs anyone's
-password, and it seeds fictional blocked submissions for the log viewer and
-deletes exactly those rows afterwards.
+password. It seeds fictional blocked submissions for the log viewer and applies
+a few settings so the shots show features in use, then deletes exactly those
+rows and restores those settings. Finally it compares a fingerprint of the
+plugin's options, transients and log rows with one taken before the run, and
+fails if anything differs.
+
+The Per-form shot shows the WP Job Manager and Contact Form 7 sections, so both
+plugins must be active on the site generating the shots; the script fails
+rather than publish a shot without them.
 
 If wp-cli on your machine needs extra arguments to reach the database, pass them
 through:
@@ -236,8 +297,9 @@ Three reasons:
    every existing install silently lose its settings and its log history, or
    require a migration routine that then has to be carried forever.
 2. **The public API function names are a contract.** `simple_spam_shield_check()`
-   and its siblings are called by other plugins — `wc-artisan-tools` alone calls
-   them from seven places. Renaming them is a breaking change for consumers.
+   and its siblings are called by other plugins — ProducerKit, for one, uses
+   `simple_spam_shield_check()` and `simple_spam_shield_field_markup()` in its
+   forms. Renaming them is a breaking change for consumers.
 3. **Plugin Check does not require slug-matching prefixes.** This was verified
    empirically rather than assumed: a throwaway rename carrying the new slug and
    text domain but the old internal prefixes produced zero prefix and zero
@@ -255,31 +317,45 @@ target that is never edited by hand.
 
 1. **Bump the version** everywhere it appears — the plugin header `Version`,
    the `SIMPLE_SPAM_SHIELD_VERSION` constant, `readme.txt` `Stable tag`, a new
-   `## [x.y.z]` heading in `CHANGELOG.md`, and a matching `= x.y.z =` section
-   in the `readme.txt` changelog.
+   `## [x.y.z] - YYYY-MM-DD` heading in `CHANGELOG.md` (dated the day you tag,
+   with a compare link at the bottom), and a matching `= x.y.z =` section in the
+   `readme.txt` changelog plus an `== Upgrade Notice ==` entry of at most 300
+   characters.
 2. **Regenerate the translation template** so its header carries the new
    version:
    ```bash
    wp i18n make-pot . languages/onsite-spam-guard.pot --slug=onsite-spam-guard --exclude=build
    ```
-3. **Check consistency** (CI runs this on every push, and the release workflow
+3. **Regenerate the screenshots** if the admin screens changed
+   (`npm run screenshots`, see above), and look at every image before
+   committing. Update the `== Screenshots ==` captions to match.
+4. **Check consistency** (CI runs this on every push, and the release workflow
    runs it against the tag):
    ```bash
    composer check-versions
    ```
-4. **Tag and push.** That is the only manual publish step:
+5. **Tag and push.** That is the only manual publish step:
    ```bash
-   git tag v1.2.0 && git push origin v1.2.0
+   git tag -a v1.2.0 -m "Release 1.2.0" && git push origin v1.2.0
    ```
 
-`.github/workflows/release.yml` then validates the tag against the plugin
-version, re-runs lint and tests, builds the package, commits it to SVN
-`trunk/` and `tags/<version>/`, syncs `.wordpress-org/` to the SVN `assets/`
-directory, and attaches an installable zip to the GitHub Release.
+   `.github/workflows/release.yml` then validates the tag against the plugin
+   version, re-runs lint and tests, builds the package, commits it to SVN
+   `trunk/` and `tags/<version>/`, syncs `.wordpress-org/` to the SVN `assets/`
+   directory, and attaches an installable zip to the GitHub Release.
+6. **Confirm it is live.** The WordPress.org API should report the new version
+   and its download should exist:
+   ```bash
+   curl -s "https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&slug=onsite-spam-guard" | grep -o '"version":"[^"]*"'
+   curl -sI https://downloads.wordpress.org/plugin/onsite-spam-guard.1.2.0.zip | head -1
+   ```
+   This usually takes a few minutes after the deploy. 1.6.0 took about two and a
+   half hours, during a slowdown affecting every plugin in the directory. If the
+   SVN tag is there, wait rather than re-tagging.
 
-The SVN deploy step is skipped until the `SVN_USERNAME` and `SVN_PASSWORD`
-repository secrets are set, so tagging works safely before the plugin is
-approved on WordPress.org.
+The SVN deploy step runs only when the `SVN_USERNAME` and `SVN_PASSWORD`
+repository secrets are set; without them a tag still builds the package and
+attaches it to the GitHub Release.
 
 **`Stable tag` is the release switch.** WordPress.org serves whatever
 `tags/<Stable tag>/` contains, so tagging code without bumping `Stable tag`
