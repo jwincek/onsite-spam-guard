@@ -94,4 +94,19 @@ final class DuplicateTest extends TestCase {
 		$second = [ 'content' => "two \xC3\x28", 'author' => 'A', 'email' => '' ];
 		$this->assertTrue( $this->guard()->check( $second, 'comment' ) );
 	}
+	/** Moving to another address in the same IPv6 /64 is not a new sender. */
+	public function test_identical_content_from_the_same_ipv6_network_is_a_duplicate(): void {
+		$data = [
+			'content' => 'hello there',
+			'author'  => 'Bob',
+			'email'   => 'bob@example.com',
+		];
+		$_SERVER['REMOTE_ADDR'] = '2001:db8:9:9::1';
+		$this->assertTrue( $this->guard()->check( $data, 'comment' ) );
+		$this->guard()->commit( $data, 'comment' );
+
+		$_SERVER['REMOTE_ADDR'] = '2001:db8:9:9::2';
+		$this->assertInstanceOf( WP_Error::class, $this->guard()->check( $data, 'comment' ) );
+	}
+
 }

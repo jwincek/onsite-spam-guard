@@ -53,4 +53,31 @@ final class RateLimitTest extends TestCase {
 			$this->assertTrue( $guard->check( [], 'comment' ) );
 		}
 	}
+	/**
+	 * An IPv6 subscriber can use any address in their /64. Counted per
+	 * address, each submission from a new one would start a fresh budget.
+	 */
+	public function test_ipv6_addresses_in_one_network_share_a_budget(): void {
+		$guard = $this->guard();
+		foreach ( [ '2001:db8:5:6::1', '2001:db8:5:6::2', '2001:db8:5:6:ffff::3' ] as $address ) {
+			$_SERVER['REMOTE_ADDR'] = $address;
+			$this->assertTrue( $guard->check( [], 'comment' ) );
+		}
+
+		$_SERVER['REMOTE_ADDR'] = '2001:db8:5:6:aaaa:bbbb:cccc:dddd';
+		$this->assertInstanceOf( WP_Error::class, $guard->check( [], 'comment' ) );
+	}
+
+	public function test_separate_ipv6_networks_are_separate_senders(): void {
+		$guard = $this->guard();
+		$_SERVER['REMOTE_ADDR'] = '2001:db8:5:6::1';
+		for ( $i = 0; $i < 3; $i++ ) {
+			$guard->check( [], 'comment' );
+		}
+		$this->assertInstanceOf( WP_Error::class, $guard->check( [], 'comment' ) );
+
+		$_SERVER['REMOTE_ADDR'] = '2001:db8:5:7::1';
+		$this->assertTrue( $guard->check( [], 'comment' ) );
+	}
+
 }

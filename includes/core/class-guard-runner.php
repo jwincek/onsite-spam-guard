@@ -348,8 +348,10 @@ final class Guard_Runner {
 		foreach ( $entries as $entry ) {
 			$entry_lower = strtolower( $entry );
 
-			// IP match (exact).
-			if ( filter_var( $entry, FILTER_VALIDATE_IP ) && $entry === $ip ) {
+			// IP match (exact), compared in canonical form: "2001:DB8::1" and
+			// "2001:db8::1" are one address, as are 192.0.2.1 and
+			// ::ffff:192.0.2.1.
+			if ( filter_var( $entry, FILTER_VALIDATE_IP ) && Request::canonical( $entry ) === $ip ) {
 				return true;
 			}
 

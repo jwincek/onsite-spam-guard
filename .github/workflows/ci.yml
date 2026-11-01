@@ -131,16 +131,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # The declared minimum, on the minimum PHP. 6.2.13 is the newest
-          # 6.2 point release, which still receives security fixes.
+          # The declared minimum, on the minimum PHP: the newest 6.2 point
+          # release, as a site still on 6.2 would run it. Bump with each 6.2.x.
           - name: WordPress floor (6.2, PHP 8.2)
-            wp: '6.2.13'
+            wp: '6.2.15'
             php: '8.2'
             claim: Requires at least
           # The newest version the readme claims, on the newest PHP the unit
           # tests run on. Above 6.9, so the abilities are registered here.
           - name: WordPress ceiling (7.1, PHP 8.4)
-            wp: '7.1.2'
+            wp: '7.1.4'
             php: '8.4'
             claim: Tested up to
     env:

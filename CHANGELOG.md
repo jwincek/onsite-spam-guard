@@ -8,6 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 The user-facing changelog shipped to WordPress.org lives in the
 `== Changelog ==` section of `readme.txt`; keep the two in sync.
 
+## [1.7.1] - 2026-11-01
+
+### Fixed
+- The rate limit keyed IPv6 senders by their exact address. A subscriber is
+  normally allocated a whole /64 and can use any address in it, so each
+  submission from a new address started a fresh budget. `Request::sender()`
+  returns the address for IPv4 and its /64 network for IPv6 (for example
+  `2001:db8:1:2::/64`). `Rate_Limit` keys on it, and so does the `Duplicate`
+  fingerprint, so moving within the network is not a new sender. The rate
+  limit is off by default.
+- Addresses are canonical. `Request::ip()` returns one spelling per address
+  (as `inet_ntop()` writes it), and an IPv4 client reported as
+  `::ffff:a.b.c.d` as plain IPv4. The same address in different case or
+  zero-padding used to be a different sender, was logged differently, and
+  missed an exact allowlist entry written another way; an IPv4 client
+  reported in IPv6 form also missed IPv4 allowlist entries and ranges. The
+  allowlist's exact match now compares canonical forms on both sides
+  (`Request::canonical()`).
+
+### Changed
+- CI tests the newest point releases at both ends of the supported range:
+  WordPress 6.2.15 (was 6.2.13) and 7.1.4 (was 7.1.2).
+
 ## [1.7.0] - 2026-09-30
 
 ### Added
@@ -531,7 +554,8 @@ Initial release.
   their own forms: `simple_spam_shield_check()`,
   `simple_spam_shield_protect_selector()`, and `simple_spam_shield_field_markup()`.
 
-[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.7.1...HEAD
+[1.7.1]: https://github.com/jwincek/onsite-spam-guard/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/jwincek/onsite-spam-guard/compare/v1.5.0...v1.5.1

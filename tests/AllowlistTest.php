@@ -74,6 +74,18 @@ final class AllowlistTest extends TestCase {
 		$this->assertTrue( $this->allow( '2001:db8::1', '2001:db8::1' ) );
 	}
 
+	/** One address, however it is written, on either side. */
+	public function test_an_exact_ipv6_entry_matches_however_it_is_written(): void {
+		$this->assertTrue( $this->allow( '2001:DB8:0:0:0:0:0:1', '2001:db8::1' ) );
+		$this->assertTrue( $this->allow( '2001:db8::1', '2001:0db8:0000::0001' ) );
+	}
+
+	/** Some servers report an IPv4 visitor as ::ffff:a.b.c.d. */
+	public function test_an_ipv4_entry_matches_an_ipv4_visitor_reported_in_ipv6_form(): void {
+		$this->assertTrue( $this->allow( '192.0.2.10', '::ffff:192.0.2.10' ) );
+		$this->assertTrue( $this->allow( '192.0.2.0/24', '::ffff:192.0.2.10' ) );
+	}
+
 	public function test_address_families_do_not_cross_match(): void {
 		$this->assertFalse( $this->allow( '2001:db8::/32', '192.0.2.10' ) );
 		$this->assertFalse( $this->allow( '192.0.2.0/24', '2001:db8::1' ) );

@@ -80,4 +80,39 @@ final class RequestTest extends TestCase {
 		$_SERVER['REMOTE_ADDR'] = 'bogus';
 		$this->assertSame( '0.0.0.0', Request::ip() );
 	}
+	// --- one spelling per address, one sender per IPv6 network ---------------
+
+	public function test_ipv6_addresses_are_returned_in_canonical_form(): void {
+		$_SERVER['REMOTE_ADDR'] = '2001:0DB8:0000:0000:0000:0000:0000:0001';
+
+		$this->assertSame( '2001:db8::1', Request::ip() );
+	}
+
+	public function test_an_ipv4_client_reported_in_ipv6_form_is_plain_ipv4(): void {
+		$_SERVER['REMOTE_ADDR'] = '::ffff:192.0.2.1';
+
+		$this->assertSame( '192.0.2.1', Request::ip() );
+	}
+
+	public function test_canonical_leaves_ipv4_and_non_addresses_alone(): void {
+		$this->assertSame( '192.0.2.1', Request::canonical( '192.0.2.1' ) );
+		$this->assertSame( 'bogus', Request::canonical( 'bogus' ) );
+	}
+
+	public function test_an_ipv4_sender_is_its_address(): void {
+		$this->assertSame( '192.0.2.1', Request::sender( '192.0.2.1' ) );
+	}
+
+	public function test_ipv6_addresses_in_one_64_are_one_sender(): void {
+		$this->assertSame( '2001:db8:1:2::/64', Request::sender( '2001:db8:1:2::1' ) );
+		$this->assertSame( '2001:db8:1:2::/64', Request::sender( '2001:DB8:1:2:FFFF:FFFF:FFFF:FFFF' ) );
+		$this->assertNotSame( Request::sender( '2001:db8:1:2::1' ), Request::sender( '2001:db8:1:3::1' ) );
+	}
+
+	public function test_sender_defaults_to_the_visitor(): void {
+		$_SERVER['REMOTE_ADDR'] = '2001:db8:aa:bb:1:2:3:4';
+
+		$this->assertSame( '2001:db8:aa:bb::/64', Request::sender() );
+	}
+
 }

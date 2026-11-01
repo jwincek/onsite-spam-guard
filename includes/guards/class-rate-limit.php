@@ -33,9 +33,10 @@ final class Rate_Limit extends Abstract_Guard {
 		// save — this covers a value stored by anything else.
 		$window = max( 1, (int) $this->threshold( 'simple_spam_shield_rate_limit_window_seconds', $context, $this->config['window_seconds'] ?? 60 ) );
 
-		// Identify the sender: the logged-in user, else the connection IP.
+		// Identify the sender: the logged-in user, else the connection's
+		// address — for IPv6, its /64, which one subscriber can use all of.
 		$user_id = get_current_user_id();
-		$sender  = $user_id > 0 ? 'user:' . $user_id : 'ip:' . \Simple_Spam_Shield\Core\Request::ip();
+		$sender  = $user_id > 0 ? 'user:' . $user_id : 'ip:' . \Simple_Spam_Shield\Core\Request::sender();
 		$key     = 'simple_spam_shield_rate_' . md5( $sender . '|' . $context );
 
 		$count = (int) get_transient( $key );
