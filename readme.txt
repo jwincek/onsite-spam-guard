@@ -4,7 +4,7 @@ Tags: spam, antispam, comments, honeypot, woocommerce
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.7.0
+Stable tag: 1.7.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,7 +22,7 @@ Protection is built from a pipeline of independent **guards**. Each guard is a s
 * **Duplicate detection** — rejects identical submissions sent within a short window.
 * **Time gate** — rejects submissions completed faster than a human could plausibly type.
 * **Signature** — requires a server-signed token proving the form was served by this site, deterring automated cross-site posting.
-* **Rate limit** (optional) — throttles repeated submissions from the same sender within a short window, keyed on the logged-in user when there is one and the connection IP otherwise.
+* **Rate limit** (optional) — throttles repeated submissions from the same sender within a short window, keyed on the logged-in user when there is one and the connection IP otherwise. An IPv6 address counts together with the rest of its network (its /64), since one household or office can use any address in it.
 * **Link limit** — flags submissions that contain too many URLs.
 * **Keyword block** — rejects submissions matching a configurable blocklist of words or phrases.
 * **Behavioral analysis** (optional) — scores mouse movement, clicks, and time on page to spot bot-like interaction.
@@ -166,6 +166,10 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 
 == Changelog ==
 
+= 1.7.1 =
+* Fixed: the optional rate limit now counts an IPv6 address together with the rest of its network (its /64), which one household or office can use all of. Each address used to count as a separate sender, so a visitor on IPv6 could avoid the limit by changing address. Duplicate detection now groups IPv6 senders the same way. **Recommended if you use the rate limit.**
+* Fixed: an allowlisted IP address now matches however it is written — in capitals, with leading zeros, or an IPv4 address that the server reports in IPv6 form — and the spam log records each address in one consistent form.
+
 = 1.7.0 =
 * Monitored forms now come with a review on the **Per-form** tab: how long the form has been monitored, how many submissions would have been blocked and by which checks, a link to those entries in the spam log, and an **Enforce this form** link that switches it on when you are ready.
 * Changed: WP Job Manager job listings now start with a limit of 10 links instead of 3. An ordinary listing linking to an about page, a benefits page, a team page and where to apply was being rejected. If you have changed the site-wide link limit, your setting still applies to job listings.
@@ -253,6 +257,9 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 * Developed by Jerome Wincek, with engineering assistance from Anthropic's Claude.
 
 == Upgrade Notice ==
+
+= 1.7.1 =
+Recommended if you use the optional rate limit: it now counts each IPv6 network as one sender. Also makes allowlisted IP addresses match however they are written.
 
 = 1.7.0 =
 Adds a review of monitored forms with a one-click Enforce, and read-only access to spam stats for WordPress 6.9+ tools, with no personal data. WP Job Manager listings now allow 10 links instead of 3. Nothing needs reconfiguring.

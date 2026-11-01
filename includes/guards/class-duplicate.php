@@ -53,10 +53,12 @@ final class Duplicate extends Abstract_Guard {
 	 * @param array $data Submission data.
 	 */
 	private static function transient_key( array $data ): string {
+		// $ip is the sender's address, or its /64 for IPv6, so moving to
+		// another address in the same network is not a new sender.
 		$content = $data['content'] ?? $data['comment'] ?? '';
 		$author  = $data['author'] ?? $data['author_name'] ?? '';
 		$email   = $data['email'] ?? $data['author_email'] ?? '';
-		$ip      = \Simple_Spam_Shield\Core\Request::ip();
+		$ip      = \Simple_Spam_Shield\Core\Request::sender();
 
 		// Each field is prefixed with its byte length. Joining them directly
 		// let text cross a field boundary unnoticed — "Great post, Sam" with no

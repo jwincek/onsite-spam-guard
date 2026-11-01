@@ -44,7 +44,7 @@ uninstall.php            → Clean deletion of all plugin data
 | **Honeypot** | 100 | On | Hidden field that bots fill in but humans never see. The field name is derived from the site's signing secret, so it differs per install rather than being a fixed target a bot author can skip-list once |
 | **Duplicate detection** | 95 | On | Rejects identical submissions within a configurable window (default 60 seconds) using transient-based hashing |
 | **Time gate** | 90 | On | Rejects submissions completed faster than a human could type (configurable, default 3s), using a server-signed issue time |
-| **Rate limit** | 85 | Off | Throttles repeated submissions from the same sender within a rolling window; keyed on the logged-in user ID when present, the connection IP otherwise |
+| **Rate limit** | 85 | Off | Throttles repeated submissions from the same sender within a rolling window; keyed on the logged-in user ID when present, the connection IP otherwise — for IPv6, the address's /64 network, since one subscriber can use any address in it |
 | **Signature** | 80 | On | Requires a valid server-signed token (HMAC) proving the form was served by this site; does not expire, so it is cache-safe |
 | **Link limit** | 70 | On | Flags submissions containing too many distinct URLs (configurable, default 3; a form can bring its own, such as 10 for WP Job Manager listings) |
 | **Keyword block** | 60 | On | Rejects submissions matching blocked keywords or phrases |
