@@ -59,6 +59,7 @@ final class Assets {
 			'#review_form form',                   // WooCommerce Reviews.
 			'.wp-block-jetpack-contact-form form', // Jetpack Contact Form blocks.
 			'.jetpack-contact-form form',          // Jetpack legacy class.
+			'form.jetpack-contact-form__form',     // Jetpack Forms' current markup.
 		];
 
 		/**

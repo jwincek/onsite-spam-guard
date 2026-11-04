@@ -64,15 +64,35 @@ When a form is submitted, the relevant integration class normalizes the data and
 
 Under monitor mode — site-wide, or for one form — a submission that would have been refused is logged with `outcome = 'monitored'` and accepted instead (see [Monitor mode](#monitor-mode)).
 
-### Two-phase Jetpack integration
+### Jetpack forms
 
-Jetpack contact forms require special handling because Jetpack's form processor strips unrecognized POST fields before our spam filter fires. The integration solves this with a two-phase pipeline:
+Jetpack runs its own submission pipeline. Current Jetpack submits the form by
+AJAX to `admin-ajax.php?action=grunion-contact-form`, sending every input in
+the form (`new FormData( form )`), and asks other plugins whether the
+submission is spam through the `jetpack_contact_form_is_spam` filter. The
+integration hooks two filters:
 
-- **Phase 1** (`template_redirect`, priority 1) — Fires before Jetpack's `process_form_submission` (priority 10). At this point `$_POST` still contains our JS-injected fields. The integration runs the JS-dependent guards (honeypot, signature, time gate, behavioral) against raw POST data. If any fail, a rejection flag is stored on the class — no `wp_die()`, no short-circuit.
+- **`jetpack_contact_form_html`** renders the honeypot and signed token into
+  the form, right after its opening tag, as the Contact Form 7, WP Job Manager
+  and registration integrations do. Because the honeypot is in the HTML, a bot
+  that fills every field trips it with or without JavaScript, and `guard.js`
+  finds the form by that field and adds behavioral tracking.
+- **`jetpack_contact_form_is_spam`** runs the guard pipeline in the
+  `jetpack_form` context. Returning `true` lets Jetpack handle the rejection
+  through its own UX: it stores the message as spam.
 
-- **Phase 2** (`jetpack_contact_form_is_spam` filter) — Fires during Jetpack's own processing. If Phase 1 flagged the submission, this filter returns `true` immediately and Jetpack handles the rejection through its native UX. If Phase 1 passed, the content-based guards (keyword block, link limit, duplicate detection) run against Jetpack's structured `$form_data`. The JS-dependent guards skip automatically in Phase 2 via context-aware logic, avoiding duplicate checks.
+Only the visitor's own input is inspected: `comment_content`,
+`comment_author_url` and the `contact_form_field_*` values. Jetpack's
+Akismet-shaped array also carries the site's URLs, the referrer and request
+headers, and inspecting those flagged legitimate submissions (fixed in 1.1.1).
 
-This design gives full guard coverage on Jetpack forms while Jetpack stays in complete control of the submission lifecycle and rejection UX.
+Until 1.7.2 the fields were added only by `guard.js`, matching Jetpack's
+markup by class. Current Jetpack wraps the form in
+`.jetpack-contact-form-container`, which no selector matched, so on a live site
+no field reached the form and only the content guards ran: bots got through on
+their first submission and were caught only on a repeat. The selectors now
+include `form.jetpack-contact-form__form` as well, for any path that skips the
+filter.
 
 ### BuddyPress private messages
 
@@ -523,7 +543,7 @@ The plugin's architecture draws from two sources:
 
 - **Guard pipeline with weighted priority** — Guards run as an ordered pipeline rather than being registered individually or checked with sequential if/else blocks. Every guard is evaluated so the log can say everything that was wrong with a submission, and the highest-weight objection decides.
 - **Normalized data layer** — Each integration normalizes its form data into a common format so guards never need to know about WP comment arrays, WooCommerce review data, or Jetpack field structures.
-- **Two-phase Jetpack processing** — Solves the field-stripping problem without `wp_die()` or undocumented hooks, keeping Jetpack in control of the UX.
+- **Jetpack through its own filters** — The plugin's fields are rendered into the form through `jetpack_contact_form_html` and the verdict returned through `jetpack_contact_form_is_spam`, so Jetpack keeps control of the submission and of how a rejection looks.
 - **Server-signed form token** — A single HMAC-signed `<issued_at>.<signature>` token drives both the time gate (tamper-proof issue time) and the signature guard (proof the form came from this site). Because the HMAC does not expire, it is safe under full-page caching — where a WordPress nonce would go stale and block legitimate visitors.
 - **No jQuery dependency** — The front-end script uses vanilla JS with `MutationObserver` for dynamic form detection.
 - **PHP 8.2+ with strict types** — Union return types (including `true`), `str_starts_with`/`str_contains`, and `match` expressions throughout.

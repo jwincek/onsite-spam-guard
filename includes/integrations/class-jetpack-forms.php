@@ -2,9 +2,12 @@
 /**
  * Jetpack Forms integration — protects Jetpack Contact Form block submissions.
  *
- * Jetpack's contact form (the wp-block-jetpack-contact-form block) sends
- * submissions through its own processing pipeline. This integration hooks
- * into the jetpack_contact_form_is_spam filter to run guard checks.
+ * Jetpack's contact form (the jetpack/contact-form block, or the classic
+ * shortcode) sends submissions through its own processing pipeline. This
+ * integration renders the plugin's fields into the form through
+ * jetpack_contact_form_html, and runs the guards in
+ * jetpack_contact_form_is_spam, so Jetpack handles a rejection through its
+ * own UX.
  *
  * @package Simple_Spam_Shield
  */
@@ -13,6 +16,7 @@ declare( strict_types=1 );
 
 namespace Simple_Spam_Shield\Integrations;
 
+use Simple_Spam_Shield\Core\Assets;
 use Simple_Spam_Shield\Core\Guard_Runner;
 
 final class Jetpack_Forms {
@@ -25,11 +29,49 @@ final class Jetpack_Forms {
 			return;
 		}
 
+		// Render the honeypot and signed token into the form itself, as the
+		// Contact Form 7, WP Job Manager and registration integrations do.
+		// guard.js used to add them by matching Jetpack's markup, and that
+		// markup changed: current Jetpack (16.3.1 here) puts the form in
+		// .jetpack-contact-form-container, which no selector matched. No field
+		// reached the form, so every guard that reads one skipped, and on a
+		// live site only the content guards ran. A filter on the finished
+		// HTML does not depend on class names.
+		add_filter( 'jetpack_contact_form_html', [ __CLASS__, 'add_fields' ] );
+
 		// Jetpack's contact form spam filter — returns true to mark as spam.
 		add_filter( 'jetpack_contact_form_is_spam', [ __CLASS__, 'check_form' ], 10, 2 );
 
 		// Fallback: hook into the grunion (Jetpack forms module) processing.
 		add_filter( 'grunion_contact_form_is_spam', [ __CLASS__, 'check_form' ], 10, 2 );
+	}
+
+	/**
+	 * Put the plugin's fields inside the form, right after its opening tag.
+	 *
+	 * Rendered on the server, the honeypot is in the HTML a bot reads, so a
+	 * bot that fills every field trips it whether or not it runs JavaScript.
+	 * guard.js finds the form by that field and adds the behavioral tracking.
+	 * Jetpack's AJAX submission posts every input in the form, so the fields
+	 * reach check_form().
+	 *
+	 * @param mixed $html The form's HTML, as Jetpack built it. A string,
+	 *                    unless another plugin's filter returned something else.
+	 * @return mixed
+	 */
+	public static function add_fields( mixed $html ): mixed {
+		if ( ! is_string( $html ) || str_contains( $html, 'name="simple_spam_shield_form_loaded"' ) ) {
+			return $html;
+		}
+
+		$with_fields = preg_replace_callback(
+			'/<form\b[^>]*>/i',
+			static fn( array $match ): string => $match[0] . Assets::field_markup(),
+			$html,
+			1
+		);
+
+		return is_string( $with_fields ) ? $with_fields : $html;
 	}
 
 	/**
