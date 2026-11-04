@@ -115,4 +115,52 @@ final class JetpackFormsTest extends TestCase {
 	public function test_already_flagged_submission_is_passed_through(): void {
 		$this->assertTrue( Jetpack_Forms::check_form( true, $this->akismet_values() ) );
 	}
+
+	// --- the plugin's fields in the rendered form -----------------------------
+
+	/** Jetpack's form markup as of Jetpack 16: no class guard.js used to match. */
+	private function jetpack_form_html(): string {
+		return '<div class="jetpack-contact-form-container"><form action="/contact/" id="contact-form-1" method="post" class="contact-form commentsblock jetpack-contact-form__form" data-wp-on--submit="actions.onFormSubmit" novalidate >'
+			. "\n<input type='hidden' name='jetpack_contact_form_jwt' value='x' />"
+			. '<input name="g1-name" /></form></div>';
+	}
+
+	public function test_the_fields_are_rendered_right_after_the_opening_form_tag(): void {
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_token_secret'] = str_repeat( 'j', 64 );
+
+		$html = Jetpack_Forms::add_fields( $this->jetpack_form_html() );
+
+		$opening = strpos( $html, 'novalidate >' ) + strlen( 'novalidate >' );
+		$this->assertStringStartsWith( '<div class="onsite-spam-guard-hp-wrap"', substr( $html, $opening ) );
+		$this->assertSame( 1, substr_count( $html, 'name="simple_spam_shield_form_loaded"' ) );
+		$this->assertSame( 1, substr_count( $html, 'name="simple_spam_shield_behavioral_data"' ) );
+		$this->assertStringContainsString( "name='jetpack_contact_form_jwt'", $html, "Jetpack's own fields are kept" );
+	}
+
+	public function test_fields_are_added_once(): void {
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_token_secret'] = str_repeat( 'j', 64 );
+
+		$twice = Jetpack_Forms::add_fields( Jetpack_Forms::add_fields( $this->jetpack_form_html() ) );
+
+		$this->assertSame( 1, substr_count( $twice, 'name="simple_spam_shield_form_loaded"' ) );
+		$this->assertSame( 1, substr_count( $twice, 'onsite-spam-guard-hp-wrap' ) );
+	}
+
+	public function test_html_without_a_form_and_non_strings_are_passed_on(): void {
+		$this->assertSame( '<p>No form here.</p>', Jetpack_Forms::add_fields( '<p>No form here.</p>' ) );
+		$this->assertNull( Jetpack_Forms::add_fields( null ) );
+	}
+
+	/**
+	 * The production case: a bot fills every field it finds. With the
+	 * honeypot rendered into the form it fills that too, and is refused on
+	 * its first submission rather than only on a repeat.
+	 */
+	public function test_a_bot_that_fills_the_rendered_honeypot_is_marked_spam(): void {
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_token_secret'] = str_repeat( 'j', 64 );
+		preg_match( '/<input type="text" name="([^"]+)"/', Jetpack_Forms::add_fields( $this->jetpack_form_html() ), $honeypot );
+		$_POST = [ $honeypot[1] => 'https://spam.example/' ];
+
+		$this->assertTrue( Jetpack_Forms::check_form( false, [ 'comment_content' => 'BuByPPtvufenomKGpHSq' ] ) );
+	}
 }

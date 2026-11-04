@@ -8,6 +8,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 The user-facing changelog shipped to WordPress.org lives in the
 `== Changelog ==` section of `readme.txt`; keep the two in sync.
 
+## [1.7.2] - 2026-11-03
+
+### Fixed
+- Jetpack forms received none of the plugin's fields on current Jetpack, so
+  the honeypot, time-gate, signature and behavioral guards never ran on them.
+  Found from a live site's data: a bot's first submission reached Jetpack's
+  inbox and only its repeat, seconds later, was refused as a duplicate. In
+  the `jetpack_form` context no guard that reads a field ever matched, while
+  the same bot, a minute later, filled the honeypot on a comment form. Current
+  Jetpack (16.3.1) wraps the form in `.jetpack-contact-form-container`.
+  `guard.js` looked for `.wp-block-jetpack-contact-form form` and
+  `.jetpack-contact-form form`, which matched nothing, and for `jetpack_form` a
+  missing token skips rather than fails. The integration now renders
+  `Assets::field_markup()` right after the opening `<form>` tag through
+  Jetpack's `jetpack_contact_form_html` filter, as the Contact Form 7, WP Job
+  Manager and registration integrations already did, and the selectors add
+  `form.jetpack-contact-form__form`. Verified in a browser on Jetpack 16.3.1:
+  the form carries one token, one behavioral field and one hidden honeypot; a
+  person's submission is accepted; a bot filling every field is refused on its
+  first submission and stored by Jetpack as spam. Against 1.7.1 the same form
+  had no honeypot at all. Pages cached before the update keep the old form
+  HTML until the cache is cleared.
+- The README described a two-phase Jetpack integration (`template_redirect`
+  plus the spam filter) that did not exist. It now describes the two filters
+  the integration uses.
+
 ## [1.7.1] - 2026-11-01
 
 ### Fixed
@@ -554,7 +580,8 @@ Initial release.
   their own forms: `simple_spam_shield_check()`,
   `simple_spam_shield_protect_selector()`, and `simple_spam_shield_field_markup()`.
 
-[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.7.1...HEAD
+[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.7.2...HEAD
+[1.7.2]: https://github.com/jwincek/onsite-spam-guard/compare/v1.7.1...v1.7.2
 [1.7.1]: https://github.com/jwincek/onsite-spam-guard/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.5.1...v1.6.0
