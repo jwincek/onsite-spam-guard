@@ -213,6 +213,18 @@ switch ( $mode ) {
 			$check( true, "{$integration}::init() runs without its host" );
 		}
 		$check( false !== has_filter( 'preprocess_comment' ), 'comment protection is hooked' );
+
+		// comment_form() prints the fields inside the form, once, even though
+		// Comments::init() has now registered the callback twice. A fresh
+		// install's first post has comments open.
+		$first = get_posts( [ 'numberposts' => 1, 'orderby' => 'ID', 'order' => 'ASC' ] );
+		ob_start();
+		comment_form( [], $first ? $first[0]->ID : 0 );
+		$form = (string) ob_get_clean();
+		$end  = strrpos( $form, '</form>' );
+		$at   = strpos( $form, 'name="simple_spam_shield_form_loaded"' );
+		$check( 1 === substr_count( $form, 'name="simple_spam_shield_form_loaded"' ) && 1 === substr_count( $form, 'onsite-spam-guard-hp-wrap' ), 'the comment form carries the honeypot and token once' );
+		$check( false !== $at && false !== $end && $at < $end, 'inside the form' );
 		break;
 
 	/*

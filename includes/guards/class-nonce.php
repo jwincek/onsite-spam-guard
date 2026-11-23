@@ -27,10 +27,10 @@ final class Nonce extends Abstract_Guard {
 		$token = (string) ( $data[ self::FIELD ] ?? '' );
 
 		if ( '' === $token ) {
-			// The token is guaranteed only on the built-in comment/review
-			// forms (guard.js injects it). Skip rather than hard-fail
-			// elsewhere — Jetpack strips it, and custom integrations may omit
-			// it; the other guards still protect the submission.
+			// The comment and review forms always carry a token (rendered by
+			// the server, or added by guard.js). Elsewhere, skip rather than
+			// hard-fail: a custom integration may not render the fields, and
+			// the other guards still protect the submission.
 			return $this->is_js_injected_context( $context )
 				? $this->fail( __( 'Security check failed — please refresh the page and try again.', 'onsite-spam-guard' ) )
 				: true;

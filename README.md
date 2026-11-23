@@ -54,9 +54,15 @@ Every enabled guard evaluates every submission, in descending weight order. The 
 
 ## How It Works
 
-### Front-end injection
+### Front-end fields
 
-`guard.js` automatically finds the protected forms on the page — comment forms, WooCommerce review forms, Jetpack contact forms, Contact Form 7 forms, the WP Job Manager submission form, and the account registration forms when that protection is on — via CSS selectors. Integrations add their selectors through the `simple_spam_shield_form_selectors` filter, which other plugins can use too. It injects hidden fields for the honeypot, the signed form token, and behavioral data into each form. A `MutationObserver` (debounced) catches dynamically-loaded forms (e.g. AJAX-loaded WooCommerce reviews). The token is an HMAC-signed `<issued_at>.<signature>` string minted server-side (`includes/core/class-token.php`); the time gate reads the signed issue time and the signature guard verifies authenticity. Behavioral data (mouse movement count, click count, time on page) is collected continuously and serialized into a JSON hidden field at submit time.
+Every protected form carries three hidden fields: a honeypot, an HMAC-signed `<issued_at>.<signature>` token minted server-side (`includes/core/class-token.php`), and a behavioral-data field. The time gate reads the token's signed issue time and the signature guard verifies it.
+
+**The fields are rendered on the server**, inside the form's HTML, wherever the form's own plugin offers a hook: comment forms and WooCommerce review forms (classic and block) through `comment_form`, Jetpack forms through `jetpack_contact_form_html`, Contact Form 7, the WP Job Manager submission form, and the registration forms. Because the honeypot is in the HTML, a bot that fills every field trips it whether or not it runs JavaScript. And the forms keep their protection under a strict Content Security Policy, which blocks the inline script WordPress prints for `guard.js`'s settings.
+
+`guard.js` then finds the forms — by the honeypot, or by CSS selectors registered through the `simple_spam_shield_form_selectors` filter — and adds what can only come from the browser: behavioral data (mouse movement count, click count, time on page), serialized into the hidden field at submit time. For a form with no server-side hook, such as one another plugin registers only by selector, it also adds the fields themselves; that path needs JavaScript and the inline settings. A `MutationObserver` (debounced) catches forms loaded later, such as AJAX-loaded WooCommerce reviews.
+
+Before 1.7.3, comment and review forms got their fields only from `guard.js`. Under a strict Content Security Policy the script found no settings and added nothing, and a comment without a token is refused, so every genuine comment was refused.
 
 ### Server-side pipeline
 

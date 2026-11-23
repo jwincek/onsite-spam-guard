@@ -37,11 +37,12 @@ final class WooCommerce {
 		// Hook into WooCommerce's review validation.
 		add_action( 'woocommerce_new_comment', [ __CLASS__, 'check_review' ], 1 );
 
-		// Also inject honeypot into the review form.
-		// A filter, not an action: WooCommerce runs it through apply_filters(),
-		// so a callback registered with add_action() would have its return
-		// value discarded and any change to the args silently dropped.
-		add_filter( 'woocommerce_product_review_comment_form_args', [ __CLASS__, 'add_form_fields' ] );
+		// Render the honeypot and token into the review form. WooCommerce
+		// builds it with comment_form(), in the classic template and the
+		// Product Review Form block alike, so the comment form's own action
+		// reaches both. The callback is the Comments integration's: WordPress
+		// keeps one copy when both integrations register it.
+		add_action( 'comment_form', [ Comments::class, 'render_fields' ] );
 	}
 
 	/**
@@ -97,17 +98,5 @@ final class WooCommerce {
 				wc_add_notice( $result->get_error_message(), 'error' );
 			}
 		}
-	}
-
-	/**
-	 * Modify WooCommerce review form args to include a note about protection.
-	 *
-	 * @param array $args Form arguments.
-	 * @return array Modified arguments.
-	 */
-	public static function add_form_fields( array $args ): array {
-		// The JS-based injection in guard.js handles the actual field injection.
-		// This filter is a hook point for themes that override the review form.
-		return $args;
 	}
 }
