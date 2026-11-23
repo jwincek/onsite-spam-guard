@@ -5,6 +5,7 @@ use PHPUnit\Framework\TestCase;
 use Simple_Spam_Shield\Core\Config;
 use Simple_Spam_Shield\Core\Guard_Runner;
 use Simple_Spam_Shield\Integrations\Comments;
+use Simple_Spam_Shield\Integrations\WooCommerce;
 
 /**
  * Integration test: a comment submission flows through the real guard
@@ -101,5 +102,51 @@ final class CommentsIntegrationTest extends TestCase {
 		// The wp_die() stub throws so we can assert the hard-block path.
 		$this->expectException( \RuntimeException::class );
 		Comments::check_comment( $this->commentdata() );
+	}
+
+	// --- the fields in the rendered form --------------------------------------
+
+	/**
+	 * The fields are rendered on the server, inside the form. They used to be
+	 * added only by guard.js, from an inline script a strict Content Security
+	 * Policy blocks; without them every genuine comment was refused.
+	 */
+	public function test_the_comment_form_action_prints_the_fields_inside_the_form(): void {
+		$GLOBALS['simple_spam_shield_test_actions'] = [];
+		Comments::init();
+		$this->assertContains( [ Comments::class, 'render_fields' ], $GLOBALS['simple_spam_shield_test_actions']['comment_form'] ?? [] );
+
+		ob_start();
+		do_action( 'comment_form', 1 );
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'class="onsite-spam-guard-hp-wrap"', $html );
+		$this->assertSame( 1, substr_count( $html, 'name="simple_spam_shield_form_loaded"' ) );
+		$this->assertSame( 1, substr_count( $html, 'name="simple_spam_shield_behavioral_data"' ) );
+	}
+
+	public function test_the_rendered_token_is_one_the_guards_accept(): void {
+		ob_start();
+		Comments::render_fields();
+		preg_match( '/name="simple_spam_shield_form_loaded" value="([^"]+)"/', (string) ob_get_clean(), $token );
+
+		$this->assertNotFalse( \Simple_Spam_Shield\Core\Token::verify( $token[1] ?? '' ) );
+	}
+
+	/** The review forms are comment forms: WooCommerce registers the same callback. */
+	public function test_woocommerce_review_forms_get_the_same_fields(): void {
+		$GLOBALS['simple_spam_shield_test_actions'] = [];
+		WooCommerce::register_hooks();
+
+		$this->assertContains( [ Comments::class, 'render_fields' ], $GLOBALS['simple_spam_shield_test_actions']['comment_form'] ?? [] );
+	}
+
+	/** With protection off, the form is left alone. */
+	public function test_no_fields_when_comment_protection_is_off(): void {
+		$GLOBALS['simple_spam_shield_test_actions']                                           = [];
+		$GLOBALS['simple_spam_shield_test_options']['simple_spam_shield_protect_comments'] = false;
+		Comments::init();
+
+		$this->assertArrayNotHasKey( 'comment_form', $GLOBALS['simple_spam_shield_test_actions'] );
 	}
 }

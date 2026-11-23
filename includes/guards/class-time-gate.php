@@ -17,13 +17,15 @@ final class Time_Gate extends Abstract_Guard {
 		$token = (string) ( $data['simple_spam_shield_form_loaded'] ?? '' );
 
 		if ( '' === $token ) {
-			// The token is guaranteed only on the built-in comment/review
-			// forms (guard.js injects it). When it is absent we cannot measure
-			// elapsed time, so skip rather than hard-fail — Jetpack strips it,
-			// and custom integrations may omit it; the other guards still
+			// The comment and review forms always carry a token: the server
+			// renders it into every form comment_form() builds, and guard.js
+			// adds it to forms it finds. One arriving without a token did not
+			// come from a form this site rendered, so it is refused. Elsewhere
+			// a missing token is skipped rather than refused, since a custom
+			// integration may not render the fields; the other guards still
 			// protect the submission.
 			return $this->is_js_injected_context( $context )
-				? $this->fail( __( 'Submission rejected — please enable JavaScript.', 'onsite-spam-guard' ) )
+				? $this->fail( __( 'Submission rejected — please reload the page and try again.', 'onsite-spam-guard' ) )
 				: true;
 		}
 

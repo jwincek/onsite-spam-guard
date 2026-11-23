@@ -4,7 +4,7 @@ Tags: spam, antispam, comments, honeypot, woocommerce
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.7.2
+Stable tag: 1.7.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -151,6 +151,10 @@ While monitor mode is on for the whole site, a notice on every admin screen remi
 
 Yes. The timing and authenticity checks use a token whose signature does not expire (unlike a WordPress nonce, which would go stale on a cached page and block legitimate visitors), so full-page caching does not produce false positives.
 
+= Does it work with a Content Security Policy? =
+
+Yes. Security plugins and hosts can send a Content Security Policy, a header that tells the browser which scripts it may run. A strict one blocks inline scripts, including the small settings script this plugin's front-end JavaScript uses. Since 1.7.3, the hidden fields on comment, review, Jetpack, Contact Form 7, WP Job Manager and registration forms are part of the page itself, so those forms stay protected and genuine submissions go through. Under such a policy, only the optional behavioral check loses its data, and it is skipped rather than counted against anyone.
+
 = Does removing the plugin clean up after itself? =
 
 By default, yes — deleting the plugin (not just deactivating it) drops its database table, removes all of its options, clears its scheduled task, and purges its transients, on every site of a multisite network. If you would rather keep your settings and logs (for example, before reinstalling), turn off **Delete all plugin data when this plugin is deleted** under **Spam Guard → Settings → Logging** first.
@@ -165,6 +169,11 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 6. The Spam Logs viewer — every guard that matched, what monitor mode would have blocked, filters by guard, form and outcome, and per-row and bulk delete.
 
 == Changelog ==
+
+= 1.7.3 =
+* Fixed: on sites that send a strict Content Security Policy, which some security plugins and hosts do, every genuine comment and WooCommerce review was refused with "please enable JavaScript". The policy blocked a small script the plugin relied on to add its hidden fields to those forms. The fields are now part of the form itself, so they no longer depend on that script. **Recommended if you use a security plugin that sets security headers.**
+* Changed: visitors with JavaScript turned off can now leave comments and reviews. They were refused before.
+* If you use a page cache, clear it after updating so cached pages pick this up.
 
 = 1.7.2 =
 * Fixed: on sites running a current version of Jetpack, the plugin's hidden checks (the honeypot, the minimum submission time and the signature) were not reaching Jetpack contact forms. Only the content checks applied, so a bot's first submission could get through; only an immediate repeat was caught. The hidden fields are now built into Jetpack forms directly, so a bot that fills in every field is refused on its first attempt. **Recommended for every site using Jetpack forms.** If you use a page cache, clear it after updating so cached pages pick this up.
@@ -260,6 +269,9 @@ By default, yes — deleting the plugin (not just deactivating it) drops its dat
 * Developed by Jerome Wincek, with engineering assistance from Anthropic's Claude.
 
 == Upgrade Notice ==
+
+= 1.7.3 =
+Recommended if a security plugin or your host sends security headers: a strict Content Security Policy made every genuine comment and review be refused. Clear any page cache after updating.
 
 = 1.7.2 =
 Recommended for every site using Jetpack contact forms: the hidden honeypot and timing checks were not reaching current Jetpack forms, so a bot's first submission could get through. Clear any page cache after updating.

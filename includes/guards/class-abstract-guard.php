@@ -94,10 +94,12 @@ abstract class Abstract_Guard implements Guard_Interface {
 	}
 
 	/**
-	 * Whether the context is a built-in form whose JS-injected fields (token,
-	 * behavioral data) are guaranteed to be present.
+	 * Whether the context is a built-in form whose token is guaranteed to be
+	 * present: WordPress comments and WooCommerce reviews. The server renders
+	 * it into every form comment_form() builds (since 1.7.3; before that only
+	 * guard.js added it, so the name is historical).
 	 *
-	 * For these, a missing field is suspicious and the JS-dependent guards
+	 * For these, a missing token is suspicious and the token guards
 	 * hard-fail. For any other context (Jetpack, or a third-party form
 	 * integrated via simple_spam_shield_check()) the field may be legitimately
 	 * absent, so those guards skip rather than block.

@@ -13,6 +13,7 @@ declare( strict_types=1 );
 
 namespace Simple_Spam_Shield\Integrations;
 
+use Simple_Spam_Shield\Core\Assets;
 use Simple_Spam_Shield\Core\Guard_Runner;
 
 final class Comments {
@@ -32,8 +33,31 @@ final class Comments {
 			return;
 		}
 
+		add_action( 'comment_form', [ __CLASS__, 'render_fields' ] );
 		add_filter( 'preprocess_comment', [ __CLASS__, 'check_comment' ], 1 );
 		add_filter( 'pre_comment_approved', [ __CLASS__, 'maybe_mark_spam' ], 99, 2 );
+	}
+
+	/**
+	 * Print the honeypot and signed token inside a comment form.
+	 *
+	 * WordPress's comment_form() fires this action just before its closing
+	 * </form> tag, so the fields are part of the form's HTML. Until 1.7.3 guard.js added
+	 * them, reading the token from an inline script WordPress prints for it.
+	 * A Content Security Policy that allows only the site's own script files
+	 * blocks that inline script, so guard.js added nothing, and a comment
+	 * without a token is refused as coming from a browser without JavaScript.
+	 * Every genuine comment was refused. Rendered here, the fields do not
+	 * depend on JavaScript at all; guard.js finds the form by its honeypot
+	 * and adds only the behavioral tracking.
+	 *
+	 * WooCommerce's review forms, classic and block, are built by
+	 * comment_form() too. Its integration registers this same callback, and
+	 * WordPress keeps one copy of a callback registered twice on one hook, so
+	 * a form never gets the fields twice.
+	 */
+	public static function render_fields(): void {
+		echo Assets::field_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped markup.
 	}
 
 	/**

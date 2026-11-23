@@ -8,6 +8,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 The user-facing changelog shipped to WordPress.org lives in the
 `== Changelog ==` section of `readme.txt`; keep the two in sync.
 
+## [1.7.3] - 2026-11-23
+
+### Fixed
+- Under a strict Content Security Policy every genuine comment and
+  WooCommerce review was refused. Comment and review forms got their honeypot
+  and token only from `guard.js`, which reads them from the inline script
+  `wp_localize_script()` prints. A policy allowing only the site's own script
+  files (`script-src 'self'`), as security plugins and hosts can send, blocks
+  that script; `guard.js` exits when its settings object is missing, and in
+  the `comment` and `woo_review` contexts a missing token is refused ("please
+  enable JavaScript"). Reproduced in a browser with the policy applied: no
+  fields on the comment form, and the server refused a token-less comment. The
+  Jetpack form on the same page was unaffected, since 1.7.2 renders its fields
+  server-side. `Comments::render_fields()` now prints `Assets::field_markup()`
+  on the `comment_form` action, which fires inside every form
+  `comment_form()` builds, WooCommerce's classic and block review forms
+  included. The WooCommerce integration registers the same callback, and
+  WordPress keeps one copy.
+
+### Changed
+- Comments and reviews no longer require JavaScript. With the token in the
+  form's HTML, a visitor with scripts off is no longer refused. A comment
+  arriving without a token still is: it did not come from a form the site
+  rendered. That refusal now reads "please reload the page and try again"
+  rather than "please enable JavaScript". This puts comments on the same
+  footing as Jetpack, Contact Form 7 and WP Job Manager forms: a bot reading
+  the HTML can obtain a token, but must avoid the server-rendered honeypot,
+  wait out the time gate and pass the content guards.
+- Removed `WooCommerce::add_form_fields()`, a `woocommerce_product_review_comment_form_args`
+  filter that returned its argument unchanged.
+- README: "Front-end injection" becomes "Front-end fields", describing which
+  forms get server-rendered fields and what `guard.js` still adds. readme.txt
+  gains a Content Security Policy FAQ.
+
 ## [1.7.2] - 2026-11-03
 
 ### Fixed
@@ -580,7 +614,8 @@ Initial release.
   their own forms: `simple_spam_shield_check()`,
   `simple_spam_shield_protect_selector()`, and `simple_spam_shield_field_markup()`.
 
-[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.7.2...HEAD
+[Unreleased]: https://github.com/jwincek/onsite-spam-guard/compare/v1.7.3...HEAD
+[1.7.3]: https://github.com/jwincek/onsite-spam-guard/compare/v1.7.2...v1.7.3
 [1.7.2]: https://github.com/jwincek/onsite-spam-guard/compare/v1.7.1...v1.7.2
 [1.7.1]: https://github.com/jwincek/onsite-spam-guard/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/jwincek/onsite-spam-guard/compare/v1.6.0...v1.7.0
